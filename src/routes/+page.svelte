@@ -3,24 +3,31 @@
 	import { loadFiles } from "$lib/loadFiles";
 	import { initDragDrop } from "$lib/dragDrop";
 	import { formatLine, parseLRC } from "$lib/parseLRC";
-import type { LyricLine } from "$lib/parseLRC";
-
+	import type { LyricLine } from "$lib/parseLRC";
+	import CollapsibleText from "./components/CollapsibleText.svelte";
 
 	let audioFile = $state<File | null>(null);
-	let lrcFile= $state<File | null>(null);
-	let audioSrc =  $state("");
-	let lyricsText = ""
-	let lyrics: LyricLine[]  = $derived(parseLRC(lyricsText));
+	let lrcFile = $state<File | null>(null);
+	let audioSrc = $state("");
+	let lyricsText = $state("");
+	let lyrics: LyricLine[] = $derived(parseLRC(lyricsText));
 
 	let audioRef: HTMLAudioElement;
-	let lineElements: HTMLDivElement[] = [];
+	let lineElements: HTMLDivElement[] = $state([]);
+	let textAreaElement: HTMLTextAreaElement;
+	let overlayElement: HTMLDivElement;
+	let audioTime = $state(0);
+
+	let activeTab = $state<"edit" | "sync">("sync");
+
 	let showFileoverlay = $state(false);
 
 	let currentAudioLine = $state(-1);
 	let currentCaretLine = $state(-1);
 
 	function updateCurrentLine() {
-		const time = audioRef?.currentTime ?? 0;
+		const time = (audioRef?.currentTime ?? 0) * 1000;
+		audioTime = time;
 
 		let newIndex = lyrics.findIndex(
 			(line, i) =>
@@ -29,8 +36,21 @@ import type { LyricLine } from "$lib/parseLRC";
 		);
 
 		if (newIndex !== currentAudioLine) {
-			if (newIndex >= 0) {
-				lineElements[newIndex]?.scrollIntoView({
+			console.log(`new line: ${newIndex}`);
+			if (activeTab == "edit") {
+				if (newIndex >= 0 && textAreaElement) {
+					const lineHeight =
+						parseFloat(getComputedStyle(textAreaElement).lineHeight) || 20;
+					const target = Math.max(
+						0,
+						lineHeight * newIndex - textAreaElement.clientHeight / 2,
+					);
+					textAreaElement.scrollTo({ top: target, behavior: "smooth" });
+				}
+			} else {
+				if (newIndex < 0) newIndex = 0;
+				if (newIndex > lineElements.length) newIndex = lineElements.length - 1;
+				lineElements[newIndex].scrollIntoView({
 					block: "center",
 					behavior: "smooth",
 				});
@@ -39,20 +59,28 @@ import type { LyricLine } from "$lib/parseLRC";
 		}
 	}
 
+	function update() {
+		audioTime = audioRef?.currentTime ?? 0;
+		updateCurrentLine();
+		requestAnimationFrame(update);
+	}
+
 	async function doLoad() {
 		if (!audioFile || !lrcFile) {
-			console.error("couldn't load! files are null")
-			return
+			console.error("couldn't load! files are null");
+			return;
 		}
 
-		const { audioSrc: src, lyrics: l } = await loadFiles(audioFile, lrcFile);
+		const { audioSrc: src, lyricstext: l } = await loadFiles(
+			audioFile,
+			lrcFile,
+		);
 		audioSrc = src;
-		lyrics = l;
+
+		lyricsText = l;
 	}
 
 	onMount(() => {
-		audioRef?.addEventListener("timeupdate", updateCurrentLine);
-
 		const cleanup = initDragDrop(
 			(files) => {
 				Array.from(files).forEach((file) => {
@@ -67,9 +95,10 @@ import type { LyricLine } from "$lib/parseLRC";
 			doLoad,
 		);
 
+		requestAnimationFrame(update);
+
 		return () => {
 			cleanup;
-			audioRef?.removeEventListener("timeupdate", updateCurrentLine);
 		};
 	});
 </script>
@@ -123,10 +152,50 @@ import type { LyricLine } from "$lib/parseLRC";
 	<div class="info">
 		<p>audio line: {currentAudioLine}</p>
 		<p>caret line: {currentCaretLine}</p>
+		<p>current time: {(audioTime / 1000).toFixed(2)}</p>
+		<p>
+			{String(Math.floor(audioTime / 1000 / 60)).padStart(2, "0")}:{String(Math.floor((audioTime / 1000) % 60)).padStart(2, "0")}.{String(Math.floor(audioTime % 1000)).padStart(3, "0")}
+		</p>
 	</div>
 
-	
+	<CollapsibleText>
+		<p>asdjasd: {JSON.stringify(lineElements)}</p>
+		<p>lyric data: {JSON.stringify(lyrics, null, 2)}</p>
+	</CollapsibleText>
+	<p>current lyric: {lyrics[currentAudioLine]?.text ?? ""}</p>
 
+	<div class="tabs">
+		<button
+			onclick={() => (activeTab = "sync")}
+			class:active={activeTab === "sync"}>Sync</button
+		>
+		<button
+			onclick={() => (activeTab = "edit")}
+			class:active={activeTab === "edit"}>Edit</button
+		>
+	</div>
+
+	{#if activeTab === "sync"}
+		<div class="sync-view">
+			{#each lyrics as line, i}
+				<div bind:this={lineElements[i]} class:current={i === currentAudioLine}>
+					{formatLine(line)}
+				</div>
+			{/each}
+		</div>
+	{:else}
+		<div class="textareadiv">
+			<textarea
+				bind:this={textAreaElement}
+				bind:value={lyricsText}
+				oninput={() =>
+					(currentCaretLine =
+						textAreaElement.value
+							.substring(0, textAreaElement.selectionStart)
+							.split("\n").length - 1)}
+			></textarea>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -140,9 +209,33 @@ import type { LyricLine } from "$lib/parseLRC";
 			"Helvetica Neue",
 			Arial;
 		margin: 0;
-		padding: 1rem;
-		background: #fbfbfd;
-		color: #0f172a;
+		background: #211b22;
+		color: #ffffff;
+	}
+
+	.textareadiv {
+		height: 60vh;
+		width: 60vw;
+		textarea {
+			height: 100%;
+			width: 100%;
+			overflow-y: auto;
+			resize: none;
+			background-color: #554258;
+			color: #ffffff;
+		}
+	}
+
+	.sync-view {
+		.current {
+			background-color: #ffffff;
+			color: #555555;
+		}
+		div {
+			  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+		}
+		height: 60vh;
+		overflow: auto;
 	}
 
 	.container {
@@ -151,6 +244,7 @@ import type { LyricLine } from "$lib/parseLRC";
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		height: 100vh;
 	}
 	.controls {
 		display: flex;
@@ -175,45 +269,6 @@ import type { LyricLine } from "$lib/parseLRC";
 
 	.audio-row {
 		margin-top: 0.25rem;
-	}
-
-	.lines {
-		border: 1px solid #e6e9ef;
-		border-radius: 8px;
-		padding: 0.5rem;
-		max-height: 60vh;
-		overflow: auto;
-		background: linear-gradient(180deg, #fff, #fbfbff);
-	}
-
-	.line {
-		font-family:
-			"Inter",
-			ui-sans-serif,
-			system-ui,
-			-apple-system,
-			"Segoe UI",
-			Roboto,
-			"Helvetica Neue",
-			Arial;
-		font-size: 14px;
-		padding: 0.35rem 0.5rem;
-		margin: 0.15rem 0;
-		border-radius: 6px;
-		white-space: pre;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		outline: none;
-		cursor: text;
-	}
-
-	.line.current {
-		background-color: #f9beca;
-	}
-
-	.line:focus {
-		box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
-		background: #ffffff;
 	}
 
 	.drag-overlay {
