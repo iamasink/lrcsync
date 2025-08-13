@@ -2,22 +2,22 @@
 	import { onMount } from "svelte";
 	import { loadFiles } from "$lib/loadFiles";
 	import { initDragDrop } from "$lib/dragDrop";
-	import { formatLine } from "$lib/parseLRC";
+	import { formatLine, parseLRC } from "$lib/parseLRC";
+import type { LyricLine } from "$lib/parseLRC";
 
-	interface LyricLine {
-		text: string;
-		time: number; 
-	}
 
-	let audioFile: File, lrcFile: File;
-	let audioSrc = "";
-	let lyrics: LyricLine[] = [];
+	let audioFile = $state<File | null>(null);
+	let lrcFile= $state<File | null>(null);
+	let audioSrc =  $state("");
+	let lyricsText = ""
+	let lyrics: LyricLine[]  = $derived(parseLRC(lyricsText));
+
 	let audioRef: HTMLAudioElement;
 	let lineElements: HTMLDivElement[] = [];
-	let showFileoverlay = false;
+	let showFileoverlay = $state(false);
 
-	let currentAudioLine = -1;
-	let currentCaretLine = -1;
+	let currentAudioLine = $state(-1);
+	let currentCaretLine = $state(-1);
 
 	function updateCurrentLine() {
 		const time = audioRef?.currentTime ?? 0;
@@ -40,6 +40,11 @@
 	}
 
 	async function doLoad() {
+		if (!audioFile || !lrcFile) {
+			console.error("couldn't load! files are null")
+			return
+		}
+
 		const { audioSrc: src, lyrics: l } = await loadFiles(audioFile, lrcFile);
 		audioSrc = src;
 		lyrics = l;
@@ -120,40 +125,8 @@
 		<p>caret line: {currentCaretLine}</p>
 	</div>
 
-	<div id="lines-wrapper" class="lines">
-		{#each lyrics as line, i (i)}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				class="line"
-				class:current={i === currentAudioLine}
-				data-index={i}
-				bind:this={lineElements[i]}
-				contenteditable="true"
-				onblur={() => {
-					// normalize display on blur
-					const el = lineElements[i];
-					if (el) el.innerText = formatLine(lyrics[i]);
-				}}
-				onfocus={() => {
-					currentCaretLine = i
-					console.log(`select! ${i}` )
-				}}
-				onkeydown={(e) => {
-					console.log(`key ${e.key}`)
-					switch (e.key) {
-						case ('ArrowDown'): {
-							
-						}
-						default: {
-							// do nothing
-						}
-					}
-				}}
-			>
-				{formatLine(line)}
-			</div>
-		{/each}
-	</div>
+	
+
 </div>
 
 <style>

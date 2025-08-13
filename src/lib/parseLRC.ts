@@ -1,4 +1,9 @@
-export function parseLRC(content: string) {
+export interface LyricLine {
+	text: string
+	time: number
+}
+
+export function parseLRC(content: string): LyricLine[] {
 	return content.split("\n").map(line => {
 		const match = line.match(/\[(\d+):(\d+\.\d+)\](.*)/)
 		if (!match) return null
@@ -7,7 +12,7 @@ export function parseLRC(content: string) {
 			time: parseInt(m) * 60 + parseFloat(s),
 			text: text.trim()
 		}
-	}).filter(Boolean)
+	}).filter(line => line != null)
 }
 
 export function exportLRC(lines: { time: number; text: string }[]) {
