@@ -5,16 +5,13 @@ import Waveform from "./Waveform.svelte"
 interface Props {
 	lyrics: LyricLine[]
 	currentAudioLine: number
+	currentCaretLine: number
 	lineElements?: HTMLDivElement[]
 	waveformRef: Waveform
+	syncCaretWithAudio: boolean
 }
 
-let {
-	lyrics,
-	currentAudioLine = $bindable(),
-	lineElements = $bindable([]),
-	waveformRef,
-}: Props = $props()
+let { lyrics, currentAudioLine = $bindable(), currentCaretLine = $bindable(), lineElements = $bindable([]), waveformRef, syncCaretWithAudio }: Props = $props()
 
 $effect(() => {
 	if (lyrics.length !== lineElements.length) {
@@ -23,18 +20,28 @@ $effect(() => {
 })
 
 function handleLineClick(lineIndex: number) {
-	currentAudioLine = lineIndex
-	// set audio time to this line
-	const timeInSeconds = lyrics[lineIndex].time / 1000
-	waveformRef.seekTo(timeInSeconds)
+	currentCaretLine = lineIndex
+
+	if (syncCaretWithAudio) {
+		currentAudioLine = lineIndex
+		const timeInSeconds = lyrics[lineIndex].time / 1000
+		waveformRef.seekTo(timeInSeconds)
+	}
+}
+
+function handleClickButtonClick() {
 }
 </script>
 
 <div class="sync-view">
+	<input type="checkbox" bind:checked={syncCaretWithAudio} />
+	<button onclick={handleClickButtonClick}>sync</button>
+
 	{#each lyrics as line, i}
 		<div
 			bind:this={lineElements[i]}
 			class:current={i === currentAudioLine}
+			class:caret={i === currentCaretLine}
 			onclick={() => handleLineClick(i)}
 			role="button"
 			tabindex="0"
@@ -74,6 +81,18 @@ function handleLineClick(lineIndex: number) {
   .current {
     background-color: #ffffff !important;
     color: #555555;
+  }
+
+  .caret {
+    background-color: #4a90e2 !important;
+    color: #ffffff;
+  }
+
+  /* When both current and caret are the same line */
+  .current.caret {
+    background-color: #ffffff !important;
+    color: #555555;
+    border: 2px solid #4a90e2;
   }
 }
 </style>

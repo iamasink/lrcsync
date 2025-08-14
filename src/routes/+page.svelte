@@ -5,8 +5,8 @@ import { formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount } from "svelte"
 import CollapsibleText from "./components/CollapsibleText.svelte"
-import EditView from "./components/EditView.svelte"
-import SyncView from "./components/SyncView.svelte"
+import EditView from "./components/TabEdit.svelte"
+import SyncView from "./components/TabSync.svelte"
 import Waveform from "./components/Waveform.svelte"
 
 let audioFile = $state<File | null>(null)
@@ -26,8 +26,9 @@ let activeTab = $state<"edit" | "sync">("sync")
 let showFileoverlay = $state(false)
 
 let currentAudioLine = $state(-1)
+let currentCaretLine = $state(-1)
 let shiftHeld = $state(false)
-
+let syncCaretWithAudio = $state(true)
 function updateCurrentLine() {
 	const time = audioTime
 
@@ -51,18 +52,23 @@ function updateCurrentLine() {
 			}
 		}
 		currentAudioLine = newIndex
+
+		// Sync caret line with audio line if enabled
+		if (syncCaretWithAudio) {
+			currentCaretLine = newIndex
+		}
 	}
 }
 
 function adjustSelectedLine(offset: number) {
-	if (currentAudioLine < 0 || currentAudioLine >= lyrics.length) {
+	if (currentCaretLine < 0 || currentCaretLine >= lyrics.length) {
 		console.warn("No valid line selected")
 		return
 	}
 
 	const lyricsLines = lyricsText.split("\n")
 
-	const targetLine = lyrics[currentAudioLine]
+	const targetLine = lyrics[currentCaretLine]
 	if (!targetLine) return
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
@@ -80,7 +86,7 @@ function adjustSelectedLine(offset: number) {
 
 	const newTimestamp = formatTime(newTime)
 
-	const lineIndex = currentAudioLine
+	const lineIndex = currentCaretLine
 	if (lineIndex < lyricsLines.length) {
 		const lineText = lyricsLines[lineIndex]
 		const timestampRegex = /^\[(\d{2}):(\d{2})\.(\d{2})\]/
@@ -238,14 +244,14 @@ onMount(() => {
 		</button>
 		<button
 			onclick={(e) => handleAdjustClick(-0.01, e)}
-			disabled={currentAudioLine < 0}
+			disabled={currentCaretLine < 0}
 			title={shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
 		>
 			{shiftHeld ? "-0.05s" : "-0.01s"}
 		</button>
 		<button
 			onclick={(e) => handleAdjustClick(+0.01, e)}
-			disabled={currentAudioLine < 0}
+			disabled={currentCaretLine < 0}
 			title={shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
 		>
 			{shiftHeld ? "+0.05s" : "+0.01s"}
@@ -258,7 +264,7 @@ onMount(() => {
 	</div>
 
 	{#if activeTab === "sync"}
-		<SyncView {lyrics} {waveformRef} bind:lineElements bind:currentAudioLine />
+		<SyncView {lyrics} {currentAudioLine} {waveformRef} bind:lineElements bind:currentCaretLine {syncCaretWithAudio} />
 	{:else}
 		<EditView bind:lyricsText bind:currentCaretLine={currentAudioLine} bind:textAreaElement />
 	{/if}
