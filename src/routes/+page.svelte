@@ -1,7 +1,7 @@
 <script lang="ts">
 import { initDragDrop } from "$lib/dragDrop"
 import { loadFiles } from "$lib/loadFiles"
-import { formatLine, parseLRC } from "$lib/parseLRC"
+import { formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount } from "svelte"
 import CollapsibleText from "./components/CollapsibleText.svelte"
@@ -67,12 +67,18 @@ function adjustSelectedLine(offset: number) {
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
 
-	const minutes = Math.floor(newTime / 60000)
-	const seconds = Math.floor((newTime % 60000) / 1000)
-	const milliseconds = Math.floor(newTime % 1000)
-	const newTimestamp = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${
-		milliseconds.toString().padStart(3, "0").substring(0, 2)
-	}`
+	// const minutes = Math.floor(newTime / 60000)
+	// const seconds = Math.floor((newTime % 60000) / 1000)
+	// const milliseconds = Math.floor(newTime % 1000)
+
+	// const newTimestamp = (() => {
+	// 	const mm = minutes.toString().padStart(2, "0")
+	// 	const ss = seconds.toString().padStart(2, "0")
+	// 	const ms = milliseconds.toString().padStart(3, "0").substring(0, 2)
+	// 	return `${mm}:${ss}.${ms}`
+	// })()0
+
+	const newTimestamp = formatTime(newTime)
 
 	const lineIndex = currentAudioLine
 	if (lineIndex < lyricsLines.length) {
@@ -217,11 +223,7 @@ onMount(() => {
 		<p>audio line: {currentAudioLine}</p>
 		<p>caret line: {currentAudioLine}</p>
 		<p>current time: {(audioTime / 1000).toFixed(2)}</p>
-		<p>
-			{String(Math.floor(audioTime / 1000 / 60)).padStart(2, "0")}:{String(Math.floor((audioTime / 1000) % 60)).padStart(2, "0")}.{
-				String(Math.floor(audioTime % 1000)).padStart(3, "0")
-			}
-		</p>
+		<p>{formatTime(audioTime)}</p>
 	</div>
 
 	<CollapsibleText>
