@@ -5,6 +5,9 @@
 	import { formatLine, parseLRC } from "$lib/parseLRC";
 	import type { LyricLine } from "$lib/parseLRC";
 	import CollapsibleText from "./components/CollapsibleText.svelte";
+	import Waveform from "./components/Waveform.svelte";
+	import SyncView from "./components/SyncView.svelte";
+	import EditView from "./components/EditView.svelte";
 
 	let audioFile = $state<File | null>(null);
 	let lrcFile = $state<File | null>(null);
@@ -12,7 +15,7 @@
 	let lyricsText = $state("");
 	let lyrics: LyricLine[] = $derived(parseLRC(lyricsText));
 
-	let audioRef: HTMLAudioElement;
+	let waveformRef: Waveform;
 	let lineElements: HTMLDivElement[] = $state([]);
 	let textAreaElement: HTMLTextAreaElement;
 	let overlayElement: HTMLDivElement;
@@ -23,11 +26,10 @@
 	let showFileoverlay = $state(false);
 
 	let currentAudioLine = $state(-1);
-	let currentCaretLine = $state(-1);
+	let shiftHeld = $state(false);
 
 	function updateCurrentLine() {
-		const time = (audioRef?.currentTime ?? 0) * 1000;
-		audioTime = time;
+		const time = audioTime;
 
 		let newIndex = lyrics.findIndex(
 			(line, i) =>
@@ -36,31 +38,104 @@
 		);
 
 		if (newIndex !== currentAudioLine) {
-			console.log(`new line: ${newIndex}`);
-			if (activeTab == "edit") {
-				if (newIndex >= 0 && textAreaElement) {
-					const lineHeight =
-						parseFloat(getComputedStyle(textAreaElement).lineHeight) || 20;
-					const target = Math.max(
-						0,
-						lineHeight * newIndex - textAreaElement.clientHeight / 2,
-					);
-					textAreaElement.scrollTo({ top: target, behavior: "smooth" });
+			if (currentAudioLine != -1) {
+				console.log(`new line: ${newIndex}`);
+				if (activeTab == "edit") {
+					if (newIndex >= 0 && textAreaElement) {
+						const lineHeight =
+							parseFloat(getComputedStyle(textAreaElement).lineHeight) || 20;
+						const target = Math.max(
+							0,
+							lineHeight * newIndex - textAreaElement.clientHeight / 2,
+						);
+						textAreaElement.scrollTo({ top: target, behavior: "smooth" });
+					}
+				} else {
+					if (newIndex < 0) newIndex = 0;
+					if (newIndex > lineElements.length)
+						newIndex = lineElements.length - 1;
+					lineElements[newIndex]?.scrollIntoView({
+						block: "center",
+						behavior: "smooth",
+					});
 				}
-			} else {
-				if (newIndex < 0) newIndex = 0;
-				if (newIndex > lineElements.length) newIndex = lineElements.length - 1;
-				lineElements[newIndex].scrollIntoView({
-					block: "center",
-					behavior: "smooth",
-				});
 			}
 			currentAudioLine = newIndex;
 		}
 	}
 
+	function adjustSelectedLine(offset: number) {
+		if (currentAudioLine < 0 || currentAudioLine >= lyrics.length) {
+			console.warn("No valid line selected");
+			return;
+		}
+
+		const lyricsLines = lyricsText.split("\n");
+
+		const targetLine = lyrics[currentAudioLine];
+		if (!targetLine) return;
+
+		const newTime = Math.max(0, targetLine.time + offset * 1000); 
+
+		const minutes = Math.floor(newTime / 60000);
+		const seconds = Math.floor((newTime % 60000) / 1000);
+		const milliseconds = Math.floor(newTime % 1000);
+		const newTimestamp = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0").substring(0, 2)}`;
+
+		const lineIndex = currentAudioLine;
+		if (lineIndex < lyricsLines.length) {
+			const lineText = lyricsLines[lineIndex];
+			const timestampRegex = /^\[(\d{2}):(\d{2})\.(\d{2})\]/;
+			const newLine = lineText.replace(timestampRegex, `[${newTimestamp}]`);
+
+			lyricsLines[lineIndex] = newLine;
+			lyricsText = lyricsLines.join("\n");
+
+			if (waveformRef) {
+				waveformRef.seekTo(newTime / 1000);
+				waveformRef.play();
+				waveformRef.updateRegions(); 
+			}
+		}
+	}
+
+	function handleAdjustClick(offset: number, event: MouseEvent) {
+		const adjustment = event.shiftKey ? offset * 5 : offset;
+		adjustSelectedLine(adjustment);
+	}
+
+	function togglePlayPause() {
+		if (waveformRef) {
+			waveformRef.togglePlayPause();
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === "Shift") {
+			shiftHeld = true;
+		}
+
+		if (event.code === "Space") {
+			const target = event.target as HTMLElement;
+
+			// skip if in input etc
+			if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+				return;
+			}
+
+			event.preventDefault();
+
+			togglePlayPause();
+		}
+	}
+
+	function handleKeyup(event: KeyboardEvent) {
+		if (event.key === "Shift") {
+			shiftHeld = false;
+		}
+	}
+
 	function update() {
-		audioTime = audioRef?.currentTime ?? 0;
 		updateCurrentLine();
 		requestAnimationFrame(update);
 	}
@@ -95,10 +170,15 @@
 			doLoad,
 		);
 
+		document.addEventListener("keydown", handleKeydown);
+		document.addEventListener("keyup", handleKeyup);
+
 		requestAnimationFrame(update);
 
 		return () => {
 			cleanup;
+			document.removeEventListener("keydown", handleKeydown);
+			document.removeEventListener("keyup", handleKeyup);
 		};
 	});
 </script>
@@ -139,22 +219,30 @@
 			/>
 		{/if}
 		<button onclick={doLoad}>Load</button>
-		<!-- <button onclick={exportFile}>Export</button> -->
-		<!-- <button onclick={() => adjustSelectedLine(-0.01)}>−0.01s</button> -->
-		<!-- <button onclick={() => adjustSelectedLine(+0.01)}>+0.01s</button> -->
-		<!-- <button onclick={addLine}>Add line</button> -->
 	</div>
 
-	<div class="audio-row">
-		<audio bind:this={audioRef} src={audioSrc} controls></audio>
-	</div>
+	{#if audioFile}
+		<div class="waveform">
+			<Waveform
+				bind:this={waveformRef}
+				file={audioFile as File}
+				{lyrics}
+				onTimeUpdate={(time) => (audioTime = time)}
+			/>
+		</div>
+	{/if}
 
 	<div class="info">
 		<p>audio line: {currentAudioLine}</p>
-		<p>caret line: {currentCaretLine}</p>
+		<p>caret line: {currentAudioLine}</p>
 		<p>current time: {(audioTime / 1000).toFixed(2)}</p>
 		<p>
-			{String(Math.floor(audioTime / 1000 / 60)).padStart(2, "0")}:{String(Math.floor((audioTime / 1000) % 60)).padStart(2, "0")}.{String(Math.floor(audioTime % 1000)).padStart(3, "0")}
+			{String(Math.floor(audioTime / 1000 / 60)).padStart(2, "0")}:{String(
+				Math.floor((audioTime / 1000) % 60),
+			).padStart(2, "0")}.{String(Math.floor(audioTime % 1000)).padStart(
+				3,
+				"0",
+			)}
 		</p>
 	</div>
 
@@ -163,6 +251,30 @@
 		<p>lyric data: {JSON.stringify(lyrics, null, 2)}</p>
 	</CollapsibleText>
 	<p>current lyric: {lyrics[currentAudioLine]?.text ?? ""}</p>
+
+	<div class="controls">
+		<button onclick={togglePlayPause} disabled={!audioFile}>
+			Play/Pause (Space)
+		</button>
+		<button
+			onclick={(e) => handleAdjustClick(-0.01, e)}
+			disabled={currentAudioLine < 0}
+			title={shiftHeld
+				? "Move selected line earlier by 0.05s"
+				: "Move selected line earlier by 0.01s (Shift for 0.05s)"}
+		>
+			{shiftHeld ? "-0.05s" : "-0.01s"}
+		</button>
+		<button
+			onclick={(e) => handleAdjustClick(+0.01, e)}
+			disabled={currentAudioLine < 0}
+			title={shiftHeld
+				? "Move selected line later by 0.05s"
+				: "Move selected line later by 0.01s (Shift for 0.05s)"}
+		>
+			{shiftHeld ? "+0.05s" : "+0.01s"}
+		</button>
+	</div>
 
 	<div class="tabs">
 		<button
@@ -176,25 +288,13 @@
 	</div>
 
 	{#if activeTab === "sync"}
-		<div class="sync-view">
-			{#each lyrics as line, i}
-				<div bind:this={lineElements[i]} class:current={i === currentAudioLine}>
-					{formatLine(line)}
-				</div>
-			{/each}
-		</div>
+		<SyncView {lyrics} {waveformRef} bind:lineElements bind:currentAudioLine />
 	{:else}
-		<div class="textareadiv">
-			<textarea
-				bind:this={textAreaElement}
-				bind:value={lyricsText}
-				oninput={() =>
-					(currentCaretLine =
-						textAreaElement.value
-							.substring(0, textAreaElement.selectionStart)
-							.split("\n").length - 1)}
-			></textarea>
-		</div>
+		<EditView
+			bind:lyricsText
+			bind:currentCaretLine={currentAudioLine}
+			bind:textAreaElement
+		/>
 	{/if}
 </div>
 
@@ -211,31 +311,6 @@
 		margin: 0;
 		background: #211b22;
 		color: #ffffff;
-	}
-
-	.textareadiv {
-		height: 60vh;
-		width: 60vw;
-		textarea {
-			height: 100%;
-			width: 100%;
-			overflow-y: auto;
-			resize: none;
-			background-color: #554258;
-			color: #ffffff;
-		}
-	}
-
-	.sync-view {
-		.current {
-			background-color: #ffffff;
-			color: #555555;
-		}
-		div {
-			  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
-		}
-		height: 60vh;
-		overflow: auto;
 	}
 
 	.container {
@@ -260,15 +335,15 @@
 		cursor: pointer;
 		font-weight: 600;
 	}
-	button:hover {
+	button:hover:not(:disabled) {
 		filter: brightness(0.98);
+	}
+	button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 	input[type="file"] {
 		font-size: 0.9rem;
-	}
-
-	.audio-row {
-		margin-top: 0.25rem;
 	}
 
 	.drag-overlay {
@@ -285,5 +360,24 @@
 		align-items: center;
 		z-index: 9999;
 		pointer-events: all;
+	}
+
+	.tabs {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.tabs button.active {
+		background: #4a90e2;
+		color: white;
+		border-color: #4a90e2;
+	}
+
+	.info {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+		font-size: 0.9rem;
+		opacity: 0.8;
 	}
 </style>
