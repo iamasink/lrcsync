@@ -1,7 +1,7 @@
 <script lang="ts">
 import { initDragDrop } from "$lib/dragDrop"
 import { loadFiles } from "$lib/loadFiles"
-import { formatLine, formatTime, parseLRC } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount } from "svelte"
 import CollapsibleText from "./components/CollapsibleText.svelte"
@@ -12,8 +12,8 @@ import Waveform from "./components/Waveform.svelte"
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
 let audioSrc = $state("")
-let lyricsText = $state("")
-let lyrics: LyricLine[] = $derived(parseLRC(lyricsText))
+let lyrics: LyricLine[] = $state([])
+let lyricsText = $derived(exportLRC(lyrics))
 
 let waveformRef: Waveform
 let lineElements: HTMLDivElement[] = $state([])
@@ -48,7 +48,9 @@ function updateCurrentLine() {
 				if (newIndex > lineElements.length) {
 					newIndex = lineElements.length - 1
 				}
-				lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+				if (syncCaretWithAudio) {
+					lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+				}
 			}
 		}
 		currentAudioLine = newIndex
@@ -66,34 +68,16 @@ function adjustSelectedLine(offset: number) {
 		return
 	}
 
-	const lyricsLines = lyricsText.split("\n")
+	const lyricsLines = lyrics
 
 	const targetLine = lyrics[currentCaretLine]
 	if (!targetLine) return
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
 
-	// const minutes = Math.floor(newTime / 60000)
-	// const seconds = Math.floor((newTime % 60000) / 1000)
-	// const milliseconds = Math.floor(newTime % 1000)
-
-	// const newTimestamp = (() => {
-	// 	const mm = minutes.toString().padStart(2, "0")
-	// 	const ss = seconds.toString().padStart(2, "0")
-	// 	const ms = milliseconds.toString().padStart(3, "0").substring(0, 2)
-	// 	return `${mm}:${ss}.${ms}`
-	// })()0
-
-	const newTimestamp = formatTime(newTime)
-
 	const lineIndex = currentCaretLine
 	if (lineIndex < lyricsLines.length) {
-		const lineText = lyricsLines[lineIndex]
-		const timestampRegex = /^\[(\d{2}):(\d{2})\.(\d{2})\]/
-		const newLine = lineText.replace(timestampRegex, `[${newTimestamp}]`)
-
-		lyricsLines[lineIndex] = newLine
-		lyricsText = lyricsLines.join("\n")
+		targetLine.time = newTime
 
 		if (waveformRef) {
 			waveformRef.seekTo(newTime / 1000)
@@ -150,10 +134,10 @@ async function doLoad() {
 		return
 	}
 
-	const { audioSrc: src, lyricstext: l } = await loadFiles(audioFile, lrcFile)
+	const { audioSrc: src, lyrics: l } = await loadFiles(audioFile, lrcFile)
 	audioSrc = src
 
-	lyricsText = l
+	lyrics = l
 }
 
 onMount(() => {
@@ -263,19 +247,31 @@ onMount(() => {
 		<button onclick={() => (activeTab = "edit")} class:active={activeTab === "edit"}>Edit</button>
 	</div>
 
-	{#if activeTab === "sync"}
-		<SyncView {lyrics} {currentAudioLine} {waveformRef} bind:lineElements bind:currentCaretLine {syncCaretWithAudio} />
-	{:else}
-		<EditView bind:lyricsText bind:currentCaretLine={currentAudioLine} bind:textAreaElement />
-	{/if}
+	<div class="tabcontent">
+		{#if activeTab === "sync"}
+			<SyncView {lyrics} {currentAudioLine} {waveformRef} bind:lineElements bind:currentCaretLine {syncCaretWithAudio} />
+		{:else}
+			<EditView bind:lyrics bind:currentCaretLine={currentCaretLine} bind:textAreaElement />
+		{/if}
+	</div>
 </div>
 
 <style>
-:global(body) {
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  margin: 0;
-  background: #211b22;
-  color: #ffffff;
+:global {
+  body {
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin: 0;
+    background: #211b22;
+    color: #ffffff;
+  }
+  button {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #e6e9ef;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+  }
 }
 
 .container {
@@ -285,6 +281,7 @@ onMount(() => {
   flex-direction: column;
   gap: 1rem;
   height: 100vh;
+  max-height: 100vh;
 }
 .controls {
   display: flex;
@@ -292,14 +289,7 @@ onMount(() => {
   flex-wrap: wrap;
   align-items: center;
 }
-button {
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #e6e9ef;
-  background: white;
-  cursor: pointer;
-  font-weight: 600;
-}
+
 button:hover:not(:disabled) {
   filter: brightness(0.98);
 }
@@ -337,6 +327,8 @@ input[type="file"] {
   color: white;
   border-color: #4a90e2;
 }
+
+.tabcontent {}
 
 .info {
   display: flex;

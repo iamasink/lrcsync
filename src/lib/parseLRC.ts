@@ -14,26 +14,61 @@ export interface LyricLine {
 }
 
 export function parseLRC(content: string): LyricLine[] {
-	return content.split("\n").map(line => {
+	const lines = content.split("\n").map(line => {
 		const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
-		if (!match) return null
-		const [, m, s, ms, text] = match
-		return {
-			time:
-				60 * 1000 * parseInt(m) +
-				1000 * parseInt(s) +
-				// hundredths
-				10 * parseInt(ms),
-			text: text.trim()
+		if (match) {
+			const [, m, s, ms, text] = match
+			return {
+				time:
+					60 * 1000 * parseInt(m) +
+					1000 * parseInt(s) +
+					// hundredths
+					10 * parseInt(ms),
+				text: text.trim()
+			}
+		} else {
+			return {
+				time: -1,
+				text: line.trim()
+			}
 		}
-	}).filter(line => line != null)
+	}).filter(line => line != null) as LyricLine[]
+
+	const allHaveTimestamps = lines.every(line =>
+		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
+	)
+
+	return allHaveTimestamps
+		? lines.sort((a, b) => a.time - b.time)
+		: lines
 }
 
 export function exportLRC(lines: { time: number; text: string }[]) {
-	return lines.map(({ time, text }) => {
-		const m = Math.floor(time / 60).toString().padStart(2, "0")
-		const s = Math.floor(time % 60).toString().padStart(2, "0")
-		return `[${m}:${s}.${(time % 1).toFixed(2)}] ${text}`
+	const allHaveTimestamps = lines.every(({ time }) =>
+		time !== null && time !== undefined && time !== -1 && time >= 0
+	)
+
+	const processedLines = allHaveTimestamps
+		? [...lines].sort((a, b) => a.time - b.time)
+		: lines
+
+	return processedLines.map(({ time, text }) => {
+		const timeInSeconds = time / 1000
+
+		if (time === null || time === undefined || time === -1 || timeInSeconds < 0) {
+			return text
+		}
+
+		const minutes = Math.floor(timeInSeconds / 60)
+		const seconds = timeInSeconds % 60
+		const wholeSeconds = Math.floor(seconds)
+		const centiseconds = Math.round((seconds - wholeSeconds) * 100)
+
+		const formattedMinutes = minutes.toString().padStart(2, "0")
+		const formattedSeconds = wholeSeconds.toString().padStart(2, "0")
+		const formattedCentiseconds = centiseconds.toString().padStart(2, "0")
+
+		return `[${formattedMinutes}:${formattedSeconds}.${formattedCentiseconds}] ${text}`
 	}).join("\n")
 }
 
@@ -45,6 +80,8 @@ export function exportLRC(lines: { time: number; text: string }[]) {
  * @returns Formatted time string (MM:SS.SS).
  */
 export function formatTime(t: number) {
+	if (t == -1) return ``
+
 	if (!Number.isFinite(t) || t < 0) t = 0
 	const m = Math.floor(t / 60000)
 		.toString()
@@ -60,5 +97,9 @@ export function formatTime(t: number) {
 
 
 export function formatLine(l: { time: number; text: string }) {
-	return `[${formatTime(l.time)}] ${l.text}`
+	if (l.time !== null && l.time != -1) {
+		return `[${formatTime(l.time)}] ${l.text}`
+	} else {
+		return `${l.text}`
+	}
 }
