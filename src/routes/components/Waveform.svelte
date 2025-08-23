@@ -1,4 +1,5 @@
 <script lang="ts">
+import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { onDestroy, onMount } from "svelte"
 import WaveSurfer from "wavesurfer.js"
 import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js"
@@ -20,6 +21,9 @@ let currentTime = $state(0)
 let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
+
+let volume: number = $state(50)
+let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
 function loadFile(file: File) {
 	if (!file || !wavesurfer) return
@@ -43,7 +47,10 @@ function updateVisibleRegions() {
 			end = audioDuration
 		} else {
 			let nextlyrictime = lyrics[index + 1].time / 1000
-			if (nextlyrictime - regionStart > 10) {
+			if (nextlyrictime < lyric.time) {
+				nextlyrictime = lyric.time + 1
+				end = nextlyrictime - 0.01
+			} else if (nextlyrictime - regionStart > 10) {
 				end = regionStart + 5
 			} else {
 				end = nextlyrictime - 0.01
@@ -51,41 +58,19 @@ function updateVisibleRegions() {
 		}
 		const regionEnd = end
 
-		if (
-			regionStart <= currentTimeInSeconds + 10
-			&& regionEnd >= currentTimeInSeconds - 10
-		) {
-			const existingRegion = currentRegions.find(
-				(region: Region) => region.id === regionId,
-			)
+		if (regionStart <= currentTimeInSeconds + 10 && regionEnd >= currentTimeInSeconds - 10) {
+			const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
 
 			if (!existingRegion) {
-				regions.addRegion({
-					id: regionId,
-					start: regionStart,
-					end: regionEnd,
-					content: lyric.text,
-					color: "rgba(0, 255, 0, 0.1)",
-					drag: false,
-					resize: false,
-				})
+				regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
 			} else {
-				if (
-					existingRegion.start !== regionStart
-					|| existingRegion.end !== regionEnd
-				) {
-					existingRegion.setOptions({
-						start: regionStart,
-						end: regionEnd,
-						content: lyric.text,
-					})
+				if (existingRegion.start !== regionStart || existingRegion.end !== regionEnd) {
+					existingRegion.setOptions({ start: regionStart, end: regionEnd, content: lyric.text })
 				}
 			}
 			newVisibleRegionIds.add(regionId)
 		} else {
-			const existingRegion = currentRegions.find(
-				(region: Region) => region.id === regionId,
-			)
+			const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
 			if (existingRegion) {
 				existingRegion.remove()
 			}
@@ -135,14 +120,14 @@ export function updateRegions() {
 	updateVisibleRegions()
 }
 
+function updateVolume() {
+	wavesurfer.setVolume(volume2)
+}
+
 onMount(() => {
 	regions = Regions.create()
 
-	const options: SpectrogramPluginOptions = {
-		container: spectrogramContainer,
-		labels: true,
-		height: 200,
-	}
+	const options: SpectrogramPluginOptions = { container: spectrogramContainer, labels: true, height: 200 }
 	const spectrogram = Spectrogram.create(options)
 
 	wavesurfer = WaveSurfer.create({
@@ -192,6 +177,10 @@ onDestroy(() => {
 			<p>Loading waveforms...</p>
 		</div>
 	{/if}
+	<div class="volume">
+		<input oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
+		<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
+	</div>
 	<div bind:this={waveformContainer} class="waveform"></div>
 	<div bind:this={spectrogramContainer} class="spectrogram"></div>
 </div>
