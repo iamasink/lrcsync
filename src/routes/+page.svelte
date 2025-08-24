@@ -12,7 +12,7 @@ import Waveform from "./components/Waveform.svelte"
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
 let audioSrc = $state("")
-let lyrics: LyricLine[] = $state([])
+let lyrics: LyricLine[] = $state([{ text: "default line 1", time: -1 }])
 let lyricsText = $derived(exportLRC(lyrics))
 
 let waveformRef: Waveform
@@ -82,7 +82,6 @@ function adjustSelectedLine(offset: number) {
 		if (waveformRef) {
 			waveformRef.seekTo(newTime / 1000)
 			waveformRef.play()
-			waveformRef.updateRegions()
 		}
 	}
 }

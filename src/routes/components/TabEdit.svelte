@@ -13,12 +13,10 @@ let { lyrics = $bindable(), currentCaretLine = $bindable(0), textAreaElement = $
 let lyricsText = exportLRC(lyrics)
 let lyricsBoxElement: HTMLDivElement
 
-// Scroll synchronization variables
 let isScrolling = false
 
 function handleInput() {
 	if (textAreaElement) {
-		// Store current scroll position before updating
 		const currentScrollTop = textAreaElement.scrollTop
 
 		currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
@@ -26,11 +24,9 @@ function handleInput() {
 			const updatedLyrics = parseLRC(lyricsText)
 			lyrics = updatedLyrics
 
-			// Restore scroll position after DOM updates
 			requestAnimationFrame(() => {
 				if (textAreaElement && lyricsBoxElement) {
 					textAreaElement.scrollTop = currentScrollTop
-					// Sync the lyrics box with the restored textarea position
 					syncScroll(textAreaElement, lyricsBoxElement)
 					syncScroll(textAreaElement, lyricsBoxElement)
 				}
@@ -51,10 +47,9 @@ function syncScroll(source: HTMLElement, target: HTMLElement) {
 
 	target.scrollTop = targetScrollTop
 
-	// Reset the flag after a short delay to prevent infinite loops
 	setTimeout(() => {
 		isScrolling = false
-	}, 16) // ~1 frame at 60fps
+	}, 16)
 }
 
 function handleTextAreaScroll() {

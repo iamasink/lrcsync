@@ -2,8 +2,12 @@
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { onDestroy, onMount } from "svelte"
 import WaveSurfer from "wavesurfer.js"
+import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js"
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js"
 import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js"
 import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/plugins/spectrogram.esm.js"
+import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
+import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
 
 interface Props {
 	file: File
@@ -16,11 +20,22 @@ let { file, lyrics, onTimeUpdate }: Props = $props()
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
 let wavesurfer: WaveSurfer
-let regions: any
+let regions: RegionsPlugin
+let timeline: TimelinePlugin
 let currentTime = $state(0)
 let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
+
+$effect(() => {
+	lyrics.length
+	console.log("effect!")
+	if (!regions) return
+	if (!isReady) return
+	console.log("effect 2!")
+
+	setRegions()
+})
 
 let volume: number = $state(50)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
@@ -31,15 +46,12 @@ function loadFile(file: File) {
 	wavesurfer.load(url)
 }
 
-function updateVisibleRegions() {
-	if (!wavesurfer || !regions) return
-
-	const currentTimeInSeconds = wavesurfer.getCurrentTime()
-	const currentRegions = regions.getRegions()
-
-	const newVisibleRegionIds = new Set<string>()
+function setRegions() {
+	regions.clearRegions()
 
 	lyrics.forEach((lyric, index) => {
+		if (lyric.time === -1) return
+
 		const regionId = `lyric-${index}`
 		const regionStart = lyric.time / 1000
 		let end
@@ -47,37 +59,55 @@ function updateVisibleRegions() {
 			end = audioDuration
 		} else {
 			let nextlyrictime = lyrics[index + 1].time / 1000
-			if (nextlyrictime < lyric.time) {
-				nextlyrictime = lyric.time + 1
-				end = nextlyrictime - 0.01
-			} else if (nextlyrictime - regionStart > 10) {
+			if (nextlyrictime - regionStart > 10) {
 				end = regionStart + 5
 			} else {
 				end = nextlyrictime - 0.01
 			}
 		}
 		const regionEnd = end
-
-		if (regionStart <= currentTimeInSeconds + 10 && regionEnd >= currentTimeInSeconds - 10) {
-			const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
-
-			if (!existingRegion) {
-				regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
-			} else {
-				if (existingRegion.start !== regionStart || existingRegion.end !== regionEnd) {
-					existingRegion.setOptions({ start: regionStart, end: regionEnd, content: lyric.text })
-				}
-			}
-			newVisibleRegionIds.add(regionId)
-		} else {
-			const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
-			if (existingRegion) {
-				existingRegion.remove()
-			}
-		}
+		regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
 	})
 
-	visibleRegionIds = newVisibleRegionIds
+	// 	regions = []
+
+	// 	lyrics.forEach((lyric, index) => {
+	// 	const regionId = `lyric-${index}`
+	// 	const regionStart = lyric.time / 1000
+	// 	let end
+	// 	if (index == lyrics.length - 1) {
+	// 		end = audioDuration
+	// 	} else {
+	// 		let nextlyrictime = lyrics[index + 1].time / 1000
+	// 		if (nextlyrictime < lyric.time) {
+	// 			nextlyrictime = lyric.time + 1
+	// 			end = nextlyrictime - 0.01
+	// 		} else if (nextlyrictime - regionStart > 10) {
+	// 			end = regionStart + 5
+	// 		} else {
+	// 			end = nextlyrictime - 0.01
+	// 		}
+	// 	}
+	// 	const regionEnd = end
+
+	// 	if (regionStart <= currentTimeInSeconds + 10 && regionEnd >= currentTimeInSeconds - 10) {
+	// 		const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
+
+	// 		if (!existingRegion) {
+	// 			regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
+	// 		} else {
+	// 			if (existingRegion.start !== regionStart || existingRegion.end !== regionEnd) {
+	// 				existingRegion.setOptions({ start: regionStart, end: regionEnd, content: lyric.text })
+	// 			}
+	// 		}
+	// 		newVisibleRegionIds.add(regionId)
+	// 	} else {
+	// 		const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
+	// 		if (existingRegion) {
+	// 			existingRegion.remove()
+	// 		}
+	// 	}
+	// })
 }
 
 export function play() {
@@ -116,18 +146,16 @@ export function togglePlayPause() {
 	}
 }
 
-export function updateRegions() {
-	updateVisibleRegions()
-}
-
 function updateVolume() {
 	wavesurfer.setVolume(volume2)
 }
 
 onMount(() => {
 	regions = Regions.create()
+	timeline = Timeline.create()
+	const minimap = Minimap.create({})
 
-	const options: SpectrogramPluginOptions = { container: spectrogramContainer, labels: true, height: 200 }
+	const options: SpectrogramPluginOptions = { labels: true, height: 200 }
 	const spectrogram = Spectrogram.create(options)
 
 	wavesurfer = WaveSurfer.create({
@@ -137,7 +165,7 @@ onMount(() => {
 		height: 120,
 		dragToSeek: true,
 		minPxPerSec: 100,
-		plugins: [spectrogram, regions],
+		plugins: [timeline, spectrogram, regions, minimap],
 	})
 
 	if (file) loadFile(file)
@@ -154,13 +182,13 @@ onMount(() => {
 	wavesurfer.on("timeupdate", () => {
 		currentTime = wavesurfer.getCurrentTime()
 		onTimeUpdate?.(currentTime * 1000)
-		updateVisibleRegions()
+		// updateVisibleRegions()
 	})
 
 	wavesurfer.on("seeking", () => {
 		currentTime = wavesurfer.getCurrentTime()
 		onTimeUpdate?.(currentTime * 1000)
-		updateVisibleRegions()
+		// updateVisibleRegions()
 	})
 })
 
@@ -181,8 +209,8 @@ onDestroy(() => {
 		<input oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
 		<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
 	</div>
-	<div bind:this={waveformContainer} class="waveform"></div>
-	<div bind:this={spectrogramContainer} class="spectrogram"></div>
+	<div bind:this={waveformContainer} id="waveform"></div>
+	<!-- <div bind:this={spectrogramContainer} class="spectrogram"></div> -->
 </div>
 
 <style>
@@ -190,16 +218,15 @@ onDestroy(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-height: 320px;
+  max-height: 450px;
   overflow: hidden;
 }
 
-.waveform {
-  flex: 0 0 120px;
+:global(#waveform) {
+  flex: 0 0 140px;
 }
-
-.spectrogram {
-  flex: 0 0 200px;
+:global(#waveform ::part(scroll)) {
+  scrollbar-width: auto;
 }
 
 .loading {
