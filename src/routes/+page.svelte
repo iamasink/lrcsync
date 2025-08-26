@@ -196,7 +196,7 @@ onMount(() => {
 
 	{#if audioFile}
 		<div class="waveform">
-			<Waveform bind:this={s.waveformRef} file={audioFile as File} lyrics={s.lyrics} onTimeUpdate={(time) => (s.audioTime = time)} />
+			<Waveform bind:this={s.waveformRef} file={audioFile as File} />
 		</div>
 	{/if}
 
