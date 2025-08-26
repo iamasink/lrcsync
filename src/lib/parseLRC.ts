@@ -110,3 +110,8 @@ export function sortLines(lines: LyricLine[]) {
 		? lines.sort((a, b) => a.time - b.time)
 		: lines
 }
+
+
+export function roundTimestamp(num: number) {
+	return Math.round((num + Number.EPSILON) * 100) / 100
+}

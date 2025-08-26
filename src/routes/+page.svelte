@@ -1,43 +1,35 @@
 <script lang="ts">
+import CollapsibleText from "$lib/components/CollapsibleText.svelte"
+import EditView from "$lib/components/TabEdit.svelte"
+import SyncView from "$lib/components/TabSync.svelte"
+import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
 import { loadFiles } from "$lib/loadFiles"
 import { exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
-import { onMount } from "svelte"
-import CollapsibleText from "./components/CollapsibleText.svelte"
-import EditView from "./components/TabEdit.svelte"
-import SyncView from "./components/TabSync.svelte"
-import Waveform from "./components/Waveform.svelte"
+import { onMount, setContext } from "svelte"
+
+import { s } from "$lib/state.svelte"
 
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
 let audioSrc = $state("")
-let lyrics: LyricLine[] = $state([{ text: "default line 1", time: -1 }])
-let lyricsText = $derived(exportLRC(lyrics))
+let lyricsText = $derived(exportLRC(s.lyrics))
 
-let waveformRef: Waveform
-let lineElements: HTMLDivElement[] = $state([])
 let textAreaElement: HTMLTextAreaElement
 let overlayElement: HTMLDivElement
-let audioTime = $state(0)
-
-let activeTab = $state<"edit" | "sync">("sync")
 
 let showFileoverlay = $state(false)
 
-let currentAudioLine = $state(-1)
-let currentCaretLine = $state(-1)
-let shiftHeld = $state(false)
-let syncCaretWithAudio = $state(true)
 function updateCurrentLine() {
-	const time = audioTime
+	const time = s.audioTime
 
-	let newIndex = lyrics.findIndex((line, i) => time >= line.time && (i === lyrics.length - 1 || time < lyrics[i + 1].time))
+	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time))
 
-	if (newIndex !== currentAudioLine) {
-		if (currentAudioLine != -1) {
+	if (newIndex !== s.currentAudioLine) {
+		if (s.currentAudioLine != -1) {
 			console.log(`new line: ${newIndex}`)
-			if (activeTab == "edit") {
+			if (s.activeTab == "edit") {
 				if (newIndex >= 0 && textAreaElement) {
 					const lineHeight = parseFloat(getComputedStyle(textAreaElement).lineHeight) || 20
 					const target = Math.max(0, lineHeight * newIndex - textAreaElement.clientHeight / 2)
@@ -45,43 +37,43 @@ function updateCurrentLine() {
 				}
 			} else {
 				if (newIndex < 0) newIndex = 0
-				if (newIndex > lineElements.length) {
-					newIndex = lineElements.length - 1
+				if (newIndex > s.lineElements.length) {
+					newIndex = s.lineElements.length - 1
 				}
-				if (syncCaretWithAudio) {
-					lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+				if (s.syncCaretWithAudio) {
+					s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 				}
 			}
 		}
-		currentAudioLine = newIndex
+		s.currentAudioLine = newIndex
 
 		// Sync caret line with audio line if enabled
-		if (syncCaretWithAudio) {
-			currentCaretLine = newIndex
+		if (s.syncCaretWithAudio) {
+			s.currentCaretLine = newIndex
 		}
 	}
 }
 
 function adjustSelectedLine(offset: number) {
-	if (currentCaretLine < 0 || currentCaretLine >= lyrics.length) {
+	if (s.currentCaretLine < 0 || s.currentCaretLine >= s.lyrics.length) {
 		console.warn("No valid line selected")
 		return
 	}
 
-	const lyricsLines = lyrics
+	const lyricsLines = s.lyrics
 
-	const targetLine = lyrics[currentCaretLine]
+	const targetLine = s.lyrics[s.currentCaretLine]
 	if (!targetLine) return
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
 
-	const lineIndex = currentCaretLine
+	const lineIndex = s.currentCaretLine
 	if (lineIndex < lyricsLines.length) {
 		targetLine.time = newTime
 
-		if (waveformRef) {
-			waveformRef.seekTo(newTime / 1000)
-			waveformRef.play()
+		if (s.waveformRef) {
+			s.waveformRef.seekToTime(newTime / 1000)
+			s.waveformRef.play()
 		}
 	}
 }
@@ -92,14 +84,14 @@ function handleAdjustClick(offset: number, event: MouseEvent) {
 }
 
 function togglePlayPause() {
-	if (waveformRef) {
-		waveformRef.togglePlayPause()
+	if (s.waveformRef) {
+		s.waveformRef.togglePlayPause()
 	}
 }
 
 function handleKeydown(event: KeyboardEvent) {
 	if (event.key === "Shift") {
-		shiftHeld = true
+		s.shiftHeld = true
 	}
 
 	if (event.code === "Space") {
@@ -118,7 +110,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 function handleKeyup(event: KeyboardEvent) {
 	if (event.key === "Shift") {
-		shiftHeld = false
+		s.shiftHeld = false
 	}
 }
 
@@ -136,7 +128,7 @@ async function doLoad() {
 	const { audioSrc: src, lyrics: l } = await loadFiles(audioFile, lrcFile)
 	audioSrc = src
 
-	lyrics = l
+	s.lyrics = l
 }
 
 onMount(() => {
@@ -204,22 +196,22 @@ onMount(() => {
 
 	{#if audioFile}
 		<div class="waveform">
-			<Waveform bind:this={waveformRef} file={audioFile as File} {lyrics} onTimeUpdate={(time) => (audioTime = time)} />
+			<Waveform bind:this={s.waveformRef} file={audioFile as File} lyrics={s.lyrics} onTimeUpdate={(time) => (s.audioTime = time)} />
 		</div>
 	{/if}
 
 	<div class="info">
-		<p>audio line: {currentAudioLine}</p>
-		<p>caret line: {currentAudioLine}</p>
-		<p>current time: {(audioTime / 1000).toFixed(2)}</p>
-		<p>{formatTime(audioTime)}</p>
+		<p>audio line: {s.currentAudioLine}</p>
+		<p>caret line: {s.currentAudioLine}</p>
+		<p>current time: {(s.audioTime / 1000).toFixed(2)}</p>
+		<p>{formatTime(s.audioTime)}</p>
 	</div>
 
 	<CollapsibleText>
-		<p>asdjasd: {JSON.stringify(lineElements)}</p>
-		<p>lyric data: {JSON.stringify(lyrics, null, 2)}</p>
+		<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
+		<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 	</CollapsibleText>
-	<p>current lyric: {lyrics[currentAudioLine]?.text ?? ""}</p>
+	<p>current lyric: {s.lyrics[s.currentAudioLine]?.text ?? ""}</p>
 
 	<div class="controls">
 		<div class="controls-1">
@@ -228,23 +220,23 @@ onMount(() => {
 			</button>
 			<button
 				onclick={(e) => handleAdjustClick(-0.01, e)}
-				disabled={currentCaretLine < 0}
-				title={shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
+				disabled={s.currentCaretLine < 0}
+				title={s.shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
 			>
-				{shiftHeld ? "-0.05s" : "-0.01s"}
+				{s.shiftHeld ? "-0.05s" : "-0.01s"}
 			</button>
 			<button
 				onclick={(e) => handleAdjustClick(+0.01, e)}
-				disabled={currentCaretLine < 0}
-				title={shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
+				disabled={s.currentCaretLine < 0}
+				title={s.shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
 			>
-				{shiftHeld ? "+0.05s" : "+0.01s"}
+				{s.shiftHeld ? "+0.05s" : "+0.01s"}
 			</button>
 		</div>
 		<div class="controls-2">
 			<button
 				onclick={() => {
-					lyrics = sortLines(lyrics)
+					s.lyrics = sortLines(s.lyrics)
 				}}
 				title="sort lines by timestamp (all lines must have a timestamp)"
 			>
@@ -254,15 +246,15 @@ onMount(() => {
 	</div>
 
 	<div class="tabs">
-		<button onclick={() => (activeTab = "sync")} class:active={activeTab === "sync"}>Sync</button>
-		<button onclick={() => (activeTab = "edit")} class:active={activeTab === "edit"}>Edit</button>
+		<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
+		<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
 	</div>
 
 	<div class="tabcontent">
-		{#if activeTab === "sync"}
-			<SyncView {lyrics} {currentAudioLine} {waveformRef} bind:lineElements bind:currentCaretLine {syncCaretWithAudio} />
+		{#if s.activeTab === "sync"}
+			<SyncView />
 		{:else}
-			<EditView bind:lyrics bind:currentCaretLine={currentCaretLine} bind:textAreaElement />
+			<EditView bind:textAreaElement />
 		{/if}
 	</div>
 </div>

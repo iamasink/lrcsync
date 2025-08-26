@@ -1,28 +1,31 @@
 <script lang="ts">
+import LyricsBox from "$lib/components/LyricsBox.svelte"
 import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
+import { s } from "$lib/state.svelte"
 
 interface Props {
-	lyrics: LyricLine[]
-	currentCaretLine?: number
-	textAreaElement?: HTMLTextAreaElement
+	textAreaElement: HTMLTextAreaElement
 }
 
-let { lyrics = $bindable(), currentCaretLine = $bindable(0), textAreaElement = $bindable() }: Props = $props()
+let { textAreaElement = $bindable() }: Props = $props()
 
-let lyricsText = exportLRC(lyrics)
+let lyricsText = $derived(exportLRC(s.lyrics))
 let lyricsBoxElement: HTMLDivElement
 
 let isScrolling = false
+
+let lineElements = $state(new Array())
 
 function handleInput() {
 	if (textAreaElement) {
 		const currentScrollTop = textAreaElement.scrollTop
 
-		currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+		console.log("caretline", s.currentCaretLine)
 		try {
 			const updatedLyrics = parseLRC(lyricsText)
-			lyrics = updatedLyrics
+			s.lyrics = updatedLyrics
 
 			requestAnimationFrame(() => {
 				if (textAreaElement && lyricsBoxElement) {
@@ -67,9 +70,16 @@ function handleLyricsBoxScroll() {
 
 <div class="textareadiv">
 	<div class="container">
-		<textarea bind:this={textAreaElement} bind:value={lyricsText} oninput={handleInput} onscroll={handleTextAreaScroll}></textarea>
+		<textarea
+			bind:this={textAreaElement}
+			bind:value={lyricsText}
+			onclick={handleInput}
+			onkeypress={handleInput}
+			oninput={handleInput}
+			onscroll={handleTextAreaScroll}
+		></textarea>
 		<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
-			{#each lyrics as line, i}
+			{#each s.lyrics as line, i}
 				<div class="lyric-line">
 					<div class="timestamp">
 						[{formatTime(line.time)}]
@@ -80,6 +90,8 @@ function handleLyricsBoxScroll() {
 				</div>
 			{/each}
 		</div>
+
+		<LyricsBox />
 	</div>
 </div>
 

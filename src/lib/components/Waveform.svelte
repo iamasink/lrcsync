@@ -1,4 +1,5 @@
 <script lang="ts">
+import { type LyricLine, roundTimestamp } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { onDestroy, onMount } from "svelte"
 import WaveSurfer from "wavesurfer.js"
@@ -11,7 +12,7 @@ import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
 
 interface Props {
 	file: File
-	lyrics: { time: number; text: string }[]
+	lyrics: LyricLine[]
 	onTimeUpdate?: (time: number) => void
 }
 
@@ -26,6 +27,8 @@ let currentTime = $state(0)
 let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
+
+let autoScrollTimeout = $state(0)
 
 $effect(() => {
 	lyrics.length
@@ -66,7 +69,17 @@ function setRegions() {
 			}
 		}
 		const regionEnd = end
-		regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
+		const region = regions.addRegion({
+			id: regionId,
+			start: regionStart,
+			end: regionEnd,
+			content: lyric.text,
+			color: "rgba(0, 255, 0, 0.1)",
+			drag: false,
+			resize: true,
+			resizeStart: true,
+			resizeEnd: false,
+		})
 	})
 
 	// 	regions = []
@@ -118,7 +131,7 @@ export function pause() {
 	wavesurfer?.pause()
 }
 
-export function seekTo(time: number) {
+export function seekToTime(time: number) {
 	if (wavesurfer) {
 		wavesurfer.setTime(time)
 	}
@@ -186,9 +199,37 @@ onMount(() => {
 	})
 
 	wavesurfer.on("seeking", () => {
+		console.log("seek!")
 		currentTime = wavesurfer.getCurrentTime()
 		onTimeUpdate?.(currentTime * 1000)
 		// updateVisibleRegions()
+	})
+
+	regions.on("region-updated", (r) => {
+		console.log("region updated", r)
+		const idx = parseInt(r.id.substring(6))
+		console.log(idx)
+
+		const start = roundTimestamp(r.start * 1000)
+		const nextstart = roundTimestamp(r.end * 1000) + 10
+
+		console.log(start, nextstart)
+
+		lyrics[idx].time = start
+		lyrics[idx + 1].time = nextstart
+
+		wavesurfer.setTime(start / 1000)
+		wavesurfer.options.autoCenter = false
+		// wavesurfer.options.autoScroll = false
+
+		if (autoScrollTimeout) {
+			clearTimeout(autoScrollTimeout)
+		}
+		autoScrollTimeout = setTimeout(() => {
+			wavesurfer.options.autoCenter = true
+			wavesurfer.options.autoScroll = true
+		}, 5000)
+		wavesurfer.play()
 	})
 })
 
@@ -227,6 +268,11 @@ onDestroy(() => {
 }
 :global(#waveform ::part(scroll)) {
   scrollbar-width: auto;
+}
+
+:global(#waveform ::part(region-handle-right)) {
+  display: none;
+  cursor: none;
 }
 
 .loading {
