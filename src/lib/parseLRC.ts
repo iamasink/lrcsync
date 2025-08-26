@@ -34,25 +34,20 @@ export function parseLRC(content: string): LyricLine[] {
 		}
 	}).filter(line => line != null) as LyricLine[]
 
-	const allHaveTimestamps = lines.every(line =>
-		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
-	)
+	// const allHaveTimestamps = lines.every(line =>
+	// 	line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
+	// )
 
-	return allHaveTimestamps
-		? lines.sort((a, b) => a.time - b.time)
-		: lines
+	// return allHaveTimestamps
+	// 	? lines.sort((a, b) => a.time - b.time)
+	// 	: lines
+
+	return lines
 }
 
-export function exportLRC(lines: { time: number; text: string }[]) {
-	const allHaveTimestamps = lines.every(({ time }) =>
-		time !== null && time !== undefined && time !== -1 && time >= 0
-	)
+export function exportLRC(lines: LyricLine[]) {
 
-	const processedLines = allHaveTimestamps
-		? [...lines].sort((a, b) => a.time - b.time)
-		: lines
-
-	return processedLines.map(({ time, text }) => {
+	return lines.map(({ time, text }) => {
 		const timeInSeconds = time / 1000
 
 		if (time === null || time === undefined || time === -1 || timeInSeconds < 0) {
@@ -102,4 +97,16 @@ export function formatLine(l: { time: number; text: string }) {
 	} else {
 		return `${l.text}`
 	}
+}
+
+export function sortLines(lines: LyricLine[]) {
+	// maybe we can modify this function to sort without all lines having timestamps at some point
+
+	const allHaveTimestamps = lines.every(line =>
+		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
+	)
+
+	return allHaveTimestamps
+		? lines.sort((a, b) => a.time - b.time)
+		: lines
 }

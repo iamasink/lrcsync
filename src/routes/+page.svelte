@@ -1,7 +1,7 @@
 <script lang="ts">
 import { initDragDrop } from "$lib/dragDrop"
 import { loadFiles } from "$lib/loadFiles"
-import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount } from "svelte"
 import CollapsibleText from "./components/CollapsibleText.svelte"
@@ -222,23 +222,35 @@ onMount(() => {
 	<p>current lyric: {lyrics[currentAudioLine]?.text ?? ""}</p>
 
 	<div class="controls">
-		<button onclick={togglePlayPause} disabled={!audioFile}>
-			Play/Pause (Space)
-		</button>
-		<button
-			onclick={(e) => handleAdjustClick(-0.01, e)}
-			disabled={currentCaretLine < 0}
-			title={shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
-		>
-			{shiftHeld ? "-0.05s" : "-0.01s"}
-		</button>
-		<button
-			onclick={(e) => handleAdjustClick(+0.01, e)}
-			disabled={currentCaretLine < 0}
-			title={shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
-		>
-			{shiftHeld ? "+0.05s" : "+0.01s"}
-		</button>
+		<div class="controls-1">
+			<button onclick={togglePlayPause} disabled={!audioFile}>
+				Play/Pause (Space)
+			</button>
+			<button
+				onclick={(e) => handleAdjustClick(-0.01, e)}
+				disabled={currentCaretLine < 0}
+				title={shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
+			>
+				{shiftHeld ? "-0.05s" : "-0.01s"}
+			</button>
+			<button
+				onclick={(e) => handleAdjustClick(+0.01, e)}
+				disabled={currentCaretLine < 0}
+				title={shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
+			>
+				{shiftHeld ? "+0.05s" : "+0.01s"}
+			</button>
+		</div>
+		<div class="controls-2">
+			<button
+				onclick={() => {
+					lyrics = sortLines(lyrics)
+				}}
+				title="sort lines by timestamp (all lines must have a timestamp)"
+			>
+				Sort
+			</button>
+		</div>
 	</div>
 
 	<div class="tabs">
