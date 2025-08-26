@@ -1,6 +1,7 @@
 <script lang="ts">
 import { type LyricLine, roundTimestamp } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
+import { s } from "$lib/state.svelte"
 import { onDestroy, onMount } from "svelte"
 import WaveSurfer from "wavesurfer.js"
 import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js"
@@ -12,11 +13,9 @@ import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
 
 interface Props {
 	file: File
-	lyrics: LyricLine[]
-	onTimeUpdate?: (time: number) => void
 }
 
-let { file, lyrics, onTimeUpdate }: Props = $props()
+let { file }: Props = $props()
 
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
@@ -31,7 +30,7 @@ let isReady = $state(false)
 let autoScrollTimeout = $state(0)
 
 $effect(() => {
-	lyrics.length
+	s.lyrics.length
 	console.log("effect!")
 	if (!regions) return
 	if (!isReady) return
@@ -52,16 +51,16 @@ function loadFile(file: File) {
 function setRegions() {
 	regions.clearRegions()
 
-	lyrics.forEach((lyric, index) => {
+	s.lyrics.forEach((lyric, index) => {
 		if (lyric.time === -1) return
 
 		const regionId = `lyric-${index}`
 		const regionStart = lyric.time / 1000
 		let end
-		if (index == lyrics.length - 1) {
+		if (index == s.lyrics.length - 1) {
 			end = audioDuration
 		} else {
-			let nextlyrictime = lyrics[index + 1].time / 1000
+			let nextlyrictime = s.lyrics[index + 1].time / 1000
 			if (nextlyrictime - regionStart > 10) {
 				end = regionStart + 5
 			} else {
@@ -194,14 +193,14 @@ onMount(() => {
 
 	wavesurfer.on("timeupdate", () => {
 		currentTime = wavesurfer.getCurrentTime()
-		onTimeUpdate?.(currentTime * 1000)
+		s.audioTime = currentTime * 1000
 		// updateVisibleRegions()
 	})
 
 	wavesurfer.on("seeking", () => {
 		console.log("seek!")
 		currentTime = wavesurfer.getCurrentTime()
-		onTimeUpdate?.(currentTime * 1000)
+		s.audioTime = currentTime * 1000
 		// updateVisibleRegions()
 	})
 
@@ -215,8 +214,8 @@ onMount(() => {
 
 		console.log(start, nextstart)
 
-		lyrics[idx].time = start
-		lyrics[idx + 1].time = nextstart
+		s.lyrics[idx].time = start
+		s.lyrics[idx + 1].time = nextstart
 
 		wavesurfer.setTime(start / 1000)
 		wavesurfer.options.autoCenter = false
