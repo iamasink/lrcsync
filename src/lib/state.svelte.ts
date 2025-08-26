@@ -22,7 +22,7 @@ export const s: State = $state({
 	currentCaretLine: -1,
 	audioTime: 0,
 	activeTab: "sync",
-	shiftHeld: true,
+	shiftHeld: false,
 	syncCaretWithAudio: true,
 	waveformRef: undefined,
 	lineElements: []
