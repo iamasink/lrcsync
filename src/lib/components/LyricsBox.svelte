@@ -11,6 +11,8 @@
 
 	let { onscroll, element = $bindable(), height = 22.4, lineElements=$bindable() }: Props = $props();
 
+	let popupIndex: number | null = $state(null)
+
 	import { s } from "$lib/state.svelte";
 	import type { UIEventHandler } from "svelte/elements";
 
@@ -33,10 +35,38 @@
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
 	}
+
+	function getWarnings(lineIndex:number) {
+		const warnings = [];
+		const functions = [checkNextTime]
+
+		for (const func of functions) {
+			const result = func(lineIndex);
+			if (result) warnings.push(result);
+		}
+
+		return warnings
+	}
+
+	// check if the time between the start, and the next time is too big
+	function checkNextTime(lineIndex: number) {
+		const line = s.lyrics[lineIndex];
+		const nextLine = s.lyrics[lineIndex + 1];
+
+		if (!nextLine) return false;
+
+		const gap = nextLine.time - line.time;
+
+		if ( gap > 10 * 1000) {
+			return "big gap!"
+		}
+	}
+
 </script>
 
 <div class="lyricsbox" bind:this={element} {onscroll}>
 	{#each s.lyrics as line, i}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="lyric-line"
 			style="height: {height}px"
@@ -59,6 +89,24 @@
 			<div class="text">
 				{line.text}
 			</div>
+			{#if getWarnings(i).length>0}
+			<div class="warning-indicator"
+					onmouseenter={() => popupIndex = i}
+					onmouseleave={() => popupIndex = null}
+					>!
+					{#if popupIndex === i}
+						<div class="warning-popup">
+							{#each getWarnings(i) as warning}
+							<!-- TODO -->
+								<div class="warning-item">
+									<span>{warning}</span>
+									<button disabled>Fix</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/each}
 </div>
@@ -68,6 +116,7 @@
 		background-color: #453549;
 		font-size: 14px;
 		padding-top: 4px;
+		padding-right: 16px;
 		
 		
 		.lyric-line {
@@ -104,20 +153,66 @@
 		}
 		.current {
 			background-color: #ffffff !important;
-			color: #555555;
+
+			.text, .warning-indicator {
+				color: #555555;
+			}
+
+			.timestamp {
+				color: #2c2c2c;
+			}
 		}
 
 		.caret {
 			background-color: #4a90e2 !important;
-			color: #ffffff;
+
+			.text, .warning-indicator {
+				color: #ffffff;
+			}
+			
+			.timestamp {
+				color: #e0e0e0;
+			}
 		}
 
 		.current.caret {
 			background-color: #ffffff !important;
-			color: #555555;
 			border: 2px solid #4a90e2;
+
+			.text, .warning-indicator {
+				color: #555555;
+			}
+
+			.timestamp {
+				color: #2c2c2c;
+			}
 			
 		}
+	}
+
+	.warning-indicator {
+		background-color: #ffcc00;
+		padding: 8px;
+		font-weight: bold;
+		cursor: pointer;
+		position: relative;
+		user-select: none;
+	}
+
+	.warning-popup {
+		cursor: default;
+		position: absolute;
+		transform: translateX(-50%); 
+		background: #333;
+		border: 1px solid #555;
+		padding: 0.5rem;
+		border-radius: 4px;
+		min-width: 180px;
+		z-index: 10;
+	}
+
+	.warning-item {
+		
 	}
 
 </style>

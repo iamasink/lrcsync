@@ -5,7 +5,7 @@ import SyncView from "$lib/components/TabSync.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
 import { loadFiles } from "$lib/loadFiles"
-import { exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
+import { allHaveTimestamps, exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
@@ -124,6 +124,7 @@ async function doLoad() {
 	}
 
 	const { audioSrc: src, lyrics: l, meta } = await loadFiles(audioFile, lrcFile)
+
 	audioSrc = src
 
 	s.lyrics = l
@@ -168,7 +169,7 @@ onMount(() => {
 		<div class="drag-overlay">Drop files anywhere</div>
 	{/if}
 
-	<div class="controls">
+	<div class="topcontrols">
 		<p>Audio</p>
 		{#if !audioFile}
 			<input
@@ -240,10 +241,12 @@ onMount(() => {
 				onclick={() => {
 					s.lyrics = sortLines(s.lyrics)
 				}}
+				disabled={!allHaveTimestamps(s.lyrics)}
 				title="sort lines by timestamp (all lines must have a timestamp)"
 			>
 				Sort
 			</button>
+			<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
 		</div>
 	</div>
 
@@ -284,6 +287,12 @@ onMount(() => {
     cursor: pointer;
     font-weight: 600;
   }
+  label {
+    cursor: pointer;
+  }
+  label:hover {
+    border: 1px dashed red;
+  }
 }
 
 .container {
@@ -295,11 +304,16 @@ onMount(() => {
   height: 100vh;
   overflow: hidden;
 }
-.controls {
+.topcontrols {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
+}
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 button:hover:not(:disabled) {

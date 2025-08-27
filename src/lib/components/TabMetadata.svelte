@@ -9,6 +9,11 @@ import { getContext } from "svelte"
 
 <div class="metadata-view">
 	<pre>{exportWithMetadata(s.lyrics)}</pre>
+	<label><button onclick={() => {
+			s.metadata.re = "iamasink/lrcedit"
+		}}>
+			a
+		</button></label>
 	<label>lrc by: <input type="text" bind:value={s.metadata.by}></label>
 </div>
 

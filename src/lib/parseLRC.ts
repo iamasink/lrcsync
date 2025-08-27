@@ -14,20 +14,32 @@ export interface LyricLine {
 	 */
 	time: number
 }
-
+/**
+ * Metadata tags for an LRC file.
+ */
 export interface Metadata {
-	ti?: string       // Title of the song
-	ar?: string       // Artist performing the song
-	al?: string       // Album
-	au?: string       // Author of the song
-	lr?: string       // Lyricist
-	length?: string   // Length of the song, e.g., "03:45"
-	by?: string       // Author of the LRC file
-	offset?: string   // Global offset, e.g., "+500" or "-200"
-	re?: string       // Tool that created the LRC file
-	ve?: string       // Version of the program
-	"#"?: string     // Comments
+	/** Title of the song */
+	ti?: string
+	/** Artist performing the song */
+	ar?: string
+	/** Album the song is from */
+	al?: string
+	/** Author of the song */
+	au?: string
+	/** Lyricist of the song */
+	lr?: string
+	/** Length of the song in mm:ss format, e.g., "03:45" */
+	length?: string
+	/** Author of the LRC file (not the song) */
+	by?: string
+	/** Global offset for lyric times in milliseconds, +/- */
+	offset?: `+${number}` | `-${number}`
+	/** Tool that created the LRC file */
+	re?: string
+	/** Version of the program */
+	ve?: string
 }
+
 
 
 export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata } {
@@ -86,14 +98,12 @@ export function exportLRC(lines: LyricLine[]) {
 
 export function exportWithMetadata(lines: LyricLine[]) {
 	const lyricstext = exportLRC(lines)
-	const metadata = s.metadata
-	let final = ''
-
+	const metadata = s.metadata ?? {}
+	let final = ""
 
 	for (const key of Object.keys(metadata) as (keyof Metadata)[]) {
 		const value = metadata[key]
-		if (value && value != undefined)
-			final += `[${key}:${value}]\n`
+		if (value) final += `[${key}:${value}]\n`
 	}
 
 	final += `\n`
@@ -101,6 +111,7 @@ export function exportWithMetadata(lines: LyricLine[]) {
 
 	return final
 }
+
 
 
 /**
@@ -137,13 +148,16 @@ export function formatLine(l: { time: number; text: string }) {
 export function sortLines(lines: LyricLine[]) {
 	// maybe we can modify this function to sort without all lines having timestamps at some point
 
-	const allHaveTimestamps = lines.every(line =>
-		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
-	)
 
-	return allHaveTimestamps
+	return allHaveTimestamps(lines)
 		? lines.sort((a, b) => a.time - b.time)
 		: lines
+}
+
+export function allHaveTimestamps(lines: LyricLine[]) {
+	return lines.every(line =>
+		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
+	)
 }
 
 

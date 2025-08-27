@@ -61,7 +61,7 @@ function setRegions() {
 			end = audioDuration
 		} else {
 			let nextlyrictime = s.lyrics[index + 1].time / 1000
-			if (nextlyrictime - regionStart > 10) {
+			if (nextlyrictime - regionStart > 5) {
 				end = regionStart + 5
 			} else {
 				end = nextlyrictime - 0.01

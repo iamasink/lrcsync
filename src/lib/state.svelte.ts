@@ -2,6 +2,7 @@ import type { LyricLine, Metadata } from "$lib/parseLRC"
 import type Waveform from "./components/Waveform.svelte"
 
 
+
 interface State {
 	lyrics: LyricLine[]
 	currentAudioLine: number

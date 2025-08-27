@@ -40,7 +40,6 @@ function handleSkipButtonClick() {
 
 <div class="sync-view">
 	<div class="synccontrols">
-		<input type="checkbox" bind:checked={s.syncCaretWithAudio} />
 		<button onclick={handleSyncButtonClick}>sync</button>
 		<button onclick={handleSkipButtonClick}>skip line</button>
 	</div>
