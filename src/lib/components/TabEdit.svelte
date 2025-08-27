@@ -5,6 +5,7 @@ import type { LyricLine } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
 
 let textAreaElement: HTMLTextAreaElement
+let textUpdateTimeout: number | null = null
 
 let lyricsText = $derived(exportLRC(s.lyrics))
 let lyricsBoxElement: HTMLDivElement
@@ -14,17 +15,24 @@ let isScrolling = false
 let lineElements = $state(new Array())
 
 function handleInput() {
-	if (textAreaElement) {
-		const currentScrollTop = textAreaElement.scrollTop
+	if (!textAreaElement) return
 
-		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
-		console.log("caretline", s.currentCaretLine)
+	const currentScrollTop = textAreaElement.scrollTop
+
+	s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+	console.log("caretline", s.currentCaretLine)
+
+	if (textUpdateTimeout) clearTimeout(textUpdateTimeout)
+
+	textUpdateTimeout = setTimeout(() => {
 		try {
-			const updatedLyrics = parseLRC(lyricsText).lyrics
 			console.log("updating lyrics :)")
-			s.lyrics = updatedLyrics
 
 			requestAnimationFrame(() => {
+				const updatedLyrics = parseLRC(lyricsText).lyrics
+				if (s.lyrics != updatedLyrics) {
+					s.lyrics = updatedLyrics
+				}
 				if (textAreaElement && lyricsBoxElement) {
 					textAreaElement.scrollTop = currentScrollTop
 					syncScroll(textAreaElement, lyricsBoxElement)
@@ -34,7 +42,7 @@ function handleInput() {
 		} catch (error) {
 			console.warn("Failed to parse LRC text:", error)
 		}
-	}
+	}, 500)
 }
 
 function syncScroll(source: HTMLElement, target: HTMLElement) {
