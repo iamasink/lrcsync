@@ -55,7 +55,6 @@ function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea"
 	target.scrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
 
 	setTimeout(() => {
-		// reset source in next frame
 		scrollSource = null
 	}, 5)
 }
