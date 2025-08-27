@@ -11,6 +11,7 @@ let lyricsText = $derived(exportLRC(s.lyrics))
 let lyricsBoxElement: HTMLDivElement
 
 let isScrolling = false
+let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
 
@@ -35,8 +36,7 @@ function handleInput() {
 				}
 				if (textAreaElement && lyricsBoxElement) {
 					textAreaElement.scrollTop = currentScrollTop
-					syncScroll(textAreaElement, lyricsBoxElement)
-					syncScroll(textAreaElement, lyricsBoxElement)
+					syncScroll(textAreaElement, lyricsBoxElement, "textarea")
 				}
 			})
 		} catch (error) {
@@ -45,31 +45,30 @@ function handleInput() {
 	}, 500)
 }
 
-function syncScroll(source: HTMLElement, target: HTMLElement) {
-	if (isScrolling) return
+function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea" | "lyrics") {
+	if (scrollSource && scrollSource !== origin) return // another scroll is happening
 
-	isScrolling = true
+	console.log("scroll!", origin)
 
+	scrollSource = origin
 	const scrollPercentage = source.scrollTop / (source.scrollHeight - source.clientHeight)
-	const targetScrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
+	target.scrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
 
-	target.scrollTop = targetScrollTop
-	// idk man
 	setTimeout(() => {
-		isScrolling = false
-	}, 1)
+		// reset source in next frame
+		scrollSource = null
+	}, 5)
 }
 
 function handleTextAreaScroll() {
 	if (textAreaElement && lyricsBoxElement) {
-		syncScroll(textAreaElement, lyricsBoxElement)
+		syncScroll(textAreaElement, lyricsBoxElement, "textarea")
 	}
 }
 
 function handleLyricsBoxScroll() {
-	console.log("lyrics scroll!")
 	if (textAreaElement && lyricsBoxElement) {
-		syncScroll(lyricsBoxElement, textAreaElement)
+		syncScroll(lyricsBoxElement, textAreaElement, "lyrics")
 	}
 }
 </script>
