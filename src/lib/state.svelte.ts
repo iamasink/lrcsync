@@ -5,6 +5,7 @@ import type Waveform from "./components/Waveform.svelte"
 
 interface State {
 	lyrics: LyricLine[]
+	convertedLyrics: string[]
 	currentAudioLine: number
 	currentCaretLine: number
 	audioTime: number
@@ -20,6 +21,7 @@ interface State {
 
 export const s: State = $state({
 	lyrics: [{ text: 'default line 1', time: -1 }],
+	convertedLyrics: [],
 	currentAudioLine: -1,
 	currentCaretLine: -1,
 	audioTime: 0,

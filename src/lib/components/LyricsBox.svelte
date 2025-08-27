@@ -1,53 +1,36 @@
-<svelte:head>
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
-</svelte:head>
+
 
 <script lang="ts">
 	import Waveform from "$lib/components/Waveform.svelte";
 	import { formatLine, formatTime, type LyricLine } from "$lib/parseLRC";
-	import { toRomaji } from "wanakana"
-
-	const dictPath = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict";
-
-	let kuroshiro:any
-	let analyser:any
-
-	let convertedLyrics:string[]=$state([])
-
-onMount(async () => {
-	// @ts-ignore
-	kuroshiro = new Kuroshiro.default();
-	console.log(kuroshiro)
+	import { convertAll } from "$lib/kuroshiro";
+import { s } from "$lib/state.svelte"
 	
-	// @ts-ignore
-	console.log("new!", await new KuromojiAnalyzer())
-	// @ts-ignore
-	analyser = await kuroshiro.init(new KuromojiAnalyzer({ dictPath }))
 
-	console.log(await convert("私の名前は何ですか？"))
-})
 
-$effect(() => {
-  if (!s.lyrics.length) return;
+// onMount(async () => {
+// 	// @ts-ignore
+// 	kuroshiro = new Kuroshiro.default();
+// 	console.log(kuroshiro)
+	
+// 	// @ts-ignore
+// 	console.log("new!", await new KuromojiAnalyzer())
+// 	// @ts-ignore
+// 	analyser = await kuroshiro.init(new KuromojiAnalyzer({ dictPath }))
 
-  const texts = s.lyrics.map(line => line.text);
-console.log("lyric update",texts);
+// 	console.log(await convert("私の名前は何ですか？"))
+// })
 
-;
-  (async () => {
-    convertedLyrics = await Promise.all(
-      texts.map(text => convert(text))
-    );
-  })();
-});
+  $effect(() => {
+    if (!s.lyrics.length) return;
 
-async function convert(text:string) {
-	return await kuroshiro.convert(text, {
-		  to: "romaji",
-		mode: "spaced"
-	})
-}
+    for (const line of s.lyrics) line.text;
+
+    (async () => {
+      s.convertedLyrics = await convertAll(s.lyrics.map(l => l.text));
+    })();
+  });
+
 
 
 
@@ -62,7 +45,6 @@ async function convert(text:string) {
 
 	let popupIndex: number | null = $state(null)
 
-	import { s } from "$lib/state.svelte";
 	import { onMount } from "svelte";
 	import type { UIEventHandler } from "svelte/elements";
 
@@ -137,7 +119,7 @@ async function convert(text:string) {
 				[{formatTime(line.time)}]
 			</div>
 			<div class="text">
-				{convertedLyrics[i]}
+				{s.convertedLyrics[i]}
 			</div>
 			{#if getWarnings(i).length>0}
 			<div class="warning-indicator"

@@ -72,7 +72,7 @@ function setRegions() {
 			id: regionId,
 			start: regionStart,
 			end: regionEnd,
-			content: lyric.text,
+			content: `${s.convertedLyrics[index]}`,
 			color: "rgba(0, 255, 0, 0.1)",
 			drag: false,
 			resize: true,
