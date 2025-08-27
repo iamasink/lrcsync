@@ -123,10 +123,14 @@ function setRegions() {
 }
 
 export function play() {
+	console.log("play!")
+	s.isAudioPlaying = true
 	wavesurfer?.play()
 }
 
 export function pause() {
+	console.log("pause!")
+	s.isAudioPlaying = false
 	wavesurfer?.pause()
 }
 
@@ -150,10 +154,10 @@ export function getDuration() {
 
 export function togglePlayPause() {
 	if (!isPlaying()) {
-		wavesurfer.play()
+		play()
 		console.log("play")
 	} else {
-		wavesurfer.pause()
+		pause()
 		console.log("pause")
 	}
 }

@@ -67,17 +67,21 @@ function handleSkipButtonClick() {
 			{/each}
 		</div>
 	-->
-	<LyricsBox></LyricsBox>
+	<div class="lyricsboxcontainer">
+		<LyricsBox></LyricsBox>
+	</div>
 </div>
 
 <style>
 .sync-view {
-  height: 20vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
 
-  .synccontrols {
-    flex-shrink: 0;
+  .lyricsboxcontainer {
+    overflow-y: scroll;
   }
+
+  .synccontrols {}
 }
 </style>

@@ -10,6 +10,8 @@ import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
 import { s } from "$lib/state.svelte"
+;``
+let isPlaying = s.waveformRef?.isPlaying() ?? false
 
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
@@ -27,7 +29,7 @@ function updateCurrentLine() {
 	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time))
 
 	if (newIndex !== s.currentAudioLine) {
-		if (s.currentAudioLine != -1) {
+		if (newIndex != -1) {
 			console.log(`new line: ${newIndex}`)
 			if (s.activeTab == "edit") {
 				if (newIndex >= 0 && textAreaElement) {
@@ -41,9 +43,9 @@ function updateCurrentLine() {
 					newIndex = s.lineElements.length - 1
 				}
 				if (s.syncCaretWithAudio) {
-					s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 				}
 			}
+			s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 		}
 		s.currentAudioLine = newIndex
 
@@ -91,7 +93,7 @@ function togglePlayPause() {
 
 function handleKeydown(event: KeyboardEvent) {
 	if (event.key === "Shift") {
-		s.shiftHeld = true
+		s.isShiftHeld = true
 	}
 
 	if (event.code === "Space") {
@@ -110,7 +112,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 function handleKeyup(event: KeyboardEvent) {
 	if (event.key === "Shift") {
-		s.shiftHeld = false
+		s.isShiftHeld = false
 	}
 }
 
@@ -146,15 +148,15 @@ onMount(() => {
 		doLoad,
 	)
 
-	document.addEventListener("keydown", handleKeydown)
-	document.addEventListener("keyup", handleKeyup)
+	window.addEventListener("keydown", handleKeydown)
+	window.addEventListener("keyup", handleKeyup)
 
 	requestAnimationFrame(update)
 
 	return () => {
 		cleanup
-		document.removeEventListener("keydown", handleKeydown)
-		document.removeEventListener("keyup", handleKeyup)
+		window.removeEventListener("keydown", handleKeydown)
+		window.removeEventListener("keyup", handleKeyup)
 	}
 })
 </script>
@@ -216,21 +218,21 @@ onMount(() => {
 	<div class="controls">
 		<div class="controls-1">
 			<button onclick={togglePlayPause} disabled={!audioFile}>
-				Play/Pause (Space)
+				{s.isAudioPlaying ? "Pause" : "Play"} (Space)
 			</button>
 			<button
 				onclick={(e) => handleAdjustClick(-0.01, e)}
 				disabled={s.currentCaretLine < 0}
-				title={s.shiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
+				title={s.isShiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
 			>
-				{s.shiftHeld ? "-0.05s" : "-0.01s"}
+				{s.isShiftHeld ? "-0.05s" : "-0.01s"}
 			</button>
 			<button
 				onclick={(e) => handleAdjustClick(+0.01, e)}
 				disabled={s.currentCaretLine < 0}
-				title={s.shiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
+				title={s.isShiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
 			>
-				{s.shiftHeld ? "+0.05s" : "+0.01s"}
+				{s.isShiftHeld ? "+0.05s" : "+0.01s"}
 			</button>
 		</div>
 		<div class="controls-2">
@@ -266,6 +268,8 @@ onMount(() => {
     margin: 0;
     background: #211b22;
     color: #ffffff;
+    width: 100vw;
+    overflow-x: hidden;
   }
   button {
     padding: 0.35rem 0.6rem;
@@ -284,7 +288,7 @@ onMount(() => {
   flex-direction: column;
   gap: 1rem;
   height: 100vh;
-  max-height: 100vh;
+  overflow: hidden;
 }
 .controls {
   display: flex;
@@ -331,7 +335,11 @@ input[type="file"] {
   border-color: #4a90e2;
 }
 
-.tabcontent {}
+.tabcontent {
+  flex: 1;
+  border: 2px solid aqua;
+  min-height: 0; /*allow it to shrink??*/
+}
 
 .info {
   display: flex;

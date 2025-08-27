@@ -62,22 +62,23 @@ function handleTextAreaScroll() {
 }
 
 function handleLyricsBoxScroll() {
+	console.log("lyrics scroll!")
 	if (textAreaElement && lyricsBoxElement) {
 		syncScroll(lyricsBoxElement, textAreaElement)
 	}
 }
 </script>
 
-<div class="textareadiv">
-	<div class="container">
-		<textarea
-			bind:this={textAreaElement}
-			bind:value={lyricsText}
-			onclick={handleInput}
-			onkeypress={handleInput}
-			oninput={handleInput}
-			onscroll={handleTextAreaScroll}
-		></textarea>
+<div class="edit-view">
+	<textarea
+		bind:this={textAreaElement}
+		bind:value={lyricsText}
+		onclick={handleInput}
+		onkeyup={handleInput}
+		oninput={handleInput}
+		onscroll={handleTextAreaScroll}
+	></textarea>
+	<!--
 		<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
 			{#each s.lyrics as line, i}
 				<div class="lyric-line">
@@ -90,93 +91,31 @@ function handleLyricsBoxScroll() {
 				</div>
 			{/each}
 		</div>
+	-->
 
+	<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
 		<LyricsBox />
 	</div>
 </div>
 
 <style>
-.textareadiv {
-  height: 60vh;
-  width: 100%;
+.edit-view {
   display: flex;
-  overflow: hidden;
+  flex-direction: row;
+  height: 100%; /* inherit height from parent */
 
-  .container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-
-    textarea {
-      flex: 1;
-      height: 100%;
-      resize: none;
-      background-color: #554258;
-      color: #ffffff;
-      overflow-y: auto;
-      overflow-x: hidden;
-      border: none;
-      outline: none;
-      padding: 8px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
-      line-height: 1.6;
-      font-size: 14px;
-      box-sizing: border-box;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-    }
-
-    .lyricsbox {
-      flex: 1;
-      height: 100%;
-      background-color: #453549;
-      border-radius: 4px;
-      padding: 8px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      font-size: 14px;
-      box-sizing: border-box;
-
-      .lyric-line {
-        display: flex;
-        gap: 0.5rem;
-        height: 22.4px; /* 14px * 1.6 line-height = 22.4px */
-        padding: 0 4px;
-        border-radius: 2px;
-        align-items: center;
-        box-sizing: border-box;
-        overflow: hidden;
-
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .timestamp {
-          color: #a0a0a0;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
-          font-size: 0.85em;
-          min-width: 70px;
-          width: 70px;
-          flex-shrink: 0;
-          text-align: right;
-          line-height: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .text {
-          color: #ffffff;
-          flex: 1;
-          line-height: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          min-width: 0;
-        }
-      }
-    }
+  textarea {
+    flex: 1;
+    resize: none;
+    background-color: #57425a;
+    color: #ffffff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+  .lyricsboxcontainer {
+    flex: 1;
+    overflow-y: scroll;
   }
 }
 </style>

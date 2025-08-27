@@ -1,7 +1,7 @@
 import type { LyricLine } from "$lib/parseLRC"
 import type Waveform from "./components/Waveform.svelte"
 
-type Tab = "sync" | "edit"
+
 
 
 interface State {
@@ -9,8 +9,9 @@ interface State {
 	currentAudioLine: number
 	currentCaretLine: number
 	audioTime: number
-	activeTab: Tab
-	shiftHeld: boolean
+	isAudioPlaying: boolean
+	activeTab: "sync" | "edit"
+	isShiftHeld: boolean
 	syncCaretWithAudio: boolean
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
@@ -21,8 +22,9 @@ export const s: State = $state({
 	currentAudioLine: -1,
 	currentCaretLine: -1,
 	audioTime: 0,
+	isAudioPlaying: false,
 	activeTab: "sync",
-	shiftHeld: false,
+	isShiftHeld: false,
 	syncCaretWithAudio: true,
 	waveformRef: undefined,
 	lineElements: []
