@@ -15,6 +15,7 @@ interface State {
 	syncCaretWithAudio: boolean
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
+	lineElements2: HTMLDivElement[]
 }
 
 export const s: State = $state({
@@ -27,7 +28,8 @@ export const s: State = $state({
 	isShiftHeld: false,
 	syncCaretWithAudio: true,
 	waveformRef: undefined,
-	lineElements: []
+	lineElements: [],
+	lineElements2: []
 })
 
 

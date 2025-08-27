@@ -91,7 +91,7 @@ function handleLyricsBoxScroll() {
 	-->
 
 	<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
-		<LyricsBox />
+		<LyricsBox lineElements={s.lineElements2} />
 	</div>
 </div>
 

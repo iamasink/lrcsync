@@ -6,9 +6,10 @@
 		onscroll?: UIEventHandler<HTMLDivElement> | null | undefined;
 		element?: HTMLDivElement;
 		height?: number;
+		lineElements: HTMLDivElement[]
 	}
 
-	let { onscroll, element = $bindable(), height = 22.4 }: Props = $props();
+	let { onscroll, element = $bindable(), height = 22.4, lineElements=$bindable() }: Props = $props();
 
 	import { s } from "$lib/state.svelte";
 	import type { UIEventHandler } from "svelte/elements";
@@ -39,7 +40,7 @@
 		<div
 			class="lyric-line"
 			style="height: {height}px"
-			bind:this={s.lineElements[i]}
+			bind:this={lineElements[i]}
 			class:current={i === s.currentAudioLine}
 			class:caret={i === s.currentCaretLine}
 			onclick={() => handleLineClick(i)}
