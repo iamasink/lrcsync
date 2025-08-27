@@ -214,7 +214,7 @@ onMount(() => {
 		<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 		<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 	</CollapsibleText>
-	<p>current lyric: {s.lyrics[s.currentAudioLine]?.text ?? ""}</p>
+	<p style="height: 2rem">current lyric: {s.lyrics[s.currentAudioLine]?.text ?? ""}</p>
 
 	<div class="controls">
 		<div class="controls-1">
@@ -296,7 +296,7 @@ onMount(() => {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
