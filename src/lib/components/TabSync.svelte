@@ -68,7 +68,7 @@ function handleSkipButtonClick() {
 		</div>
 	-->
 	<div class="lyricsboxcontainer">
-		<LyricsBox lineElements={s.lineElements} />
+		<LyricsBox bind:lineElements={s.lineElements} />
 	</div>
 </div>
 
