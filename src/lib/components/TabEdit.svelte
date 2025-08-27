@@ -49,7 +49,10 @@ function syncScroll(source: HTMLElement, target: HTMLElement) {
 	const targetScrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
 
 	target.scrollTop = targetScrollTop
-	isScrolling = false
+	// idk man
+	setTimeout(() => {
+		isScrolling = false
+	}, 1)
 }
 
 function handleTextAreaScroll() {
@@ -91,7 +94,7 @@ function handleLyricsBoxScroll() {
 	-->
 
 	<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
-		<LyricsBox lineElements={s.lineElements2} />
+		<LyricsBox bind:lineElements={s.lineElements2} />
 	</div>
 </div>
 
