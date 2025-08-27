@@ -4,11 +4,7 @@ import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
 
-interface Props {
-	textAreaElement: HTMLTextAreaElement
-}
-
-let { textAreaElement = $bindable() }: Props = $props()
+let textAreaElement: HTMLTextAreaElement
 
 let lyricsText = $derived(exportLRC(s.lyrics))
 let lyricsBoxElement: HTMLDivElement
@@ -25,6 +21,7 @@ function handleInput() {
 		console.log("caretline", s.currentCaretLine)
 		try {
 			const updatedLyrics = parseLRC(lyricsText).lyrics
+			console.log("updating lyrics :)")
 			s.lyrics = updatedLyrics
 
 			requestAnimationFrame(() => {

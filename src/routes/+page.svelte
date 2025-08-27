@@ -260,7 +260,7 @@ onMount(() => {
 		{#if s.activeTab === "sync"}
 			<SyncView />
 		{:else if s.activeTab === "edit"}
-			<EditView bind:textAreaElement />
+			<EditView />
 		{:else if s.activeTab === "metadata"}
 			<TabMetadata />
 		{:else}
