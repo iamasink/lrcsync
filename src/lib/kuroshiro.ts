@@ -27,10 +27,9 @@ export function initKuroshiro(): Promise<void> {
 export async function convert(text: string): Promise<string> {
 	await initKuroshiro()
 	const converted = await kuroshiro.convert(text, { to: "romaji", mode: "spaced" })
-	console.log("converted", converted)
 
 
-	return (await converted).replace(/ (\p{P})/gu, '$1')
+	return converted.replace(/ (\p{P})/gu, '$1')
 		.replace(/(\p{P}) /gu, '$1')
 
 }
