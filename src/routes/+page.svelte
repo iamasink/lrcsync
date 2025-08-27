@@ -10,7 +10,6 @@ import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
 import { s } from "$lib/state.svelte"
-;``
 let isPlaying = s.waveformRef?.isPlaying() ?? false
 
 let audioFile = $state<File | null>(null)
@@ -32,20 +31,16 @@ function updateCurrentLine() {
 		if (newIndex != -1) {
 			console.log(`new line: ${newIndex}`)
 			if (s.activeTab == "edit") {
-				if (newIndex >= 0 && textAreaElement) {
-					const lineHeight = parseFloat(getComputedStyle(textAreaElement).lineHeight) || 20
-					const target = Math.max(0, lineHeight * newIndex - textAreaElement.clientHeight / 2)
-					textAreaElement.scrollTo({ top: target, behavior: "smooth" })
-				}
+				s.lineElements2[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 			} else {
 				if (newIndex < 0) newIndex = 0
 				if (newIndex > s.lineElements.length) {
 					newIndex = s.lineElements.length - 1
 				}
 				if (s.syncCaretWithAudio) {
+					s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 				}
 			}
-			s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 		}
 		s.currentAudioLine = newIndex
 
