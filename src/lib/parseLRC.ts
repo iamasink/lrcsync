@@ -1,3 +1,5 @@
+import { s } from "./state.svelte"
+
 /**
  * Represents a single line of lyrics.
  */
@@ -13,7 +15,22 @@ export interface LyricLine {
 	time: number
 }
 
-export function parseLRC(content: string): LyricLine[] {
+export interface Metadata {
+	ti?: string       // Title of the song
+	ar?: string       // Artist performing the song
+	al?: string       // Album
+	au?: string       // Author of the song
+	lr?: string       // Lyricist
+	length?: string   // Length of the song, e.g., "03:45"
+	by?: string       // Author of the LRC file
+	offset?: string   // Global offset, e.g., "+500" or "-200"
+	re?: string       // Tool that created the LRC file
+	ve?: string       // Version of the program
+	"#"?: string     // Comments
+}
+
+
+export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata } {
 	const lines = content.split("\n").map(line => {
 		const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
 		if (match) {
@@ -42,7 +59,7 @@ export function parseLRC(content: string): LyricLine[] {
 	// 	? lines.sort((a, b) => a.time - b.time)
 	// 	: lines
 
-	return lines
+	return { lyrics: lines, meta: {} }
 }
 
 export function exportLRC(lines: LyricLine[]) {
@@ -65,6 +82,24 @@ export function exportLRC(lines: LyricLine[]) {
 
 		return `[${formattedMinutes}:${formattedSeconds}.${formattedCentiseconds}] ${text}`
 	}).join("\n")
+}
+
+export function exportWithMetadata(lines: LyricLine[]) {
+	const lyricstext = exportLRC(lines)
+	const metadata = s.metadata
+	let final = ''
+
+
+	for (const key of Object.keys(metadata) as (keyof Metadata)[]) {
+		const value = metadata[key]
+		if (value && value != undefined)
+			final += `[${key}:${value}]\n`
+	}
+
+	final += `\n`
+	final += lyricstext
+
+	return final
 }
 
 

@@ -9,6 +9,7 @@ import { exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/par
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
+import TabMetadata from "$lib/components/TabMetadata.svelte"
 import { s } from "$lib/state.svelte"
 let isPlaying = s.waveformRef?.isPlaying() ?? false
 
@@ -122,14 +123,16 @@ async function doLoad() {
 		return
 	}
 
-	const { audioSrc: src, lyrics: l } = await loadFiles(audioFile, lrcFile)
+	const { audioSrc: src, lyrics: l, meta } = await loadFiles(audioFile, lrcFile)
 	audioSrc = src
 
 	s.lyrics = l
+	s.metadata = meta
 }
 
 onMount(() => {
 	const cleanup = initDragDrop(
+		// files
 		(files) => {
 			Array.from(files).forEach((file) => {
 				if (file.name.endsWith(".lrc") || file.name.endsWith(".txt")) {
@@ -139,7 +142,9 @@ onMount(() => {
 				}
 			})
 		},
+		// show
 		(show) => (showFileoverlay = show),
+		// onAfterDrop
 		doLoad,
 	)
 
@@ -245,13 +250,18 @@ onMount(() => {
 	<div class="tabs">
 		<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
 		<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
+		<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
 	</div>
 
 	<div class="tabcontent">
 		{#if s.activeTab === "sync"}
 			<SyncView />
-		{:else}
+		{:else if s.activeTab === "edit"}
 			<EditView bind:textAreaElement />
+		{:else if s.activeTab === "metadata"}
+			<TabMetadata />
+		{:else}
+			<p>erm</p>
 		{/if}
 	</div>
 </div>

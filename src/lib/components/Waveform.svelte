@@ -234,6 +234,8 @@ onMount(() => {
 		}, 5000)
 		wavesurfer.play()
 	})
+
+	updateVolume()
 })
 
 onDestroy(() => {

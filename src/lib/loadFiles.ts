@@ -1,4 +1,4 @@
-import { parseLRC } from "$lib/parseLRC"
+import { parseLRC, type Metadata } from "$lib/parseLRC"
 
 export async function loadFiles(
 	audioFile: File | undefined,
@@ -6,16 +6,19 @@ export async function loadFiles(
 ) {
 	let audioSrc = ""
 	let lyrics: { time: number; text: string }[] = []
+	let meta: Metadata = {}
 
 	if (audioFile) {
 		audioSrc = URL.createObjectURL(audioFile)
 	}
 	if (lrcFile) {
 		const lyrictext = await lrcFile.text()
-		lyrics = parseLRC(lyrictext)
+		const parsed = parseLRC(lyrictext)
+		lyrics = parsed.lyrics
+		meta = parsed.meta
 	}
 
-	return { audioSrc, lyrics }
+	return { audioSrc, lyrics, meta }
 }
 
 

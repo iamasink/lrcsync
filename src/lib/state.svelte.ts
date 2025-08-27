@@ -1,7 +1,5 @@
-import type { LyricLine } from "$lib/parseLRC"
+import type { LyricLine, Metadata } from "$lib/parseLRC"
 import type Waveform from "./components/Waveform.svelte"
-
-
 
 
 interface State {
@@ -10,12 +8,13 @@ interface State {
 	currentCaretLine: number
 	audioTime: number
 	isAudioPlaying: boolean
-	activeTab: "sync" | "edit"
+	activeTab: "sync" | "edit" | "metadata"
 	isShiftHeld: boolean
 	syncCaretWithAudio: boolean
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
 	lineElements2: HTMLDivElement[]
+	metadata: Metadata
 }
 
 export const s: State = $state({
@@ -29,8 +28,10 @@ export const s: State = $state({
 	syncCaretWithAudio: true,
 	waveformRef: undefined,
 	lineElements: [],
-	lineElements2: []
+	lineElements2: [],
+	metadata: { re: "iamasink/lrcsync", ve: "1" }
 })
+
 
 
 // export let lyrics = $state<LyricLine[]>([{ text: 'default line 1', time: -1 }])

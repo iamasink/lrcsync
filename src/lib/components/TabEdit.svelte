@@ -24,7 +24,7 @@ function handleInput() {
 		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
 		console.log("caretline", s.currentCaretLine)
 		try {
-			const updatedLyrics = parseLRC(lyricsText)
+			const updatedLyrics = parseLRC(lyricsText).lyrics
 			s.lyrics = updatedLyrics
 
 			requestAnimationFrame(() => {
