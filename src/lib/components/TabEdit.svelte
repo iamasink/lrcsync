@@ -49,10 +49,7 @@ function syncScroll(source: HTMLElement, target: HTMLElement) {
 	const targetScrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
 
 	target.scrollTop = targetScrollTop
-
-	setTimeout(() => {
-		isScrolling = false
-	}, 16)
+	isScrolling = false
 }
 
 function handleTextAreaScroll() {
