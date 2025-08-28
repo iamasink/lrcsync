@@ -16,7 +16,8 @@ interface State {
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
 	lineElements2: HTMLDivElement[]
-	metadata: Metadata
+	metadata: Metadata,
+	isTauri: boolean
 }
 
 export const s: State = $state({
@@ -32,7 +33,8 @@ export const s: State = $state({
 	waveformRef: undefined,
 	lineElements: [],
 	lineElements2: [],
-	metadata: { re: "iamasink/lrcsync", ve: "1" }
+	metadata: { re: "iamasink/lrcsync", ve: "1" },
+	isTauri: false
 })
 
 

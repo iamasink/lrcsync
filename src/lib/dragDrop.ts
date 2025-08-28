@@ -1,20 +1,17 @@
 import { listen } from "@tauri-apps/api/event"
 import { getCurrentWebview } from "@tauri-apps/api/webview"
 import { readFile } from '@tauri-apps/plugin-fs'
+import { s } from "./state.svelte"
 
 export function initDragDrop(
 	onFiles: (files: FileList | File[]) => void,
 	setOverlay: (show: boolean) => void,
 	onAfterDrop: () => void,
 ) {
-	//@ts-ignore
-	const isTauri = !!(window.__TAURI_INTERNALS__)
 	let cleanupFns: (() => void)[] = []
 
 
-	console.log("initdragdrop", isTauri)
-
-	if (isTauri) {
+	if (s.isTauri) {
 		// listen<{ path: string[] }>("tauri://file-drop", (event) => {
 		// 	const files = event.payload.path.map(p => new File([], p))
 		// 	setOverlay(false)
@@ -36,10 +33,10 @@ export function initDragDrop(
 		// 	.then(unlisten => cleanupFns.push(unlisten))
 		const unlisten = getCurrentWebview().onDragDropEvent(async (e) => {
 			if (e.payload.type === 'over') {
-				console.log('User hovering', e.payload.position)
+				// console.log('User hovering', e.payload.position)
 				setOverlay(true)
 			} else if (e.payload.type === 'drop') {
-				console.log('User dropped', e.payload.paths)
+				// console.log('User dropped', e.payload.paths)
 				setOverlay(false)
 
 				// read files and give to onFiles
@@ -56,7 +53,7 @@ export function initDragDrop(
 				}
 
 			} else {
-				console.log('File drop cancelled')
+				// console.log('File drop cancelled')
 				setOverlay(false)
 			}
 		});

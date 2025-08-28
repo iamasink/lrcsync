@@ -145,6 +145,9 @@ async function doLoad() {
 }
 
 onMount(() => {
+	// @ts-ignore
+	s.isTauri = !!(window.__TAURI_INTERNALS__)
+
 	console.log("hi world")
 	const cleanup = initDragDrop(
 		// files

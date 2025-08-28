@@ -8,10 +8,20 @@ import { getContext } from "svelte"
 </script>
 
 <div class="metadata-view">
+	<div>
+		{#if s.isTauri}
+			<p>straight up tauri'ng it</p>
+		{:else}
+			<p>im so normal</p>
+		{/if}
+	</div>
+
 	<pre>{exportWithMetadata(s.lyrics)}</pre>
-	<label><button onclick={() => {
-			s.metadata.re = "iamasink/lrcedit"
-		}}>
+	<label><button
+			onclick={() => {
+				s.metadata.re = "iamasink/lrcedit"
+			}}
+		>
 			a
 		</button></label>
 	<label>lrc by: <input type="text" bind:value={s.metadata.by}></label>
