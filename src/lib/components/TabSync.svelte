@@ -4,17 +4,11 @@ import Waveform from "$lib/components/Waveform.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { formatLine, formatTime } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
-import { getContext } from "svelte"
-interface Props {
-	lineElements?: HTMLDivElement[]
-}
-
-let { lineElements = $bindable([]) }: Props = $props()
-const waveformRef = getContext<Waveform>("waveformRef")
+const waveformRef = s.waveformRef
 
 $effect(() => {
-	if (s.lyrics.length !== lineElements.length) {
-		lineElements = new Array(s.lyrics.length)
+	if (s.lyrics.length !== s.lineElements.length) {
+		s.lineElements = new Array(s.lyrics.length)
 	}
 })
 
@@ -28,13 +22,21 @@ function setLineTime(time: number, lineIndex: number) {
 }
 
 function handleSyncButtonClick() {
+	s.syncCaretWithAudio = false
+	if (!waveformRef) {
+		return console.log("nuh uh")
+	}
 	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
-	lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
 }
 function handleSkipButtonClick() {
+	s.syncCaretWithAudio = false
+	if (!waveformRef) {
+		return console.log("nuh uh")
+	}
 	s.currentCaretLine++
-	lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
 }
 </script>
 
