@@ -9,7 +9,9 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"tauri:dev": "tauri dev",
+		"tauri:build": "tauri build"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.0",
@@ -22,6 +24,8 @@
 		"wavesurfer.js": "^7.10.1"
 	},
 	"dependencies": {
+		"@tauri-apps/api": "^2.8.0",
+		"@tauri-apps/cli": "^2.8.3",
 		"dprint": "^0.50.1",
 		"wanakana": "^5.3.1"
 	}
