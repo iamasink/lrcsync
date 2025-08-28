@@ -21,6 +21,10 @@ let lyricsText = $derived(exportLRC(s.lyrics))
 let textAreaElement: HTMLTextAreaElement
 let overlayElement: HTMLDivElement
 
+let fps = $state(0)
+let lastFrameTime = performance.now()
+let frameCount = 0
+
 let showFileoverlay = $state(false)
 
 function updateCurrentLine() {
@@ -112,9 +116,18 @@ function handleKeyup(event: KeyboardEvent) {
 	}
 }
 
-function update() {
+function update(now?: number) {
 	updateCurrentLine()
 	requestAnimationFrame(update)
+}
+function countfps(now: number) {
+	frameCount++
+	if (now - lastFrameTime >= 1000) {
+		fps = frameCount
+		frameCount = 0
+		lastFrameTime = now
+	}
+	requestAnimationFrame(countfps)
 }
 
 async function doLoad() {
@@ -153,6 +166,7 @@ onMount(() => {
 	window.addEventListener("keyup", handleKeyup)
 
 	requestAnimationFrame(update)
+	requestAnimationFrame(countfps)
 
 	return () => {
 		cleanup
@@ -208,6 +222,7 @@ onMount(() => {
 		<p>caret line: {s.currentAudioLine}</p>
 		<p>current time: {(s.audioTime / 1000).toFixed(2)}</p>
 		<p>{formatTime(s.audioTime)}</p>
+		<p>FPS: {fps}</p>
 	</div>
 
 	<CollapsibleText>

@@ -122,6 +122,16 @@ function setRegions() {
 	// })
 }
 
+// https://github.com/katspaugh/wavesurfer.js/issues/3837
+function ensureEvenWidth(container: HTMLElement) {
+	if (!container) return
+	let width = container.clientWidth
+	if (width % 2 !== 0) {
+		// force odd width
+		container.style.width = width - 1 + "px"
+	}
+}
+
 export function play() {
 	console.log("play!")
 	s.isAudioPlaying = true
@@ -183,6 +193,8 @@ onMount(() => {
 		minPxPerSec: 100,
 		plugins: [timeline, spectrogram, regions, minimap],
 	})
+	ensureEvenWidth(waveformContainer)
+	window.addEventListener("resize", () => ensureEvenWidth(waveformContainer))
 
 	if (file) loadFile(file)
 
@@ -195,16 +207,14 @@ onMount(() => {
 		isReady = true
 	})
 
-	wavesurfer.on("timeupdate", () => {
-		currentTime = wavesurfer.getCurrentTime()
-		s.audioTime = currentTime * 1000
+	wavesurfer.on("timeupdate", (newtime) => {
+		s.audioTime = newtime * 1000
 		// updateVisibleRegions()
 	})
 
-	wavesurfer.on("seeking", () => {
+	wavesurfer.on("seeking", (newtime) => {
 		console.log("seek!")
-		currentTime = wavesurfer.getCurrentTime()
-		s.audioTime = currentTime * 1000
+		s.audioTime = newtime * 1000
 		// updateVisibleRegions()
 	})
 
@@ -266,6 +276,7 @@ onDestroy(() => {
   width: 100%;
   max-height: 450px;
   overflow: hidden;
+  will-change: transform, scroll-position;
 }
 
 :global(#waveform) {
