@@ -19,7 +19,7 @@ import { getContext } from "svelte"
 	<pre>{exportWithMetadata(s.lyrics)}</pre>
 	<label><button
 			onclick={() => {
-				s.metadata.re = "iamasink/lrcedit"
+				s.metadata.re = "iamasink/lrcsync"
 			}}
 		>
 			a
