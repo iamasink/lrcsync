@@ -11,11 +11,11 @@ import { getContext } from "svelte"
 	<div>
 		{#if s.isTauri}
 			<p>straight up tauri'ng it</p>
-			<p>audio {s.filePaths.audio}</p>
-			<p>lyrics {s.filePaths.lyrics}</p>
 		{:else}
 			<p>im so normal</p>
 		{/if}
+		<p>audio {s.filePaths.audio}</p>
+		<p>lyrics {s.filePaths.lyrics}</p>
 	</div>
 
 	<pre>{exportWithMetadata(s.lyrics)}</pre>
