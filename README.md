@@ -13,3 +13,4 @@
 - [ ] fix parsing metadata tags
 - [ ] sort on save
 - [ ] improve timeline while syncing (show lyric without next time idk)
+- [ ] tauri: saving
