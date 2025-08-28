@@ -70,7 +70,7 @@ import { s } from "$lib/state.svelte"
 
 	function getWarnings(lineIndex:number) {
 		const warnings = [];
-		const functions = [checkNextTime]
+		const functions = [checkNextTime, checkEnd]
 
 		for (const func of functions) {
 			const result = func(lineIndex);
@@ -91,6 +91,11 @@ import { s } from "$lib/state.svelte"
 
 		if ( gap > 10 * 1000) {
 			return "big gap!"
+		}
+	}
+	function checkEnd(lineIndex:number) {
+		if (lineIndex+1==s.lyrics.length && s.lyrics[lineIndex].text !="") {
+			return "no end time!"
 		}
 	}
 
@@ -186,7 +191,7 @@ import { s } from "$lib/state.svelte"
 		.current {
 			background-color: #ffffff !important;
 
-			.text, .warning-indicator {
+			.text {
 				color: #555555;
 			}
 
@@ -198,7 +203,7 @@ import { s } from "$lib/state.svelte"
 		.caret {
 			background-color: #4a90e2 !important;
 
-			.text, .warning-indicator {
+			.text {
 				color: #ffffff;
 			}
 			
@@ -211,7 +216,7 @@ import { s } from "$lib/state.svelte"
 			background-color: #ffffff !important;
 			border: 2px solid #4a90e2;
 
-			.text, .warning-indicator {
+			.text {
 				color: #555555;
 			}
 
@@ -234,7 +239,7 @@ import { s } from "$lib/state.svelte"
 	.warning-popup {
 		cursor: default;
 		position: absolute;
-		transform: translateX(-50%); 
+		transform: translateX(-90%); 
 		background: #333;
 		border: 1px solid #555;
 		padding: 0.5rem;
