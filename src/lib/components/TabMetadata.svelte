@@ -5,6 +5,37 @@ import type { LyricLine } from "$lib/parseLRC"
 import { exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
 import { getContext } from "svelte"
+
+async function saveFile() {
+	console.log("saving audio")
+	if (s.isTauri) {
+		console.error("saving on tauri not implemented yet")
+	} else {
+		const text = exportWithMetadata(s.lyrics)
+		// @ts-ignore
+		if (window.showSaveFilePicker) {
+			// @ts-ignore
+			const handle = await window.showSaveFilePicker({
+				suggestedName: s.filePaths.lyrics,
+				types: [{ description: "LRC Files", accept: { "text/plain": [".lrc", ".txt"] } }],
+			})
+
+			const writable = await handle.createWritable()
+			await writable.write(text)
+			await writable.close()
+		} else {
+			const blob = new Blob([text], { type: "text/plain" })
+
+			const url = URL.createObjectURL(blob)
+			const a = document.createElement("a")
+			a.href = url
+			a.download = s.filePaths.lyrics || "unknown.lrc" // filename
+			a.click()
+
+			URL.revokeObjectURL(url)
+		}
+	}
+}
 </script>
 
 <div class="metadata-view">
@@ -27,6 +58,8 @@ import { getContext } from "svelte"
 			a
 		</button></label>
 	<label>lrc by: <input type="text" bind:value={s.metadata.by}></label>
+	<br />
+	<button onclick={saveFile}>save</button>
 </div>
 
 <style>
