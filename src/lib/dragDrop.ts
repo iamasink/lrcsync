@@ -12,25 +12,6 @@ export function initDragDrop(
 
 
 	if (s.isTauri) {
-		// listen<{ path: string[] }>("tauri://file-drop", (event) => {
-		// 	const files = event.payload.path.map(p => new File([], p))
-		// 	setOverlay(false)
-		// 	onFiles(files)
-		// 	onAfterDrop?.()
-		// 	console.log("file-drop")
-		// }).then(unlisten => cleanupFns.push(unlisten))
-
-		// listen("tauri://file-drop-hovered", () => {
-		// 	setOverlay(true)
-		// 	console.log("file-drop-hovered")
-		// })
-		// 	.then(unlisten => cleanupFns.push(unlisten))
-
-		// listen("tauri://file-drop-cancelled", () => {
-		// 	setOverlay(false)
-		// 	console.log("file-drop-cancelled")
-		// })
-		// 	.then(unlisten => cleanupFns.push(unlisten))
 		const unlisten = getCurrentWebview().onDragDropEvent(async (e) => {
 			if (e.payload.type === 'over') {
 				// console.log('User hovering', e.payload.position)

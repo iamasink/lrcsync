@@ -156,8 +156,10 @@ onMount(() => {
 				console.log("processing file", file.name)
 				if (file.name.endsWith(".lrc") || file.name.endsWith(".txt")) {
 					lrcFile = file
+					if (s.isTauri) s.filePaths.lyrics = file.name
 				} else {
 					audioFile = file
+					if (s.isTauri) s.filePaths.audio = file.name
 				}
 			})
 		},

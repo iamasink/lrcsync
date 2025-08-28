@@ -17,7 +17,8 @@ interface State {
 	lineElements: HTMLDivElement[]
 	lineElements2: HTMLDivElement[]
 	metadata: Metadata,
-	isTauri: boolean
+	isTauri: boolean,
+	filePaths: { lyrics?: string, audio?: string }
 }
 
 export const s: State = $state({
@@ -34,7 +35,8 @@ export const s: State = $state({
 	lineElements: [],
 	lineElements2: [],
 	metadata: { re: "iamasink/lrcsync", ve: "1" },
-	isTauri: false
+	isTauri: false,
+	filePaths: {}
 })
 
 
