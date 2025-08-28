@@ -48,25 +48,64 @@ function loadFile(file: File) {
 	wavesurfer.load(url)
 }
 
+function regionHasEndTime(index: number) {
+	const lyric = s.lyrics[index]
+	const regionStart = lyric.time / 1000
+
+	const nextlyric = s.lyrics[index + 1]
+	if (!nextlyric) {
+		return true
+	}
+	let nextlyrictime = nextlyric.time / 1000
+	if (nextlyric.text == "") {
+		return true
+	}
+	if (nextlyrictime - regionStart > 5) {
+		return true
+	} else {
+		return false
+	}
+}
+function getRegionEndTime(index: number) {
+	const lyric = s.lyrics[index]
+	const regionStart = lyric.time / 1000
+
+	const nextlyric = s.lyrics[index + 1]
+	if (nextlyric) {
+		let nextlyrictime = nextlyric.time / 1000
+		if (nextlyric.text == "") {
+			return nextlyrictime - 0.01
+		}
+		if (nextlyrictime - regionStart > 5) {
+			return regionStart + 5
+		} else {
+			return nextlyrictime - 0.01
+		}
+	} else {
+		return regionStart + 5
+	}
+}
+
 function setRegions() {
 	regions.clearRegions()
 
 	s.lyrics.forEach((lyric, index) => {
 		if (lyric.time === -1) return
+		if (lyric.text == "") return
+		let resizeEnd = false
 
 		const regionId = `lyric-${index}`
 		const regionStart = lyric.time / 1000
 		let end
-		if (index == s.lyrics.length - 1) {
-			end = audioDuration
+
+		// let nextlyrictime = s.lyrics[index + 1].time / 1000
+		if (regionHasEndTime(index)) {
+			resizeEnd = true
 		} else {
-			let nextlyrictime = s.lyrics[index + 1].time / 1000
-			if (nextlyrictime - regionStart > 5) {
-				end = regionStart + 5
-			} else {
-				end = nextlyrictime - 0.01
-			}
 		}
+		end = getRegionEndTime(index)
+		// console.log(regionId, end)
+
 		const regionEnd = end
 		const region = regions.addRegion({
 			id: regionId,
@@ -77,49 +116,9 @@ function setRegions() {
 			drag: false,
 			resize: true,
 			resizeStart: true,
-			resizeEnd: false,
+			resizeEnd,
 		})
 	})
-
-	// 	regions = []
-
-	// 	lyrics.forEach((lyric, index) => {
-	// 	const regionId = `lyric-${index}`
-	// 	const regionStart = lyric.time / 1000
-	// 	let end
-	// 	if (index == lyrics.length - 1) {
-	// 		end = audioDuration
-	// 	} else {
-	// 		let nextlyrictime = lyrics[index + 1].time / 1000
-	// 		if (nextlyrictime < lyric.time) {
-	// 			nextlyrictime = lyric.time + 1
-	// 			end = nextlyrictime - 0.01
-	// 		} else if (nextlyrictime - regionStart > 10) {
-	// 			end = regionStart + 5
-	// 		} else {
-	// 			end = nextlyrictime - 0.01
-	// 		}
-	// 	}
-	// 	const regionEnd = end
-
-	// 	if (regionStart <= currentTimeInSeconds + 10 && regionEnd >= currentTimeInSeconds - 10) {
-	// 		const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
-
-	// 		if (!existingRegion) {
-	// 			regions.addRegion({ id: regionId, start: regionStart, end: regionEnd, content: lyric.text, color: "rgba(0, 255, 0, 0.1)", drag: false, resize: false })
-	// 		} else {
-	// 			if (existingRegion.start !== regionStart || existingRegion.end !== regionEnd) {
-	// 				existingRegion.setOptions({ start: regionStart, end: regionEnd, content: lyric.text })
-	// 			}
-	// 		}
-	// 		newVisibleRegionIds.add(regionId)
-	// 	} else {
-	// 		const existingRegion = currentRegions.find((region: Region) => region.id === regionId)
-	// 		if (existingRegion) {
-	// 			existingRegion.remove()
-	// 		}
-	// 	}
-	// })
 }
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
@@ -205,6 +204,7 @@ onMount(() => {
 
 	spectrogram.on("ready", () => {
 		isReady = true
+		setRegions()
 	})
 
 	wavesurfer.on("timeupdate", (newtime) => {
@@ -224,12 +224,23 @@ onMount(() => {
 		console.log(idx)
 
 		const start = roundTimestamp(r.start * 1000)
-		const nextstart = roundTimestamp(r.end * 1000) + 10
-
-		console.log(start, nextstart)
-
 		s.lyrics[idx].time = start
-		s.lyrics[idx + 1].time = nextstart
+
+		if (regionHasEndTime(idx)) {
+			console.log(idx, s.lyrics.length)
+			if (idx + 1 == s.lyrics.length) {
+				console.log("1")
+				s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
+			} else {
+				if (s.lyrics[idx + 1].text != "") {
+					console.log("2")
+					s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
+				} else {
+					console.log("3")
+					s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
+				}
+			}
+		}
 
 		wavesurfer.setTime(start / 1000)
 		wavesurfer.options.autoCenter = false
@@ -246,6 +257,7 @@ onMount(() => {
 	})
 
 	updateVolume()
+	setRegions()
 })
 
 onDestroy(() => {
@@ -285,11 +297,11 @@ onDestroy(() => {
 :global(#waveform ::part(scroll)) {
   scrollbar-width: auto;
 }
-
+/* 
 :global(#waveform ::part(region-handle-right)) {
   display: none;
   cursor: none;
-}
+} */
 
 .loading {
   position: absolute;
