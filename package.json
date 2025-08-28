@@ -26,6 +26,7 @@
 	"dependencies": {
 		"@tauri-apps/api": "^2.8.0",
 		"@tauri-apps/cli": "^2.8.3",
+		"@tauri-apps/plugin-fs": "^2.4.2",
 		"dprint": "^0.50.1",
 		"wanakana": "^5.3.1"
 	}

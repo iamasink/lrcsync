@@ -145,10 +145,12 @@ async function doLoad() {
 }
 
 onMount(() => {
+	console.log("hi world")
 	const cleanup = initDragDrop(
 		// files
 		(files) => {
 			Array.from(files).forEach((file) => {
+				console.log("processing file", file.name)
 				if (file.name.endsWith(".lrc") || file.name.endsWith(".txt")) {
 					lrcFile = file
 				} else {
@@ -381,5 +383,8 @@ input[type="file"] {
   flex-wrap: wrap;
   font-size: 0.9rem;
   opacity: 0.8;
+  p {
+    width: 10rem;
+  }
 }
 </style>
