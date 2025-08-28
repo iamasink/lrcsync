@@ -81,7 +81,7 @@ function adjustSelectedLine(offset: number) {
 }
 
 function handleAdjustClick(offset: number, event: MouseEvent) {
-	const adjustment = event.shiftKey ? offset * 5 : offset
+	const adjustment = offset
 	adjustSelectedLine(adjustment)
 }
 
@@ -92,8 +92,20 @@ function togglePlayPause() {
 }
 
 function handleKeydown(event: KeyboardEvent) {
-	if (event.key === "Shift") {
-		s.isShiftHeld = true
+	const state = true
+	switch (event.key) {
+		case "Shift": {
+			s.modkeysHeld.shift = state
+			break
+		}
+		case "Alt": {
+			s.modkeysHeld.alt = state
+			break
+		}
+		case "Control": {
+			s.modkeysHeld.ctrl = state
+			break
+		}
 	}
 
 	if (event.code === "Space") {
@@ -111,8 +123,20 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleKeyup(event: KeyboardEvent) {
-	if (event.key === "Shift") {
-		s.isShiftHeld = false
+	const state = false
+	switch (event.key) {
+		case "Shift": {
+			s.modkeysHeld.shift = state
+			break
+		}
+		case "Alt": {
+			s.modkeysHeld.alt = state
+			break
+		}
+		case "Control": {
+			s.modkeysHeld.ctrl = state
+			break
+		}
 	}
 }
 
@@ -181,6 +205,22 @@ onMount(() => {
 		window.removeEventListener("keyup", handleKeyup)
 	}
 })
+
+let step = 0.01
+let multiplier = $derived(1 * (s.modkeysHeld.shift ? 5 : 1) * (s.modkeysHeld.ctrl ? 10 : 1))
+let stepbuttonvalue = $derived(step * multiplier)
+
+let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
+let flash = $state(false)
+let breaktime = $derived(currentText == "")
+$effect(() => {
+	if (currentText) {
+		flash = true
+		const t = setTimeout(() => {
+			flash = false
+		}, 200)
+	}
+})
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -236,7 +276,14 @@ onMount(() => {
 		<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 		<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 	</CollapsibleText>
-	<p style="height: 2rem">current lyric: {s.lyrics[s.currentAudioLine]?.text ?? ""}</p>
+	<div style="max-height: 2rem; height: 2rem">
+		current lyric:
+		{#if !breaktime}
+			<span class:flash={flash}>{currentText}</span>
+		{:else}
+			<span class:break={breaktime}>🎵</span>
+		{/if}
+	</div>
 
 	<div class="controls">
 		<div class="controls-1">
@@ -244,18 +291,19 @@ onMount(() => {
 				{s.isAudioPlaying ? "Pause" : "Play"} (Space)
 			</button>
 			<button
-				onclick={(e) => handleAdjustClick(-0.01, e)}
+				onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
 				disabled={s.currentCaretLine < 0}
-				title={s.isShiftHeld ? "Move selected line earlier by 0.05s" : "Move selected line earlier by 0.01s (Shift for 0.05s)"}
+				title={`Move selected line earlier by -${stepbuttonvalue}s`}
 			>
-				{s.isShiftHeld ? "-0.05s" : "-0.01s"}
+				-{stepbuttonvalue}s
 			</button>
+
 			<button
-				onclick={(e) => handleAdjustClick(+0.01, e)}
+				onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
 				disabled={s.currentCaretLine < 0}
-				title={s.isShiftHeld ? "Move selected line later by 0.05s" : "Move selected line later by 0.01s (Shift for 0.05s)"}
+				title={`Move selected line later by +${stepbuttonvalue}s`}
 			>
-				{s.isShiftHeld ? "+0.05s" : "+0.01s"}
+				+{stepbuttonvalue}s
 			</button>
 		</div>
 		<div class="controls-2">
@@ -391,5 +439,22 @@ input[type="file"] {
   p {
     width: 10rem;
   }
+}
+
+.flash {
+  animation: flash-bg 0.5s;
+}
+
+@keyframes flash-bg {
+  0% {
+    background-color: rgb(41, 41, 87);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.break {
+  background-color: #ffffff;
 }
 </style>

@@ -11,7 +11,7 @@ interface State {
 	audioTime: number
 	isAudioPlaying: boolean
 	activeTab: "sync" | "edit" | "metadata"
-	isShiftHeld: boolean
+	modkeysHeld: { shift: boolean, ctrl: boolean, alt: boolean }
 	syncCaretWithAudio: boolean
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
@@ -29,7 +29,7 @@ export const s: State = $state({
 	audioTime: 0,
 	isAudioPlaying: false,
 	activeTab: "sync",
-	isShiftHeld: false,
+	modkeysHeld: { shift: false, ctrl: false, alt: false },
 	syncCaretWithAudio: true,
 	waveformRef: undefined,
 	lineElements: [],

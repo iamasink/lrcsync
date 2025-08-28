@@ -56,7 +56,7 @@ function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea"
 
 	setTimeout(() => {
 		scrollSource = null
-	}, 5)
+	}, 160)
 }
 
 function handleTextAreaScroll() {
