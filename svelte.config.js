@@ -18,7 +18,10 @@ const config = {
 			fallback: 'index.html',
 			precompress: true,
 			strict: false
-		})
+		}),
+		paths: {
+			base: process.env.VITE_BASE_PATH || ''
+		}
 	}
 };
 
