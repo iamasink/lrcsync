@@ -1,5 +1,6 @@
 
-import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
+// import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
+import { Kuroshiro } from "kuroshiro-browser"
 
 let kuroshiro: any = null
 let analyser: any = null

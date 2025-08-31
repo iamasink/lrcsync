@@ -1,4 +1,3 @@
-import { listen } from "@tauri-apps/api/event"
 import { getCurrentWebview } from "@tauri-apps/api/webview"
 import { readFile } from '@tauri-apps/plugin-fs'
 import { s } from "./state.svelte"

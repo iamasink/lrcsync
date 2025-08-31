@@ -26,9 +26,9 @@ let open = false
 </style>
 
 <div class="collapsible-text">
-	<div class="header" on:click={() => (open = !open)}>
+	<button class="header" on:click={() => (open = !open)}>
 		{open ? "▼" : "▶"} {title}
-	</div>
+	</button>
 
 	{#if open}
 		<div class="content">
