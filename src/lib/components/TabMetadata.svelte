@@ -29,7 +29,18 @@ async function saveFile() {
 			const url = URL.createObjectURL(blob)
 			const a = document.createElement("a")
 			a.href = url
-			a.download = s.filePaths.lyrics || "unknown.lrc" // filename
+			let filename
+			if (s.filePaths.lyrics) {
+				// because we might've imported a .txt or something
+				const index = s.filePaths.lyrics.lastIndexOf(".")
+				if (index > 0) filename = s.filePaths.lyrics.slice(0, index) + ".lrc"
+			} else if (s.filePaths.audio) {
+				const index = s.filePaths.audio.lastIndexOf(".")
+				if (index > 0) filename = s.filePaths.audio.slice(0, index) + ".lrc"
+			}
+			if (!filename) filename = "unknown.lrc"
+
+			a.download = filename
 			a.click()
 
 			URL.revokeObjectURL(url)
