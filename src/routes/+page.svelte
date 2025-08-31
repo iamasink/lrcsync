@@ -4,7 +4,7 @@ import EditView from "$lib/components/TabEdit.svelte"
 import SyncView from "$lib/components/TabSync.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
-import { loadFiles } from "$lib/loadFiles"
+import { loadAudio, loadLRC } from "$lib/loadFiles"
 import { allHaveTimestamps, exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
@@ -155,17 +155,21 @@ function countfps(now: number) {
 }
 
 async function doLoad() {
-	if (!audioFile) {
-		console.error("couldn't load! no audio file!")
-		return
+	// if (!audioFile) {
+	// 	console.error("couldn't load! no audio file!")
+	// 	return
+	// }
+	if (audioFile) {
+		console.log("loading audio")
+		const { audioSrc: src } = await loadAudio(audioFile)
+		audioSrc = src
 	}
-
-	const { audioSrc: src, lyrics: l, meta } = await loadFiles(audioFile, lrcFile)
-
-	audioSrc = src
-
-	s.lyrics = l
-	s.metadata = meta
+	if (lrcFile) {
+		console.log("loading lrc")
+		const { lyrics: l, meta } = await loadLRC(lrcFile)
+		s.lyrics = l
+		s.metadata = meta
+	}
 }
 
 onMount(() => {
