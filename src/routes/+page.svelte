@@ -155,8 +155,8 @@ function countfps(now: number) {
 }
 
 async function doLoad() {
-	if (!audioFile || !lrcFile) {
-		console.error("couldn't load! files are null")
+	if (!audioFile) {
+		console.error("couldn't load! no audio file!")
 		return
 	}
 
