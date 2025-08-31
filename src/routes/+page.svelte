@@ -210,9 +210,9 @@ onMount(() => {
 	}
 })
 
-let step = 0.01
 let multiplier = $derived(1 * (s.modkeysHeld.shift ? 5 : 1) * (s.modkeysHeld.ctrl ? 10 : 1))
-let stepbuttonvalue = $derived(step * multiplier)
+let stepbuttonvalue = $derived(0.01 * multiplier)
+let fastforwardbuttonvalue = $derived(1 * multiplier)
 
 let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
 let flash = $state(false)
@@ -228,7 +228,7 @@ $effect(() => {
 	}
 })
 
-let waveformInstance: Waveform | null = $state(null)
+let waveformInstance: Waveform
 $effect(() => {
 	if (!audioFile) return
 
@@ -307,10 +307,27 @@ $effect(() => {
 	</div>
 
 	<div class="controls">
-		<div class="controls-1">
+		<div>
 			<button onclick={togglePlayPause} disabled={!audioFile}>
 				{s.isAudioPlaying ? "Pause" : "Play"} (Space)
 			</button>
+			<button
+				onclick={(e) => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+				disabled={!audioFile}
+				title={`Go back ${fastforwardbuttonvalue}s`}
+			>
+				-{fastforwardbuttonvalue}s
+			</button>
+
+			<button
+				onclick={(e) => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+				disabled={!audioFile}
+				title={`Fastforward ${fastforwardbuttonvalue}s`}
+			>
+				+{fastforwardbuttonvalue}s
+			</button>
+		</div>
+		<div>
 			<button
 				onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
 				disabled={s.currentCaretLine < 0}
@@ -327,7 +344,7 @@ $effect(() => {
 				+{stepbuttonvalue}s
 			</button>
 		</div>
-		<div class="controls-2">
+		<div>
 			<button
 				onclick={() => {
 					s.lyrics = sortLines(s.lyrics)

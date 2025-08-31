@@ -31,6 +31,7 @@ function handleInput() {
 
 			requestAnimationFrame(() => {
 				const updatedLyrics = parseLRC(lyricsText).lyrics
+
 				if (s.lyrics != updatedLyrics) {
 					s.lyrics = updatedLyrics
 				}
