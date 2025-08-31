@@ -2,7 +2,7 @@
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"headers": [
 		{
-			"source": "/dict/*.br",
+			"source": "/:dict/(.*).br",
 			"headers": [
 				{
 					"key": "Content-Type",
