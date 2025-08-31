@@ -240,10 +240,7 @@ $effect(() => {
 	// Stop old waveform
 	waveformInstance?.pause()
 
-	// Delay assigning s.waveformRef so Svelte re-binds the new instance
-	setTimeout(() => {
-		if (waveformInstance) s.waveformRef = waveformInstance
-	}, 0)
+	if (waveformInstance) s.waveformRef = waveformInstance
 })
 </script>
 
