@@ -15,7 +15,7 @@ interface Props {
 	file: File
 }
 
-let { file }: Props = $props()
+let { file = $bindable() }: Props = $props()
 
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
@@ -37,6 +37,13 @@ $effect(() => {
 	console.log("effect 2!")
 
 	setRegions()
+})
+$effect(() => {
+	if (!file || !wavesurfer) return
+	isReady = false
+	wavesurfer.stop()
+	const url = URL.createObjectURL(file)
+	wavesurfer.load(url)
 })
 
 let volume: number = $state(50)
@@ -171,6 +178,19 @@ export function togglePlayPause() {
 	}
 }
 
+function onwheel(e: WheelEvent) {
+	let delta = e.deltaY || -e.deltaX || e.deltaZ
+	let newvolume = volume
+	if (delta > 0) {
+		newvolume -= 1
+	} else if (delta < 0) {
+		newvolume += 1
+	} else return
+	if (newvolume < 0) newvolume = 0
+	if (newvolume > 100) newvolume = 100
+	volume = newvolume
+	updateVolume()
+}
 function updateVolume() {
 	wavesurfer.setVolume(volume2)
 }
@@ -203,6 +223,7 @@ onMount(() => {
 	})
 
 	spectrogram.on("ready", () => {
+		console.log("spectrogram ready!")
 		isReady = true
 		setRegions()
 	})
@@ -268,13 +289,18 @@ onDestroy(() => {
 </script>
 
 <div class="waveforms-container">
-	{#if !isReady}
+	{#if file && !isReady}
 		<div class="loading">
 			<p>Loading waveforms...</p>
 		</div>
 	{/if}
+	{#if !file}
+		<div class="loading">
+			<p class="noaudio">no audio loaded.</p>
+		</div>
+	{/if}
 	<div class="volume">
-		<input oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
+		<input {onwheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
 		<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
 	</div>
 	<div bind:this={waveformContainer} id="waveform"></div>
@@ -305,8 +331,6 @@ onDestroy(() => {
 
 .loading {
   position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.4);

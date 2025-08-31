@@ -218,12 +218,32 @@ let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
 let flash = $state(false)
 let breaktime = $derived(currentText == "")
 $effect(() => {
+	// update whenever audioline changes too!
+	s.lyrics[s.currentAudioLine]
 	if (currentText) {
 		flash = true
 		const t = setTimeout(() => {
 			flash = false
 		}, 200)
 	}
+})
+
+let waveformInstance: Waveform | null = $state(null)
+$effect(() => {
+	if (!audioFile) return
+
+	// Reset playback state
+	s.currentAudioLine = 0
+	s.currentCaretLine = 0
+	s.audioTime = 0
+
+	// Stop old waveform
+	waveformInstance?.pause()
+
+	// Delay assigning s.waveformRef so Svelte re-binds the new instance
+	setTimeout(() => {
+		if (waveformInstance) s.waveformRef = waveformInstance
+	}, 0)
 })
 </script>
 
@@ -262,11 +282,11 @@ $effect(() => {
 		<button onclick={doLoad}>Load</button>
 	</div>
 
-	{#if audioFile}
-		<div class="waveform">
-			<Waveform bind:this={s.waveformRef} file={audioFile as File} />
-		</div>
-	{/if}
+	<!-- {#if audioFile} -->
+	<div class="waveform">
+		<Waveform bind:this={waveformInstance} bind:file={audioFile as File} />
+	</div>
+	<!-- {/if} -->
 
 	<div class="info">
 		<p>audio line: {s.currentAudioLine}</p>
