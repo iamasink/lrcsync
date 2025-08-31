@@ -26,10 +26,20 @@ function handleSyncButtonClick() {
 	if (!waveformRef) {
 		return console.log("nuh uh")
 	}
+	if (s.currentCaretLine == -1) s.currentAudioLine == 0
 	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
 	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
 }
+function handleBackButtonClick() {
+	s.syncCaretWithAudio = false
+	if (!waveformRef) {
+		return console.log("nuh uh")
+	}
+	s.currentCaretLine--
+	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+}
+
 function handleSkipButtonClick() {
 	s.syncCaretWithAudio = false
 	if (!waveformRef) {
@@ -42,8 +52,14 @@ function handleSkipButtonClick() {
 
 <div class="sync-view">
 	<div class="synccontrols">
-		<button onclick={handleSyncButtonClick}>sync</button>
-		<button onclick={handleSkipButtonClick}>skip line</button>
+		<div>
+			<button onclick={handleSyncButtonClick}>sync</button>
+			<button onclick={handleBackButtonClick}>up line</button>
+		</div>
+		<div style="margin-left: 8px"></div>
+		<div>
+			<button onclick={handleSkipButtonClick}>skip line</button>
+		</div>
 	</div>
 
 	<!--
