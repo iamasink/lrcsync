@@ -10,7 +10,8 @@ export function initKuroshiro(): Promise<void> {
 
 	ready = (async () => {
 		const IS_PROD = (import.meta.env.MODE == 'production')
-		kuroshiro = await Kuroshiro.buildAndInitWithKuromoji(IS_PROD)
+		console.log("is prod?", IS_PROD)
+		kuroshiro = await Kuroshiro.buildAndInitWithKuromoji(true)
 
 	})()
 
