@@ -9,6 +9,7 @@ import { allHaveTimestamps, exportLRC, formatLine, formatTime, parseLRC, sortLin
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
+import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
 import { s } from "$lib/state.svelte"
 let isPlaying = s.waveformRef?.isPlaying() ?? false
@@ -108,19 +109,6 @@ function handleKeydown(event: KeyboardEvent) {
 			break
 		}
 	}
-
-	if (event.code === "Space") {
-		const target = event.target as HTMLElement
-
-		// skip if in input etc
-		if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-			return
-		}
-
-		event.preventDefault()
-
-		togglePlayPause()
-	}
 }
 
 function handleKeyup(event: KeyboardEvent) {
@@ -200,6 +188,11 @@ onMount(() => {
 
 	window.addEventListener("keydown", handleKeydown)
 	window.addEventListener("keyup", handleKeyup)
+	window.addEventListener("blur", () => {
+		s.modkeysHeld.shift = false
+		s.modkeysHeld.ctrl = false
+		s.modkeysHeld.alt = false
+	})
 
 	requestAnimationFrame(update)
 	requestAnimationFrame(countfps)
@@ -243,6 +236,16 @@ $effect(() => {
 
 	if (waveformInstance) s.waveformRef = waveformInstance
 })
+
+function handleNextButtonClick() {
+	// goto next line
+	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine + 1].time / 1000)
+	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+}
+function handlePrevButtonClick() {
+	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine - 1].time / 1000)
+	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+}
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -309,44 +312,55 @@ $effect(() => {
 
 	<div class="controls">
 		<div>
-			<button onclick={togglePlayPause} disabled={!audioFile}>
-				{s.isAudioPlaying ? "Pause" : "Play"} (Space)
-			</button>
-			<button onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile}>
+			<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
+				{s.isAudioPlaying ? "Pause" : "Play"}
+			</KeybindButton>
+			<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
 				Replay line
-			</button>
-			<button
-				onclick={(e) => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+			</KeybindButton>
+			<KeybindButton
+				onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
 				disabled={!audioFile}
 				title={`Go back ${fastforwardbuttonvalue}s`}
+				shortcut={{ key: "left" }}
+				ignoremods={true}
 			>
 				-{fastforwardbuttonvalue}s
-			</button>
+			</KeybindButton>
 
-			<button
-				onclick={(e) => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+			<KeybindButton
+				onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
 				disabled={!audioFile}
 				title={`Fastforward ${fastforwardbuttonvalue}s`}
+				shortcut={{ key: "right" }}
+				ignoremods={true}
 			>
 				+{fastforwardbuttonvalue}s
-			</button>
+			</KeybindButton>
+
+			<KeybindButton onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
+			<KeybindButton onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
 		</div>
 		<div>
-			<button
+			<KeybindButton
 				onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
 				disabled={s.currentCaretLine < 0}
 				title={`Move selected line earlier by -${stepbuttonvalue}s`}
+				shortcut={{ key: "x" }}
+				ignoremods={true}
 			>
 				-{stepbuttonvalue}s
-			</button>
+			</KeybindButton>
 
-			<button
+			<KeybindButton
 				onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
 				disabled={s.currentCaretLine < 0}
 				title={`Move selected line later by +${stepbuttonvalue}s`}
+				shortcut={{ key: "c" }}
+				ignoremods={true}
 			>
 				+{stepbuttonvalue}s
-			</button>
+			</KeybindButton>
 		</div>
 		<div>
 			<button

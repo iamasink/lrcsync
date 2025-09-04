@@ -1,21 +1,48 @@
 <script lang="ts">
 import { onDestroy, onMount } from "svelte"
+import type { MouseEventHandler } from "svelte/elements"
 
 type shortcut = { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; alt?: boolean }
 
-interface Props {
+interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	disabled?: boolean
 	shortcut: shortcut
-	onclick: any
+	onclick: MouseEventHandler<HTMLButtonElement>
+	ignoremods?: boolean
 	children: any
+	[key: string]: any
 }
 
-let { disabled = false, shortcut, onclick = $bindable(), children }: Props = $props()
+let { disabled = false, shortcut, onclick = $bindable(), ignoremods = false, children, ...rest }: Props = $props()
 
 let btn: HTMLButtonElement
 
+const keyAliases: Record<string, string> = {
+	// Arrow keys
+	left: "ArrowLeft",
+	"←": "ArrowLeft",
+
+	right: "ArrowRight",
+	"→": "ArrowRight",
+
+	up: "ArrowUp",
+	"↑": "ArrowUp",
+
+	down: "ArrowDown",
+	"↓": "ArrowDown",
+
+	return: "Enter",
+	esc: "Escape",
+
+	space: " ",
+}
 function matchesShortcut(e: KeyboardEvent) {
-	return (e.key.toLowerCase() === shortcut.key.toLowerCase()
+	const key = shortcut.key.toLowerCase()
+	const nkey = keyAliases[key] ?? key
+
+	if (ignoremods) return (e.key.toLowerCase() === nkey.toLowerCase())
+
+	return (e.key.toLowerCase() === nkey.toLowerCase()
 		&& (!!shortcut.ctrl === e.ctrlKey)
 		&& (!!shortcut.meta === e.metaKey)
 		&& (!!shortcut.shift === e.shiftKey)
@@ -24,6 +51,11 @@ function matchesShortcut(e: KeyboardEvent) {
 
 function handleKey(e: KeyboardEvent) {
 	if (disabled) return
+	// skip if in input etc
+	const target = e.target as HTMLElement
+	if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+		return
+	}
 	if (matchesShortcut(e)) {
 		e.preventDefault()
 		btn.click()
@@ -32,10 +64,10 @@ function handleKey(e: KeyboardEvent) {
 
 onMount(() => {
 	window.addEventListener("keydown", handleKey)
-})
 
-onDestroy(() => {
-	window.removeEventListener("keydown", handleKey)
+	return () => {
+		window.removeEventListener("keydown", handleKey)
+	}
 })
 
 function getShortcutText(shortcut: shortcut) {
@@ -49,7 +81,26 @@ function getShortcutText(shortcut: shortcut) {
 }
 </script>
 
-<button bind:this={btn} disabled={disabled} {onclick}>
-	{@render children?.()}
-	({getShortcutText(shortcut)})
+<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
+	<span class="label">{@render children?.()}</span>
+	<span class="shortcut">{getShortcutText(shortcut)}</span>
 </button>
+
+<style>
+.button {
+  position: relative;
+  .label {
+    font-weight: bold;
+  }
+
+  .shortcut {
+    border: gray solid 1px;
+    border-radius: 5px;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-size: 0.8em;
+    opacity: 0.5;
+    pointer-events: none; /* so it doesn’t interfere with clicking */
+  }
+}
+</style>
