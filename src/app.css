@@ -1,0 +1,33 @@
+:root {
+	--bg-dark: oklch(0.1 0.035 302);
+	--bg: oklch(0.15 0.035 302);
+	--bg-light: oklch(0.2 0.035 302);
+	--text: oklch(0.96 0.07 302);
+	--text-muted: oklch(0.76 0.07 302);
+	--highlight: oklch(0.5 0.07 302);
+	--border: oklch(0.4 0.07 302);
+	--border-muted: oklch(0.3 0.07 302);
+	--primary: oklch(0.76 0.1 302);
+	--secondary: oklch(0.76 0.1 122);
+	--danger: oklch(0.7 0.07 30);
+	--warning: oklch(0.7 0.07 100);
+	--success: oklch(0.7 0.07 160);
+	--info: oklch(0.7 0.07 260);
+}
+
+body.light {
+	--bg-dark: oklch(0.92 0.035 302);
+	--bg: oklch(0.96 0.035 302);
+	--bg-light: oklch(1 0.035 302);
+	--text: oklch(0.15 0.07 302);
+	--text-muted: oklch(0.4 0.07 302);
+	--highlight: oklch(1 0.07 302);
+	--border: oklch(0.6 0.07 302);
+	--border-muted: oklch(0.7 0.07 302);
+	--primary: oklch(0.4 0.1 302);
+	--secondary: oklch(0.4 0.1 122);
+	--danger: oklch(0.5 0.07 30);
+	--warning: oklch(0.5 0.07 100);
+	--success: oklch(0.5 0.07 160);
+	--info: oklch(0.5 0.07 260);
+}

@@ -156,7 +156,7 @@ import { s } from "$lib/state.svelte"
 
 <style>
 	.lyricsbox {
-		background-color: #453549;
+		background-color: var(--bg-light);
 		font-size: 14px;
 		padding-top: 4px;
 		padding-right: 16px;

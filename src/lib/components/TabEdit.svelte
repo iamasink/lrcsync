@@ -128,7 +128,7 @@ function handleLyricsBoxScroll() {
     textarea {
       flex: 1;
       resize: none;
-      background-color: #57425a;
+      background-color: var(--bg-light);
       color: #ffffff;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
       line-height: 1.6;

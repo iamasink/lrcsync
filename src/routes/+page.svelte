@@ -382,16 +382,16 @@ $effect(() => {
   body {
     font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     margin: 0;
-    background: #211b22;
-    color: #ffffff;
+    background: var(--bg);
+    color: var(--text);
     width: 100vw;
     overflow-x: hidden;
   }
   button {
     padding: 0.35rem 0.6rem;
     border-radius: 6px;
-    border: 1px solid #e6e9ef;
-    background: white;
+    border: 1px solid var(--border);
+    background: var(--text);
     cursor: pointer;
     font-weight: 600;
   }
@@ -463,9 +463,11 @@ input[type="file"] {
 }
 
 .tabcontent {
+  background-color: var(--bg-dark);
   flex: 1;
   border: 2px solid aqua;
   min-height: 0; /*allow it to shrink??*/
+  padding: 0.5rem;
 }
 
 .info {

@@ -47,6 +47,10 @@ async function saveFile() {
 		}
 	}
 }
+async function copy() {
+	const text = exportWithMetadata(s.lyrics)
+	navigator.clipboard.writeText(text)
+}
 </script>
 
 <div class="metadata-view">
@@ -54,7 +58,7 @@ async function saveFile() {
 		{#if s.isTauri}
 			<p>straight up tauri'ng it</p>
 		{:else}
-			<p>im so normal</p>
+			<p>im browser</p>
 		{/if}
 		<p>audio {s.filePaths.audio}</p>
 		<p>lyrics {s.filePaths.lyrics}</p>
@@ -71,12 +75,11 @@ async function saveFile() {
 	<label>lrc by: <input type="text" bind:value={s.metadata.by}></label>
 	<br />
 	<button onclick={saveFile}>save</button>
+	<button onclick={copy}>copy</button>
 </div>
 
 <style>
 .metadata-view {
-  margin: 1rem;
-
   pre {
     height: 10vh;
     overflow-y: scroll;
