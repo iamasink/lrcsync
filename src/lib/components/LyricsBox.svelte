@@ -54,6 +54,8 @@ import { s } from "$lib/state.svelte"
 		if (s.syncCaretWithAudio && s.waveformRef) {
 			s.currentAudioLine = lineIndex;
 			const timeInSeconds = s.lyrics[lineIndex].time / 1000;
+
+			if (!timeInSeconds) return
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
 	}
@@ -63,6 +65,7 @@ import { s } from "$lib/state.svelte"
 
 		s.currentAudioLine = lineIndex;
 		const timeInSeconds = s.lyrics[lineIndex].time / 1000;
+		if (!timeInSeconds) return
 		if (s.waveformRef) {
 			s.waveformRef.seekToTime(timeInSeconds);
 		}

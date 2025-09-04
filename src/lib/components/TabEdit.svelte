@@ -74,52 +74,70 @@ function handleLyricsBoxScroll() {
 </script>
 
 <div class="edit-view">
-	<textarea
-		bind:this={textAreaElement}
-		bind:value={lyricsText}
-		onclick={handleInput}
-		onkeyup={handleInput}
-		oninput={handleInput}
-		onscroll={handleTextAreaScroll}
-	></textarea>
-	<!--
-		<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
+	<div class="controls">
+		<label>convert from:
+			<select bind:value={s.convertedLyricsLang}>
+				{#each ["ja", "none"] as lang}
+					<option value={lang}>{lang.toUpperCase()}</option>
+				{/each}
+			</select>
+		</label>
+	</div>
+
+	<div class="editboxes">
+		<textarea
+			bind:this={textAreaElement}
+			bind:value={lyricsText}
+			onclick={handleInput}
+			onkeyup={handleInput}
+			oninput={handleInput}
+			onscroll={handleTextAreaScroll}
+		></textarea>
+		<!--
+			<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
 			{#each s.lyrics as line, i}
-				<div class="lyric-line">
-					<div class="timestamp">
-						[{formatTime(line.time)}]
+			<div class="lyric-line">
+				<div class="timestamp">
+					[{formatTime(line.time)}]
 					</div>
 					<div class="text">
 						{line.text}
-					</div>
-				</div>
-			{/each}
-		</div>
-	-->
+						</div>
+						</div>
+						{/each}
+						</div>
+		-->
 
-	<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
-		<LyricsBox bind:lineElements={s.lineElements2} />
+		<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
+			<LyricsBox bind:lineElements={s.lineElements2} />
+		</div>
 	</div>
 </div>
 
 <style>
 .edit-view {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   height: 100%; /* inherit height from parent */
 
-  textarea {
-    flex: 1;
-    resize: none;
-    background-color: #57425a;
-    color: #ffffff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
-    line-height: 1.6;
-    font-size: 14px;
-  }
-  .lyricsboxcontainer {
-    flex: 1;
-    overflow-y: scroll;
+  .editboxes {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+
+    textarea {
+      flex: 1;
+      resize: none;
+      background-color: #57425a;
+      color: #ffffff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .lyricsboxcontainer {
+      flex: 1;
+      overflow-y: scroll;
+    }
   }
 }
 </style>

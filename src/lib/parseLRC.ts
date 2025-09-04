@@ -33,7 +33,7 @@ export interface Metadata {
 	/** Author of the LRC file (not the song) */
 	by?: string
 	/** Global offset for lyric times in milliseconds, +/- */
-	offset?: `+${number}` | `-${number}`
+	offset?: `+${number}` | `-${number}` | string
 	/** Tool that created the LRC file */
 	re?: string
 	/** Version of the program */
@@ -43,35 +43,68 @@ export interface Metadata {
 
 
 export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata } {
-	const lines = content.split("\n").map(line => {
+	const meta: Metadata = {}
+	const lyrics: LyricLine[] = []
+
+	const lines = content.split("\n")
+
+	for (const line of lines) {
+		const metaMatch = line.match(/^\[(\w+):(.*)\]$/)
+		if (metaMatch) {
+			const [, key, value] = metaMatch
+
+			switch (key.toLowerCase()) {
+				case "ti":
+					meta.ti = value.trim()
+					break
+				case "ar":
+					meta.ar = value.trim()
+					break
+				case "al":
+					meta.al = value.trim()
+					break
+				case "au":
+					meta.au = value.trim()
+					break
+				case "by":
+					meta.by = value.trim()
+					break
+				case "lr":
+					meta.lr = value.trim()
+					break
+				case "offset":
+					meta.offset = value.trim()
+					break
+				case "re":
+					meta.re = value.trim()
+					break
+				case "ve":
+					meta.ve = value.trim()
+					break
+			}
+			continue
+		}
+
 		const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
 		if (match) {
 			const [, m, s, ms, text] = match
-			return {
+			lyrics.push({
 				time:
 					60 * 1000 * parseInt(m) +
 					1000 * parseInt(s) +
 					// hundredths
 					10 * parseInt(ms),
 				text: text.trim()
-			}
+			})
 		} else {
-			return {
+			lyrics.push({
 				time: -1,
 				text: line.trim()
-			}
+			})
 		}
-	}).filter(line => line != null) as LyricLine[]
+	}
 
-	// const allHaveTimestamps = lines.every(line =>
-	// 	line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
-	// )
-
-	// return allHaveTimestamps
-	// 	? lines.sort((a, b) => a.time - b.time)
-	// 	: lines
-
-	return { lyrics: lines, meta: {} }
+	return { lyrics, meta }
 }
 
 export function exportLRC(lines: LyricLine[]) {

@@ -1,6 +1,7 @@
 
 // import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
 import { Kuroshiro } from "kuroshiro-browser"
+import { s } from "./state.svelte"
 
 let kuroshiro: any = null
 let analyser: any = null
@@ -29,6 +30,7 @@ export async function convert(text: string): Promise<string> {
 }
 
 export async function convertAll(lines: string[]): Promise<string[]> {
+	if (s.convertedLyricsLang != "ja") return lines
 	await initKuroshiro()
 	return Promise.all(lines.map(line => convert(line)))
 }
