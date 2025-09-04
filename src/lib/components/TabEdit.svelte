@@ -97,14 +97,21 @@ function handleSyncButtonClick() {
 	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
 	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	waveformRef.updateRegions()
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false
 	if (!waveformRef) {
 		return console.log("nuh uh")
 	}
-	s.currentCaretLine--
+	let newline
+	newline = s.currentCaretLine - 1
+	if (newline < 0) newline = 0
+	if (newline > s.lyrics.length) newline = s.lyrics.length
+	s.currentCaretLine = newline
 	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+
+	waveformRef.updateSelectedRegions()
 }
 
 function handleSkipButtonClick() {
@@ -112,8 +119,18 @@ function handleSkipButtonClick() {
 	if (!waveformRef) {
 		return console.log("nuh uh")
 	}
-	s.currentCaretLine++
+	let newline
+	newline = s.currentCaretLine + 1
+	if (newline < 0) newline = 0
+	if (newline > s.lyrics.length) newline = s.lyrics.length
+	s.currentCaretLine = newline
 	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	waveformRef.updateSelectedRegions()
+}
+
+function handleBlankButtonClick() {
+	s.lyrics.splice(s.currentCaretLine + 1, 0, { text: "", time: s.audioTime })
+	waveformRef?.updateRegions()
 }
 </script>
 
@@ -127,6 +144,7 @@ function handleSkipButtonClick() {
 		<div style="margin-left: 8px"></div>
 		<div>
 			<KeybindButton onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
+			<KeybindButton onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
 		</div>
 	</div>
 	<div class="controls">

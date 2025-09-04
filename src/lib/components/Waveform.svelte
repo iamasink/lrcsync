@@ -29,14 +29,15 @@ let isReady = $state(false)
 
 let autoScrollTimeout = $state(0)
 
+const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.1)", caret: "rgba(74, 144, 226, 0.1)" }
+
 $effect(() => {
-	s.lyrics.length
+	s.lyrics
 	console.log("effect!")
-	if (!regions) return
 	if (!isReady) return
 	console.log("effect 2!")
 
-	setRegions()
+	updateRegions()
 })
 $effect(() => {
 	if (!file || !wavesurfer) return
@@ -77,96 +78,98 @@ function getRegionEndTime(index: number) {
 	const lyric = s.lyrics[index]
 	const regionStart = lyric.time / 1000
 
-	const nextlyric = s.lyrics[index + 1]
-	if (nextlyric) {
-		let nextlyrictime = nextlyric.time / 1000
-		if (nextlyric.text == "") {
-			return nextlyrictime - 0.01
-		}
-		if (nextlyrictime - regionStart > 5) {
-			return regionStart + 5
-		} else {
-			return nextlyrictime - 0.01
-		}
-	} else {
-		return regionStart + 5
+	// find the next valid lyric with a timestamp
+	for (let lookahead = 1; index + lookahead < s.lyrics.length; lookahead++) {
+		const nextLyric = s.lyrics[index + lookahead]
+		if (!nextLyric || nextLyric.time === -1) continue
+		return nextLyric.time / 1000 - 0.01
 	}
+
+	return wavesurfer.getDuration() ?? 9999
 }
 
-function setRegions() {
-	regions.clearRegions()
+const regionCache: Record<string, Region> = {}
 
+export function updateRegions() {
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
+	const existingRegions = regions.getRegions()
 
-	s.lyrics.forEach((lyric, index) => {
-		if (lyric.time === -1) return
-		if (lyric.text == "") return
-		let resizeEnd = false
+	const usedRegions = new Set<string>()
 
-		const regionId = `lyric-${index}`
+	for (let i = 0; i < lyrics.length; i++) {
+		const lyric = lyrics[i]
+		if (lyric.time === -1 || lyric.text === "") continue
+
+		const regionId = `lyric-${i}`
 		const regionStart = lyric.time / 1000
-		let end
+		const regionEnd = getRegionEndTime(i)
+		const resizeEnd = regionHasEndTime(i)
 
-		let color = "rgba(0, 255, 0, 0.1)"
-		if (currentAudioLine == index) {
-			color = "#ffffff1A"
-		}
-		if (currentCaretLine == index) {
-			color = "#4a90e21A"
-		}
-		console.log(color)
+		const color = currentCaretLine === i ? regionColours.caret : currentAudioLine === i ? regionColours.audio : regionColours.default
 
-		// let nextlyrictime = s.lyrics[index + 1].time / 1000
-		if (regionHasEndTime(index)) {
-			resizeEnd = true
+		let region = regionCache[regionId]
+
+		if (region) {
+			// console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
+			region.setOptions({ start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
 		} else {
+			// console.log("creating new region for lyric", `lyric-${i}`)
+			region = regions.addRegion({
+				id: regionId,
+				start: regionStart,
+				end: regionEnd,
+				content: convertedLyrics[i],
+				color,
+				drag: false,
+				resize: true,
+				resizeStart: true,
+				resizeEnd,
+			})
+			regionCache[regionId] = region
 		}
-		end = getRegionEndTime(index)
-		// console.log(regionId, end)
 
-		const regionEnd = end
-		const region = regions.addRegion({
-			id: regionId,
-			start: regionStart,
-			end: regionEnd,
-			content: `${convertedLyrics[index]}`,
-			color: color,
-			drag: false,
-			resize: true,
-			resizeStart: true,
-			resizeEnd,
-		})
-	})
+		usedRegions.add(regionId)
+	}
+
+	for (const region of existingRegions) {
+		if (!usedRegions.has(region.id)) {
+			region.remove()
+			delete regionCache[region.id]
+		}
+	}
 }
 
 let prevAudioLine: number | null = null
 let prevCaretLine: number | null = null
 
 export function updateSelectedRegions() {
-	const linesToUpdate = new Set<number>()
+	console.log("update regions")
+	// const linesToUpdate = new Set<number>()
 
-	if (prevAudioLine !== null) linesToUpdate.add(prevAudioLine)
-	if (prevCaretLine !== null) linesToUpdate.add(prevCaretLine)
+	// if (prevAudioLine !== null) linesToUpdate.add(prevAudioLine)
+	// if (prevCaretLine !== null) linesToUpdate.add(prevCaretLine)
 
-	if (s.currentAudioLine !== null) linesToUpdate.add(s.currentAudioLine)
-	if (s.currentCaretLine !== null) linesToUpdate.add(s.currentCaretLine)
+	// if (s.currentAudioLine !== null) linesToUpdate.add(s.currentAudioLine)
+	// if (s.currentCaretLine !== null) linesToUpdate.add(s.currentCaretLine)
 
-	const allRegions = regions.getRegions()
+	// const allRegions = regions.getRegions()
 
-	linesToUpdate.forEach((index) => {
-		const regionId = `lyric-${index}`
-		const region = allRegions.find(r => r.id === regionId)
-		if (!region) return
+	// linesToUpdate.forEach((index) => {
+	// 	const regionId = `lyric-${index}`
+	// 	console.log("updating region", regionId)
+	// 	const region = allRegions.find(r => r.id === regionId)
+	// 	if (!region) return
 
-		let color = "rgba(0, 255, 0, 0.1)"
-		if (s.currentAudioLine === index) color = "rgba(255, 255, 255, 0.1)"
-		if (s.currentCaretLine === index) color = "rgba(74, 144, 226, 0.1)"
+	// 	let color = "rgba(0, 255, 0, 0.1)"
+	// 	if (s.currentAudioLine === index) color = "rgba(255, 255, 255, 0.1)"
+	// 	if (s.currentCaretLine === index) color = "rgba(74, 144, 226, 0.1)"
 
-		region.setOptions({ color: color })
-	})
+	// 	region.setOptions({ color: color })
+	// })
 
-	prevAudioLine = s.currentAudioLine
-	prevCaretLine = s.currentCaretLine
+	// prevAudioLine = s.currentAudioLine
+	// prevCaretLine = s.currentCaretLine
+	updateRegions()
 }
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
@@ -192,6 +195,7 @@ export function pause() {
 }
 
 export function seekToTime(time: number) {
+	if (time == -1) return
 	if (wavesurfer) {
 		wavesurfer.setTime(time)
 	}
@@ -249,7 +253,7 @@ onMount(() => {
 		waveColor: "#4F4A85",
 		progressColor: "#383351",
 		height: 120,
-		dragToSeek: true,
+		dragToSeek: false, // this doesnt work over regions anyway, so keep it consistent
 		minPxPerSec: 100,
 		plugins: [timeline, spectrogram, regions, minimap],
 	})
@@ -266,7 +270,7 @@ onMount(() => {
 	spectrogram.on("ready", () => {
 		console.log("spectrogram ready!")
 		isReady = true
-		setRegions()
+		updateRegions()
 	})
 
 	minimap.on("drag", (x) => {
@@ -373,6 +377,7 @@ onDestroy(() => {
 
 :global(#waveform) {
   flex: 0 0 140px;
+  background-color: #000000;
 }
 :global(#waveform ::part(scroll)) {
   scrollbar-width: auto;
