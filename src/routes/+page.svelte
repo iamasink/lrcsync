@@ -43,6 +43,7 @@ function updateCurrentLine() {
 					newIndex = s.lineElements.length - 1
 				}
 				if (s.syncCaretWithAudio) {
+					if (s.lyrics[newIndex].time == -1) return
 					s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
 				}
 			}
@@ -311,6 +312,9 @@ $effect(() => {
 			<button onclick={togglePlayPause} disabled={!audioFile}>
 				{s.isAudioPlaying ? "Pause" : "Play"} (Space)
 			</button>
+			<button onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile}>
+				Replay line
+			</button>
 			<button
 				onclick={(e) => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
 				disabled={!audioFile}
@@ -358,22 +362,24 @@ $effect(() => {
 		</div>
 	</div>
 
-	<div class="tabs">
-		<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
-		<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
-		<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
-	</div>
+	<div class="tabarea">
+		<div class="tabs">
+			<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
+			<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
+			<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
+		</div>
 
-	<div class="tabcontent">
-		{#if s.activeTab === "sync"}
-			<SyncView />
-		{:else if s.activeTab === "edit"}
-			<EditView />
-		{:else if s.activeTab === "metadata"}
-			<TabMetadata />
-		{:else}
-			<p>erm</p>
-		{/if}
+		<div class="tabcontent">
+			{#if s.activeTab === "sync"}
+				<SyncView />
+			{:else if s.activeTab === "edit"}
+				<EditView />
+			{:else if s.activeTab === "metadata"}
+				<TabMetadata />
+			{:else}
+				<p>erm</p>
+			{/if}
+		</div>
 	</div>
 </div>
 
@@ -451,23 +457,37 @@ input[type="file"] {
   pointer-events: all;
 }
 
+.tabarea {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /*allow it to shrink??*/
+}
 .tabs {
   display: flex;
   gap: 0.5rem;
-}
 
-.tabs button.active {
-  background: #4a90e2;
-  color: white;
-  border-color: #4a90e2;
+  button {
+    flex: 1;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: #4a90e2;
+      color: white;
+      border-color: var(--bg);
+    }
+  }
 }
 
 .tabcontent {
   background-color: var(--bg-dark);
-  flex: 1;
   border: 2px solid aqua;
   min-height: 0; /*allow it to shrink??*/
   padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 .info {

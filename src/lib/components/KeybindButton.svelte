@@ -1,8 +1,6 @@
 <script lang="ts">
 import { onDestroy, onMount } from "svelte"
 
-// export let disabled: boolean = false
-// export let shortcut: { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; alt?: boolean }
 type shortcut = { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; alt?: boolean }
 
 interface Props {

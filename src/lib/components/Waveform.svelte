@@ -198,7 +198,7 @@ function updateVolume() {
 onMount(() => {
 	regions = Regions.create()
 	timeline = Timeline.create()
-	const minimap = Minimap.create({})
+	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
 
 	const options: SpectrogramPluginOptions = { labels: true, height: 200 }
 	const spectrogram = Spectrogram.create(options)
@@ -226,6 +226,10 @@ onMount(() => {
 		console.log("spectrogram ready!")
 		isReady = true
 		setRegions()
+	})
+
+	minimap.on("drag", (x) => {
+		wavesurfer.setScroll(x)
 	})
 
 	wavesurfer.on("timeupdate", (newtime) => {
@@ -278,7 +282,6 @@ onMount(() => {
 	})
 
 	updateVolume()
-	setRegions()
 })
 
 onDestroy(() => {
@@ -288,7 +291,17 @@ onDestroy(() => {
 })
 </script>
 
-<div class="waveforms-container">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="waveforms-container"
+	onclick={() => {
+		const active = document.activeElement as HTMLElement | null
+		if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT")) {
+			active.blur() // remove focus
+		}
+	}}
+>
 	{#if file && !isReady}
 		<div class="loading">
 			<p>Loading waveforms...</p>
