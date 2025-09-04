@@ -129,6 +129,9 @@ import { s } from "$lib/state.svelte"
 			<div class="text">
 				{s.convertedLyrics[i]}
 			</div>
+			<div class="buttons">
+				<button onclick={() => {s.lyrics.splice(i,1)}}>🗑️</button>
+			</div>
 			{#if getWarnings(i).length>0}
 			<div class="warning-indicator"
 					onmouseenter={() => popupIndex = i}
@@ -190,6 +193,14 @@ import { s } from "$lib/state.svelte"
 				white-space: nowrap;
 				min-width: 0;
 			}
+
+			.buttons {
+				  display: none; /* hidden by default */
+			}
+			&.lyric-line:hover .buttons {
+				  display: block; /* show when parent is hovered */
+			}
+
 		}
 		.current {
 			background-color: #ffffff !important;
