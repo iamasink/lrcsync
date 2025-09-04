@@ -46,6 +46,7 @@ function handleInput() {
 	}, 500)
 }
 
+let timeoutid: number | null = null
 function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea" | "lyrics") {
 	if (scrollSource && scrollSource !== origin) return // another scroll is happening
 
@@ -55,9 +56,12 @@ function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea"
 	const scrollPercentage = source.scrollTop / (source.scrollHeight - source.clientHeight)
 	target.scrollTop = scrollPercentage * (target.scrollHeight - target.clientHeight)
 
-	setTimeout(() => {
+	if (timeoutid) clearTimeout(timeoutid)
+
+	timeoutid = setTimeout(() => {
 		scrollSource = null
-	}, 160)
+		timeoutid = null
+	}, 1000)
 }
 
 function handleTextAreaScroll() {
