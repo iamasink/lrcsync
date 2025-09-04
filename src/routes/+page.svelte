@@ -33,28 +33,40 @@ function updateCurrentLine() {
 
 	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time))
 
-	if (newIndex !== s.currentAudioLine) {
+	if (newIndex != s.currentAudioLine) {
+		console.log("s.currentCaretLine", s.currentCaretLine)
+		console.log("s.currentAudioLine", s.currentAudioLine)
+
 		if (newIndex != -1) {
-			console.log(`new line: ${newIndex}`)
+			console.log(`new line: ${newIndex} from ${s.currentAudioLine}`)
 			if (s.activeTab == "edit") {
-				s.lineElements2[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+				// if (waveformInstance) waveformInstance.updateSelectedRegions()
+				if (s.lyrics[newIndex].time != -1) {
+					s.lineElements2[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+				}
 			} else {
 				if (newIndex < 0) newIndex = 0
 				if (newIndex > s.lineElements.length) {
 					newIndex = s.lineElements.length - 1
 				}
+				// if (waveformInstance) waveformInstance.updateSelectedRegions()
 				if (s.syncCaretWithAudio) {
-					if (s.lyrics[newIndex].time == -1) return
-					s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+					if (s.lyrics[newIndex].time != -1) {
+						s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
+					}
 				}
 			}
 		}
-		s.currentAudioLine = newIndex
-
-		// Sync caret line with audio line if enabled
-		if (s.syncCaretWithAudio) {
+		if (s.currentCaretLine == s.currentAudioLine) {
+			console.log("bababa")
 			s.currentCaretLine = newIndex
+		} else {
+			// sync caret line with audio line
+			if (s.syncCaretWithAudio) {
+				s.currentCaretLine = newIndex
+			}
 		}
+		s.currentAudioLine = newIndex
 	}
 }
 
@@ -68,6 +80,7 @@ function adjustSelectedLine(offset: number) {
 
 	const targetLine = s.lyrics[s.currentCaretLine]
 	if (!targetLine) return
+	if (targetLine.time == -1) return
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
 
@@ -76,6 +89,7 @@ function adjustSelectedLine(offset: number) {
 		targetLine.time = newTime
 
 		if (s.waveformRef) {
+			s.waveformRef.updateRegions()
 			s.waveformRef.seekToTime(newTime / 1000)
 			s.waveformRef.play()
 		}
@@ -316,6 +330,9 @@ function handlePrevButtonClick() {
 		<div>
 			<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
 				{s.isAudioPlaying ? "Pause" : "Play"}
+			</KeybindButton>
+			<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
+				Play @ caret
 			</KeybindButton>
 			<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
 				Replay line
