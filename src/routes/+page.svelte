@@ -241,10 +241,12 @@ function handleNextButtonClick() {
 	// goto next line
 	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine + 1].time / 1000)
 	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	waveformInstance.updateSelectedRegions()
 }
 function handlePrevButtonClick() {
 	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine - 1].time / 1000)
 	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	waveformInstance.updateSelectedRegions()
 }
 </script>
 

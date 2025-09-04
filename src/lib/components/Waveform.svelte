@@ -96,6 +96,8 @@ function getRegionEndTime(index: number) {
 function setRegions() {
 	regions.clearRegions()
 
+	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
+
 	s.lyrics.forEach((lyric, index) => {
 		if (lyric.time === -1) return
 		if (lyric.text == "") return
@@ -104,6 +106,15 @@ function setRegions() {
 		const regionId = `lyric-${index}`
 		const regionStart = lyric.time / 1000
 		let end
+
+		let color = "rgba(0, 255, 0, 0.1)"
+		if (currentAudioLine == index) {
+			color = "#ffffff1A"
+		}
+		if (currentCaretLine == index) {
+			color = "#4a90e21A"
+		}
+		console.log(color)
 
 		// let nextlyrictime = s.lyrics[index + 1].time / 1000
 		if (regionHasEndTime(index)) {
@@ -118,14 +129,44 @@ function setRegions() {
 			id: regionId,
 			start: regionStart,
 			end: regionEnd,
-			content: `${s.convertedLyrics[index]}`,
-			color: "rgba(0, 255, 0, 0.1)",
+			content: `${convertedLyrics[index]}`,
+			color: color,
 			drag: false,
 			resize: true,
 			resizeStart: true,
 			resizeEnd,
 		})
 	})
+}
+
+let prevAudioLine: number | null = null
+let prevCaretLine: number | null = null
+
+export function updateSelectedRegions() {
+	const linesToUpdate = new Set<number>()
+
+	if (prevAudioLine !== null) linesToUpdate.add(prevAudioLine)
+	if (prevCaretLine !== null) linesToUpdate.add(prevCaretLine)
+
+	if (s.currentAudioLine !== null) linesToUpdate.add(s.currentAudioLine)
+	if (s.currentCaretLine !== null) linesToUpdate.add(s.currentCaretLine)
+
+	const allRegions = regions.getRegions()
+
+	linesToUpdate.forEach((index) => {
+		const regionId = `lyric-${index}`
+		const region = allRegions.find(r => r.id === regionId)
+		if (!region) return
+
+		let color = "rgba(0, 255, 0, 0.1)"
+		if (s.currentAudioLine === index) color = "rgba(255, 255, 255, 0.1)"
+		if (s.currentCaretLine === index) color = "rgba(74, 144, 226, 0.1)"
+
+		region.setOptions({ color: color })
+	})
+
+	prevAudioLine = s.currentAudioLine
+	prevCaretLine = s.currentCaretLine
 }
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
