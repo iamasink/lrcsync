@@ -443,7 +443,7 @@ function handlePrevButtonClick() {
 }
 
 .container {
-  max-width: 1500px;
+  max-width: 2000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
