@@ -103,6 +103,32 @@ describe("parseLRC", () => {
 		expect(lyrics[3]).toEqual({ time: 1000, text: "chorusline" })
 		expect(lyrics[4]).toEqual({ time: 2000, text: "[Part of lyric] is in brackets" })
 	})
+
+
+	// TODO: empty line timestamps (to show paragraphs)
+	// 	it("handles empty lines", () => {
+	// 		const input = `[00:07.39] But secretly, I'm- (hehe)
+
+	// [00:09.74] うりゃ おい! うりゃ おい! Ooh, fighter!`
+	// 		const { lyrics } = parseLRC(input)
+	// 		expect(lyrics[1]).toEqual({ time: 9 * 1000 + 740 - 10, text: "" })
+	// 	})
+
+
+	it("outputs stably", () => {
+		const input = `[00:12.30]line2
+
+
+[00:17.49] 
+[00:19.61] line5`
+		const { lyrics } = parseLRC(input)
+		const first = lyrics
+		const newtext = exportLRC(lyrics)
+		const newlyrics = parseLRC(newtext).lyrics
+		const second = newlyrics
+
+		expect(first).toEqual(second)
+	})
 })
 
 
