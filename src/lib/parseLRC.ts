@@ -85,15 +85,30 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 			continue
 		}
 
-		const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
+		// const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
+		const match = line.match(/\[(\d+):(\d+)(?:\.(\d+))?\](.*)/)
 		if (match) {
-			const [, m, s, ms, text] = match
+			const [, m, s, ms = "00", text] = match
+			const msNum = parseInt(ms)
+
+			// normalize to milliseconds
+			let msFinal
+			if (ms.length === 1) msFinal = msNum * 100   // 0.1 deciseconds
+			else if (ms.length === 2) msFinal = msNum * 10   // 0.01 centiseconds
+			else if (ms.length === 3) msFinal = msNum * 1   // 0.01 centiseconds
+			else {
+				console.log("weird timestamp!!")
+				lyrics.push({ time: -1, text: line.trim() })
+				continue
+			}
+
+
 			lyrics.push({
 				time:
 					60 * 1000 * parseInt(m) +
 					1000 * parseInt(s) +
 					// hundredths
-					10 * parseInt(ms),
+					msFinal,
 				text: text.trim()
 			})
 		} else {
