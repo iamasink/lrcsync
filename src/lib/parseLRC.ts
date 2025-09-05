@@ -119,6 +119,20 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 		}
 	}
 
+
+
+	// for (const [index, line] of lyrics.entries()) {
+	// 	console.log(index, line)
+
+	// 	// all empty lines, without a timestamp will take on the next line's time
+	// 	if (line.time === -1 && line.text == "" && index != lyrics.length - 1 && index != 0) {
+	// 		const nextlyric = lyrics[index + 1]
+	// 		if (nextlyric.time != -1 && nextlyric.text != "") {
+	// 			line.time = nextlyric.time - 10
+	// 		}
+	// 	}
+	// }
+
 	return { lyrics, meta }
 }
 
