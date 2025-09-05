@@ -220,7 +220,6 @@ $effect(() => {
 	}
 })
 
-let waveformInstance: Waveform
 $effect(() => {
 	if (!audioFile) return
 
@@ -230,21 +229,19 @@ $effect(() => {
 	s.audioTime = 0
 
 	// Stop old waveform
-	waveformInstance?.pause()
-
-	if (waveformInstance) s.waveformRef = waveformInstance
+	s.waveformRef?.pause()
 })
 
 function handleNextButtonClick() {
 	// goto next line
 	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine + 1].time / 1000)
 	scrollLineIntoView(s.currentCaretLine)
-	waveformInstance.updateSelectedRegions()
+	s.waveformRef?.updateSelectedRegions()
 }
 function handlePrevButtonClick() {
 	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine - 1].time / 1000)
 	scrollLineIntoView(s.currentCaretLine)
-	waveformInstance.updateSelectedRegions()
+	s.waveformRef?.updateSelectedRegions()
 }
 </script>
 
@@ -284,7 +281,7 @@ function handlePrevButtonClick() {
 
 		<!-- {#if audioFile} -->
 		<div class="waveform">
-			<Waveform bind:this={waveformInstance} bind:file={audioFile as File} />
+			<Waveform bind:this={s.waveformRef} bind:file={audioFile as File} />
 		</div>
 		<!-- {/if} -->
 
@@ -314,14 +311,14 @@ function handlePrevButtonClick() {
 				<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
 					{s.isAudioPlaying ? "Pause" : "Play"}
 				</KeybindButton>
-				<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
+				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
 					Play @ caret
 				</KeybindButton>
-				<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
+				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
 					Replay line
 				</KeybindButton>
 				<KeybindButton
-					onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
 					disabled={!audioFile}
 					title={`Go back ${fastforwardbuttonvalue}s`}
 					shortcut={{ key: "left" }}
@@ -331,7 +328,7 @@ function handlePrevButtonClick() {
 				</KeybindButton>
 
 				<KeybindButton
-					onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
 					disabled={!audioFile}
 					title={`Fastforward ${fastforwardbuttonvalue}s`}
 					shortcut={{ key: "right" }}
