@@ -4,12 +4,25 @@ import Waveform from "$lib/components/Waveform.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
+import { save } from "@tauri-apps/plugin-dialog"
+import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs"
 import { getContext } from "svelte"
 
 async function saveFile() {
-	console.log("saving audio")
+	console.log("saving lyrics")
+	const text = exportWithMetadata(s.lyrics)
 	if (s.isTauri) {
-		console.error("saving on tauri not implemented yet")
+		try {
+			// save dialog, default to original path
+			const filePath = await save({ defaultPath: s.filePaths.lyrics || "unknown.lrc", filters: [{ name: "LRC Files", extensions: ["lrc", "txt"] }] })
+
+			if (!filePath) return // cancelled?
+
+			await writeTextFile(filePath, text)
+			console.log("File saved to", filePath)
+		} catch (err) {
+			console.error("error saving file", err)
+		}
 	} else {
 		const text = exportWithMetadata(s.lyrics)
 		// @ts-ignore
