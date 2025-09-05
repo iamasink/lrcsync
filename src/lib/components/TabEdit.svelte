@@ -28,7 +28,7 @@ function handleInput() {
 
 	if (textUpdateTimeout) clearTimeout(textUpdateTimeout)
 
-	textUpdateTimeout = setTimeout(() => {
+	textUpdateTimeout = window.setTimeout(() => {
 		try {
 			console.log("updating lyrics :)")
 
@@ -61,7 +61,7 @@ function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea"
 
 	if (timeoutid) clearTimeout(timeoutid)
 
-	timeoutid = setTimeout(() => {
+	timeoutid = window.setTimeout(() => {
 		scrollSource = null
 		timeoutid = null
 	}, 1000)
