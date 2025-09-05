@@ -262,7 +262,7 @@ onMount(() => {
 	timeline = Timeline.create()
 	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
 
-	const options: SpectrogramPluginOptions = { labels: true, height: 200 }
+	const options: SpectrogramPluginOptions = { labels: true, height: 200, splitChannels: false }
 	const spectrogram = Spectrogram.create(options)
 
 	wavesurfer = WaveSurfer.create({
@@ -374,9 +374,14 @@ onDestroy(() => {
 			<p class="noaudio">no audio loaded.</p>
 		</div>
 	{/if}
-	<div class="volume">
-		<input {onwheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
-		<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
+	<div class="above">
+		<div class="volume">
+			<input {onwheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
+			<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
+		</div>
+		<div class="nextlyric">
+			<i>syncing:</i> {s.lyrics[s.currentCaretLine]?.text ?? ""}
+		</div>
 	</div>
 	<div bind:this={waveformContainer} id="waveform"></div>
 	<!-- <div bind:this={spectrogramContainer} class="spectrogram"></div> -->
@@ -417,5 +422,21 @@ onDestroy(() => {
   font-size: 1.2rem;
   pointer-events: none;
   z-index: 10;
+}
+
+.above {
+  flex-direction: row;
+  display: flex;
+  min-width: 100%;
+  justify-content: space-between;
+
+  .nextlyric {
+    position: absolute;
+    left: 60%;
+
+    i {
+      opacity: 50%;
+    }
+  }
 }
 </style>
