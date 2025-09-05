@@ -27,9 +27,9 @@ let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
 
-let autoScrollTimeout = $state(0)
+let autoScrollTimeout: number = $state(0)
 
-const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.1)", caret: "rgba(74, 144, 226, 0.1)" }
+const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.3)", caret: "rgba(74, 144, 226, 0.3)" }
 
 $effect(() => {
 	s.lyrics
@@ -91,6 +91,7 @@ const regionCache: Record<string, Region> = {}
 export function updateRegions() {
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
 	const existingRegions = regions.getRegions()
+	console.log("hi")
 
 	const usedRegions = new Set<string>()
 
@@ -103,15 +104,33 @@ export function updateRegions() {
 		const regionEnd = getRegionEndTime(i)
 		const resizeEnd = regionHasEndTime(i)
 
-		const color = currentCaretLine === i ? regionColours.caret : currentAudioLine === i ? regionColours.audio : regionColours.default
+		let color: string
+
+		if (currentCaretLine === i) {
+			color = regionColours.caret
+		} else if (currentAudioLine === i) {
+			color = regionColours.audio
+		} else {
+			color = regionColours.default
+		}
 
 		let region = regionCache[regionId]
 
 		if (region) {
-			// console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
-			region.setOptions({ start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
+			console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
+			region.setOptions({
+				id: regionId,
+				start: regionStart,
+				end: regionEnd,
+				content: convertedLyrics[i],
+				color,
+				drag: false,
+				resize: true,
+				resizeStart: true,
+				resizeEnd,
+			})
 		} else {
-			// console.log("creating new region for lyric", `lyric-${i}`)
+			console.log("creating new region for lyric", `lyric-${i}`)
 			region = regions.addRegion({
 				id: regionId,
 				start: regionStart,
@@ -317,7 +336,7 @@ onMount(() => {
 		if (autoScrollTimeout) {
 			clearTimeout(autoScrollTimeout)
 		}
-		autoScrollTimeout = setTimeout(() => {
+		autoScrollTimeout = window.setTimeout(() => {
 			wavesurfer.options.autoCenter = true
 			wavesurfer.options.autoScroll = true
 		}, 5000)
