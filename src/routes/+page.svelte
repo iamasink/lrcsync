@@ -32,7 +32,7 @@ let showFileoverlay = $state(false)
 function updateCurrentLine() {
 	const time = s.audioTime
 
-	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time))
+	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time || s.lyrics[i + 1].time == -1))
 
 	if (newIndex !== s.currentAudioLine) {
 		// console.log("s.currentCaretLine", s.currentCaretLine)
@@ -55,20 +55,20 @@ function updateCurrentLine() {
 }
 
 function adjustSelectedLine(offset: number) {
-	if (s.currentCaretLine < 0 || s.currentCaretLine >= s.lyrics.length) {
+	if (s.currentAudioLine < 0 || s.currentAudioLine >= s.lyrics.length) {
 		console.warn("No valid line selected")
 		return
 	}
 
 	const lyricsLines = s.lyrics
 
-	const targetLine = s.lyrics[s.currentCaretLine]
+	const targetLine = s.lyrics[s.currentAudioLine]
 	if (!targetLine) return
 	if (targetLine.time == -1) return
 
 	const newTime = Math.max(0, targetLine.time + offset * 1000)
 
-	const lineIndex = s.currentCaretLine
+	const lineIndex = s.currentAudioLine
 	if (lineIndex < lyricsLines.length) {
 		targetLine.time = newTime
 
