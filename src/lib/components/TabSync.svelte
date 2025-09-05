@@ -3,6 +3,7 @@ import LyricsBox from "$lib/components/LyricsBox.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { formatLine, formatTime } from "$lib/parseLRC"
+import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 const waveformRef = s.waveformRef
 
@@ -29,7 +30,7 @@ function handleSyncButtonClick() {
 	if (s.currentCaretLine == -1) s.currentAudioLine == 0
 	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
-	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false
@@ -37,7 +38,7 @@ function handleBackButtonClick() {
 		return console.log("nuh uh")
 	}
 	s.currentCaretLine--
-	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 }
 
 function handleSkipButtonClick() {
@@ -46,7 +47,7 @@ function handleSkipButtonClick() {
 		return console.log("nuh uh")
 	}
 	s.currentCaretLine++
-	s.lineElements[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 }
 </script>
 

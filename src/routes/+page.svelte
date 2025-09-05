@@ -11,6 +11,7 @@ import { onMount, setContext } from "svelte"
 
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
+import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 let isPlaying = s.waveformRef?.isPlaying() ?? false
 
@@ -33,39 +34,22 @@ function updateCurrentLine() {
 
 	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time))
 
-	if (newIndex != s.currentAudioLine) {
-		console.log("s.currentCaretLine", s.currentCaretLine)
-		console.log("s.currentAudioLine", s.currentAudioLine)
+	if (newIndex !== s.currentAudioLine) {
+		// console.log("s.currentCaretLine", s.currentCaretLine)
+		// console.log("s.currentAudioLine", s.currentAudioLine)
 
-		if (newIndex != -1) {
-			console.log(`new line: ${newIndex} from ${s.currentAudioLine}`)
-			if (s.activeTab == "edit") {
-				// if (waveformInstance) waveformInstance.updateSelectedRegions()
-				if (s.lyrics[newIndex].time != -1) {
-					s.lineElements2[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
-				}
-			} else {
-				if (newIndex < 0) newIndex = 0
-				if (newIndex > s.lineElements.length) {
-					newIndex = s.lineElements.length - 1
-				}
-				// if (waveformInstance) waveformInstance.updateSelectedRegions()
-				if (s.syncCaretWithAudio) {
-					if (s.lyrics[newIndex].time != -1) {
-						s.lineElements[newIndex]?.scrollIntoView({ block: "center", behavior: "smooth" })
-					}
-				}
-			}
-		}
-		if (s.currentCaretLine == s.currentAudioLine) {
-			console.log("bababa")
+		if (newIndex == -1) return
+		if (s.lyrics[newIndex].time == -1) return
+		console.log(`new line: ${newIndex} from ${s.currentAudioLine}`)
+
+		if (s.currentCaretLine === s.currentAudioLine) {
 			s.currentCaretLine = newIndex
-		} else {
-			// sync caret line with audio line
-			if (s.syncCaretWithAudio) {
-				s.currentCaretLine = newIndex
-			}
+			scrollLineIntoView(newIndex, s.activeTab === "edit")
+		} else if (s.syncCaretWithAudio) {
+			s.currentCaretLine = newIndex
+			scrollLineIntoView(newIndex, s.activeTab === "edit")
 		}
+
 		s.currentAudioLine = newIndex
 	}
 }

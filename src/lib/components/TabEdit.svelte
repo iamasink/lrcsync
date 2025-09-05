@@ -2,6 +2,7 @@
 import LyricsBox from "$lib/components/LyricsBox.svelte"
 import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
+import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 import KeybindButton from "./KeybindButton.svelte"
 
@@ -96,7 +97,7 @@ function handleSyncButtonClick() {
 	if (s.currentCaretLine == -1) s.currentAudioLine == 0
 	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
-	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 	waveformRef.updateRegions()
 }
 function handleBackButtonClick() {
@@ -109,7 +110,7 @@ function handleBackButtonClick() {
 	if (newline < 0) newline = 0
 	if (newline > s.lyrics.length) newline = s.lyrics.length
 	s.currentCaretLine = newline
-	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 
 	waveformRef.updateSelectedRegions()
 }
@@ -124,7 +125,7 @@ function handleSkipButtonClick() {
 	if (newline < 0) newline = 0
 	if (newline > s.lyrics.length) newline = s.lyrics.length
 	s.currentCaretLine = newline
-	s.lineElements2[s.currentCaretLine].scrollIntoView({ block: "center", behavior: "smooth" })
+	scrollLineIntoView(s.currentCaretLine)
 	waveformRef.updateSelectedRegions()
 }
 

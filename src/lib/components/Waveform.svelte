@@ -33,9 +33,7 @@ const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255,
 
 $effect(() => {
 	s.lyrics
-	console.log("effect!")
 	if (!isReady) return
-	console.log("effect 2!")
 
 	updateRegions()
 })
@@ -370,7 +368,7 @@ onDestroy(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-height: 450px;
+  min-height: 450px;
   overflow: hidden;
   will-change: transform, scroll-position;
 }

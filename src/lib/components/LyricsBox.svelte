@@ -102,6 +102,8 @@ import { s } from "$lib/state.svelte"
 		}
 	}
 
+
+
 </script>
 
 <div class="lyricsbox" bind:this={element} {onscroll}>
