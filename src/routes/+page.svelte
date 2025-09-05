@@ -248,155 +248,158 @@ function handlePrevButtonClick() {
 }
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
-
-<div class="container">
-	{#if showFileoverlay}
-		<div class="drag-overlay">Drop files anywhere</div>
-	{/if}
-
-	<div class="topcontrols">
-		<p>Audio</p>
-		{#if !audioFile}
-			<input
-				id="fileinputaudio"
-				type="file"
-				accept="audio/*"
-				onchange={(e: Event) => {
-					const t = e.target as HTMLInputElement
-					if (t?.files?.[0]) audioFile = t.files[0]
-				}}
-			/>
+<div class="app">
+	<div class="container">
+		{#if showFileoverlay}
+			<div class="drag-overlay">Drop files anywhere</div>
 		{/if}
-		{#if !lrcFile}
-			<p>.lrc</p>
-			<input
-				id="fileinputlyric"
-				type="file"
-				accept=".lrc,.txt"
-				onchange={(e: Event) => {
-					const t = e.target as HTMLInputElement
-					if (t?.files?.[0]) lrcFile = t.files[0]
-				}}
-			/>
-		{/if}
-		<button onclick={doLoad}>Load</button>
-	</div>
 
-	<!-- {#if audioFile} -->
-	<div class="waveform">
-		<Waveform bind:this={waveformInstance} bind:file={audioFile as File} />
-	</div>
-	<!-- {/if} -->
-
-	<div class="info">
-		<p>audio line: {s.currentAudioLine}</p>
-		<p>caret line: {s.currentAudioLine}</p>
-		<p>current time: {(s.audioTime / 1000).toFixed(2)}</p>
-		<p>{formatTime(s.audioTime)}</p>
-		<p>FPS: {fps}</p>
-	</div>
-
-	<CollapsibleText>
-		<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
-		<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
-	</CollapsibleText>
-	<div style="max-height: 2rem; height: 2rem">
-		current lyric:
-		{#if !breaktime}
-			<span class:flash={flash}>{currentText}</span>
-		{:else}
-			<span class:break={breaktime}>🎵</span>
-		{/if}
-	</div>
-
-	<div class="controls">
-		<div>
-			<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
-				{s.isAudioPlaying ? "Pause" : "Play"}
-			</KeybindButton>
-			<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
-				Play @ caret
-			</KeybindButton>
-			<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
-				Replay line
-			</KeybindButton>
-			<KeybindButton
-				onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
-				disabled={!audioFile}
-				title={`Go back ${fastforwardbuttonvalue}s`}
-				shortcut={{ key: "left" }}
-				ignoremods={true}
-			>
-				-{fastforwardbuttonvalue}s
-			</KeybindButton>
-
-			<KeybindButton
-				onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
-				disabled={!audioFile}
-				title={`Fastforward ${fastforwardbuttonvalue}s`}
-				shortcut={{ key: "right" }}
-				ignoremods={true}
-			>
-				+{fastforwardbuttonvalue}s
-			</KeybindButton>
-
-			<KeybindButton onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
-			<KeybindButton onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
-		</div>
-		<div>
-			<KeybindButton
-				onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
-				disabled={s.currentCaretLine < 0}
-				title={`Move selected line earlier by -${stepbuttonvalue}s`}
-				shortcut={{ key: "x" }}
-				ignoremods={true}
-			>
-				-{stepbuttonvalue}s
-			</KeybindButton>
-
-			<KeybindButton
-				onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
-				disabled={s.currentCaretLine < 0}
-				title={`Move selected line later by +${stepbuttonvalue}s`}
-				shortcut={{ key: "c" }}
-				ignoremods={true}
-			>
-				+{stepbuttonvalue}s
-			</KeybindButton>
-		</div>
-		<div>
-			<button
-				onclick={() => {
-					s.lyrics = sortLines(s.lyrics)
-				}}
-				disabled={!allHaveTimestamps(s.lyrics)}
-				title="sort lines by timestamp (all lines must have a timestamp)"
-			>
-				Sort
-			</button>
-			<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
-		</div>
-	</div>
-
-	<div class="tabarea">
-		<div class="tabs">
-			<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
-			<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
-			<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
+		<div class="topcontrols">
+			<p>Audio</p>
+			{#if !audioFile}
+				<input
+					id="fileinputaudio"
+					type="file"
+					accept="audio/*"
+					onchange={(e: Event) => {
+						const t = e.target as HTMLInputElement
+						if (t?.files?.[0]) audioFile = t.files[0]
+					}}
+				/>
+			{/if}
+			{#if !lrcFile}
+				<p>.lrc</p>
+				<input
+					id="fileinputlyric"
+					type="file"
+					accept=".lrc,.txt"
+					onchange={(e: Event) => {
+						const t = e.target as HTMLInputElement
+						if (t?.files?.[0]) lrcFile = t.files[0]
+					}}
+				/>
+			{/if}
+			<button onclick={doLoad}>Load</button>
 		</div>
 
-		<div class="tabcontent">
-			{#if s.activeTab === "sync"}
-				<SyncView />
-			{:else if s.activeTab === "edit"}
-				<EditView />
-			{:else if s.activeTab === "metadata"}
-				<TabMetadata />
+		<!-- {#if audioFile} -->
+		<div class="waveform">
+			<Waveform bind:this={waveformInstance} bind:file={audioFile as File} />
+		</div>
+		<!-- {/if} -->
+
+		<div class="info">
+			<p>audio line: {s.currentAudioLine}</p>
+			<p>caret line: {s.currentAudioLine}</p>
+			<p>{(s.audioTime / 1000).toFixed(2)}s</p>
+			<p>{formatTime(s.audioTime)}</p>
+			<p>FPS: {fps}</p>
+		</div>
+
+		<CollapsibleText>
+			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
+			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
+		</CollapsibleText>
+		<div style="max-height: 2rem; height: 2rem">
+			current lyric:
+			{#if !breaktime}
+				<span class:flash={flash}>{currentText}</span>
 			{:else}
-				<p>erm</p>
+				<span class:break={breaktime}>🎵</span>
 			{/if}
 		</div>
+
+		<div class="controls">
+			<div>
+				<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
+					{s.isAudioPlaying ? "Pause" : "Play"}
+				</KeybindButton>
+				<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
+					Play @ caret
+				</KeybindButton>
+				<KeybindButton onclick={() => waveformInstance.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
+					Replay line
+				</KeybindButton>
+				<KeybindButton
+					onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+					disabled={!audioFile}
+					title={`Go back ${fastforwardbuttonvalue}s`}
+					shortcut={{ key: "left" }}
+					ignoremods={true}
+				>
+					-{fastforwardbuttonvalue}s
+				</KeybindButton>
+
+				<KeybindButton
+					onclick={() => waveformInstance.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+					disabled={!audioFile}
+					title={`Fastforward ${fastforwardbuttonvalue}s`}
+					shortcut={{ key: "right" }}
+					ignoremods={true}
+				>
+					+{fastforwardbuttonvalue}s
+				</KeybindButton>
+
+				<KeybindButton onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
+				<KeybindButton onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
+			</div>
+			<div>
+				<KeybindButton
+					onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
+					disabled={s.currentCaretLine < 0}
+					title={`Move selected line earlier by -${stepbuttonvalue}s`}
+					shortcut={{ key: "x" }}
+					ignoremods={true}
+				>
+					-{stepbuttonvalue}s
+				</KeybindButton>
+
+				<KeybindButton
+					onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
+					disabled={s.currentCaretLine < 0}
+					title={`Move selected line later by +${stepbuttonvalue}s`}
+					shortcut={{ key: "c" }}
+					ignoremods={true}
+				>
+					+{stepbuttonvalue}s
+				</KeybindButton>
+			</div>
+			<div>
+				<button
+					onclick={() => {
+						s.lyrics = sortLines(s.lyrics)
+					}}
+					disabled={!allHaveTimestamps(s.lyrics)}
+					title="sort lines by timestamp (all lines must have a timestamp)"
+				>
+					Sort
+				</button>
+				<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
+			</div>
+		</div>
+
+		<div class="tabarea">
+			<div class="tabs">
+				<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
+				<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
+				<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
+			</div>
+
+			<div class="tabcontent">
+				{#if s.activeTab === "sync"}
+					<SyncView />
+				{:else if s.activeTab === "edit"}
+					<EditView />
+				{:else if s.activeTab === "metadata"}
+					<TabMetadata />
+				{:else}
+					<p>erm</p>
+				{/if}
+			</div>
+		</div>
+	</div>
+	<div>
+		<p>hello world</p>
 	</div>
 </div>
 
@@ -514,7 +517,7 @@ input[type="file"] {
   font-size: 0.9rem;
   opacity: 0.8;
   p {
-    width: 10rem;
+    width: 6rem;
   }
 }
 
@@ -524,7 +527,7 @@ input[type="file"] {
 
 @keyframes flash-bg {
   0% {
-    background-color: rgb(41, 41, 87);
+    background-color: rgb(76, 76, 206);
   }
   100% {
     background-color: transparent;
