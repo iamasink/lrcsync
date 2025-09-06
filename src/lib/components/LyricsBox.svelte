@@ -55,8 +55,8 @@ import { s } from "$lib/state.svelte"
 		if (s.syncCaretWithAudio && s.waveformRef) {
 			const time = s.lyrics[lineIndex].time
 			if (!time || time == -1) return
-			const timeInSeconds = time/ 1000;
-			console.log(timeInSeconds)
+			const timeInSeconds = (Math.round((time) * 100) / 100) / 1000;
+			console.log("click2", time, timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
 	}
@@ -105,10 +105,26 @@ import { s } from "$lib/state.svelte"
 		}
 	}
 
+
+function getLine(lineIndex: number) {
+	let text = s.convertedLyrics[lineIndex]
+	let isInfo = false
+
+	if (lineIndex + 1 === s.lyrics.length && text === "") {
+		text = "(end of lyrics)"
+		isInfo = true
+	}
+
+	return { text, isInfo }
+}
+
+
 </script>
 
 <div class="lyricsbox" bind:this={element} {onscroll}>
 	{#each s.lyrics as line, i}
+			{@const lineinfo = getLine(i)}
+
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="lyric-line"
@@ -129,8 +145,8 @@ import { s } from "$lib/state.svelte"
 			<div class="timestamp">
 				{formatTimestamp(line.time)}
 			</div>
-			<div class="text">
-				{s.convertedLyrics[i]}
+			<div class="text" class:info={lineinfo.isInfo} >
+				{lineinfo.text}
 			</div>
 			<div class="buttons">
 				<button onclick={() => {s.lyrics.splice(i,1)}}>🗑️</button>
@@ -194,6 +210,10 @@ import { s } from "$lib/state.svelte"
 				text-overflow: ellipsis;
 				white-space: nowrap;
 				min-width: 0;
+
+				&.info {
+					opacity: 50%
+				}
 			}
 
 			.buttons {
@@ -208,7 +228,7 @@ import { s } from "$lib/state.svelte"
 			background-color: #ffffff !important;
 
 			.text {
-				color: #555555;
+				color: #353535;
 			}
 
 			.timestamp {
@@ -229,11 +249,11 @@ import { s } from "$lib/state.svelte"
 		}
 
 		.current.caret {
-			background-color: #ffffff !important;
-			border: 2px solid #4a90e2;
+			background-color: rgb(207, 229, 255) !important;
+			/* border: 2px solid #4a90e2; */
 
 			.text {
-				color: #555555;
+				color: #353535;
 			}
 
 			.timestamp {
