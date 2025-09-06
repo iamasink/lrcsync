@@ -150,9 +150,12 @@ export function exportLRC(lines: LyricLine[]) {
 		const wholeSeconds = Math.floor(seconds)
 		const centiseconds = Math.round((seconds - wholeSeconds) * 100)
 
-		const formattedMinutes = minutes.toString().padStart(2, "0")
-		const formattedSeconds = wholeSeconds.toString().padStart(2, "0")
-		const formattedCentiseconds = centiseconds.toString().padStart(2, "0")
+		const round = (n: number, mult: number = 100) => {
+			return Math.round(n * mult) / mult
+		}
+		const formattedMinutes = round(minutes).toString().padStart(2, "0")
+		const formattedSeconds = round(wholeSeconds).toString().padStart(2, "0")
+		const formattedCentiseconds = round(centiseconds).toString().padStart(2, "0")
 
 		return `[${formattedMinutes}:${formattedSeconds}.${formattedCentiseconds}] ${text}`
 	}).join("\n")
