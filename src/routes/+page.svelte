@@ -29,10 +29,34 @@ let frameCount = 0
 
 let showFileoverlay = $state(false)
 
+function getCurrentLine(time = s.audioTime) {
+	// 	const lyrics = s.lyrics.filter(e=>e.time!=-1)
+
+	// return lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time || s.lyrics[i + 1].time == -1))
+
+	if (!s.lyrics || !Array.isArray(s.lyrics) || typeof time !== "number" || time < 0) {
+		return -1
+	}
+
+	// backwards
+	for (let i = s.lyrics.length - 1; i >= 0; i--) {
+		const line = s.lyrics[i]
+
+		if (line.time < 0) continue
+
+		// find last lines's time that's less than current time
+		if (time >= line.time) {
+			return i
+		}
+	}
+
+	return -1
+}
+
 function updateCurrentLine() {
 	const time = s.audioTime
 
-	let newIndex = s.lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time || s.lyrics[i + 1].time == -1))
+	let newIndex = getCurrentLine()
 
 	if (newIndex !== s.currentAudioLine) {
 		// console.log("s.currentCaretLine", s.currentCaretLine)
@@ -150,6 +174,8 @@ async function doLoad() {
 		console.log("loading audio")
 		const { audioSrc: src } = await loadAudio(audioFile)
 		audioSrc = src
+		if (!s.waveformRef) return
+		s.waveformRef.loadFile(audioFile)
 	}
 	if (lrcFile) {
 		console.log("loading lrc")
@@ -233,15 +259,35 @@ $effect(() => {
 })
 
 function handleNextButtonClick() {
-	// goto next line
-	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine + 1].time / 1000)
-	scrollLineIntoView(s.currentCaretLine)
-	s.waveformRef?.updateSelectedRegions()
+	// try to move forward until a valid line is found
+	let i = s.currentAudioLine + 1
+	while (i < s.lyrics.length && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
+		i++
+	}
+
+	if (i < s.lyrics.length) {
+		const time = s.lyrics[i].time
+		s.waveformRef?.seekToTime(time / 1000)
+		scrollLineIntoView(i)
+		s.waveformRef?.updateSelectedRegions()
+		s.currentAudioLine = i
+	}
 }
+
 function handlePrevButtonClick() {
-	s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine - 1].time / 1000)
-	scrollLineIntoView(s.currentCaretLine)
-	s.waveformRef?.updateSelectedRegions()
+	// try to move backward until a valid line is found
+	let i = s.currentAudioLine - 1
+	while (i >= 0 && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
+		i--
+	}
+
+	if (i >= 0) {
+		const time = s.lyrics[i].time + 0.01
+		s.waveformRef?.seekToTime(time / 1000)
+		scrollLineIntoView(i)
+		s.waveformRef?.updateSelectedRegions()
+		s.currentAudioLine = i
+	}
 }
 </script>
 
@@ -281,7 +327,7 @@ function handlePrevButtonClick() {
 
 		<!-- {#if audioFile} -->
 		<div class="waveform">
-			<Waveform bind:this={s.waveformRef} bind:file={audioFile as File} />
+			<Waveform bind:this={s.waveformRef} />
 		</div>
 		<!-- {/if} -->
 
@@ -311,7 +357,13 @@ function handlePrevButtonClick() {
 				<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
 					{s.isAudioPlaying ? "Pause" : "Play"}
 				</KeybindButton>
-				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "w" }}>
+				<KeybindButton
+					onclick={() => {
+						if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
+					}}
+					disabled={!audioFile}
+					shortcut={{ key: "w" }}
+				>
 					Play @ caret
 				</KeybindButton>
 				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
