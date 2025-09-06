@@ -2,7 +2,7 @@
 
 <script lang="ts">
 	import Waveform from "$lib/components/Waveform.svelte";
-	import { formatLine, formatTime, type LyricLine } from "$lib/parseLRC";
+	import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
 	import { convertAll } from "$lib/kuroshiro";
 import { s } from "$lib/state.svelte"
 	
@@ -49,24 +49,26 @@ import { s } from "$lib/state.svelte"
 	import type { UIEventHandler } from "svelte/elements";
 
 	function handleLineClick(lineIndex: number) {
+		console.log("lineclick",lineIndex)
 		s.currentCaretLine = lineIndex;
 
 		if (s.syncCaretWithAudio && s.waveformRef) {
-			s.currentAudioLine = lineIndex;
-			const timeInSeconds = s.lyrics[lineIndex].time / 1000;
-
-			if (!timeInSeconds) return
+			const time = s.lyrics[lineIndex].time
+			if (!time || time == -1) return
+			const timeInSeconds = time/ 1000;
+			console.log(timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
 	}
-
 	function handleLineDblClick(lineIndex: number) {
+		console.log("lineclick",lineIndex)
 		s.currentCaretLine = lineIndex;
 
-		s.currentAudioLine = lineIndex;
-		const timeInSeconds = s.lyrics[lineIndex].time / 1000;
-		if (!timeInSeconds) return
-		if (s.waveformRef) {
+		if ( s.waveformRef) {
+			const time = s.lyrics[lineIndex].time
+			if (!time || time == -1) return
+			const timeInSeconds = time/ 1000;
+			console.log(timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
 	}
@@ -89,6 +91,7 @@ import { s } from "$lib/state.svelte"
 		const nextLine = s.lyrics[lineIndex + 1];
 
 		if (!nextLine) return false;
+		if (line.time == -1) return false
 
 		const gap = nextLine.time - line.time;
 
@@ -124,7 +127,7 @@ import { s } from "$lib/state.svelte"
 			}}
 		>
 			<div class="timestamp">
-				[{formatTime(line.time)}]
+				{formatTimestamp(line.time)}
 			</div>
 			<div class="text">
 				{s.convertedLyrics[i]}
