@@ -108,7 +108,7 @@ function handleBackButtonClick() {
 	let newline
 	newline = s.currentCaretLine - 1
 	if (newline < 0) newline = 0
-	if (newline > s.lyrics.length) newline = s.lyrics.length
+	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
 
@@ -123,7 +123,7 @@ function handleSkipButtonClick() {
 	let newline
 	newline = s.currentCaretLine + 1
 	if (newline < 0) newline = 0
-	if (newline > s.lyrics.length) newline = s.lyrics.length
+	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
 	waveformRef.updateSelectedRegions()
