@@ -12,11 +12,13 @@ import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
 import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
 
 interface Props {
-	file: File
+	// file: File
 }
 
-let { file = $bindable() }: Props = $props()
+// let { file = $bindable() }: Props = $props()
+let {}: Props = $props()
 
+let file: File | null = $state(null)
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
 let wavesurfer: WaveSurfer
@@ -48,10 +50,11 @@ $effect(() => {
 let volume: number = $state(50)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
-function loadFile(file: File) {
-	if (!file || !wavesurfer) return
-	const url = URL.createObjectURL(file)
-	wavesurfer.load(url)
+export async function loadFile(loadfile: File) {
+	if (!loadfile || !wavesurfer) return
+	const url = URL.createObjectURL(loadfile)
+	file = loadfile
+	await wavesurfer.load(url)
 }
 
 function regionHasEndTime(index: number) {
@@ -117,7 +120,7 @@ export function updateRegions() {
 		let region = regionCache[regionId]
 
 		if (region) {
-			console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
+			// console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
 			region.setOptions({
 				id: regionId,
 				start: regionStart,
@@ -130,7 +133,7 @@ export function updateRegions() {
 				resizeEnd,
 			})
 		} else {
-			console.log("creating new region for lyric", `lyric-${i}`)
+			// console.log("creating new region for lyric", `lyric-${i}`)
 			region = regions.addRegion({
 				id: regionId,
 				start: regionStart,
@@ -273,11 +276,10 @@ onMount(() => {
 		dragToSeek: false, // this doesnt work over regions anyway, so keep it consistent
 		minPxPerSec: 100,
 		plugins: [timeline, spectrogram, regions, minimap],
+		autoCenter: false,
 	})
 	ensureEvenWidth(waveformContainer)
 	window.addEventListener("resize", () => ensureEvenWidth(waveformContainer))
-
-	if (file) loadFile(file)
 
 	wavesurfer.on("ready", () => {
 		console.log("im ready!")
