@@ -30,13 +30,12 @@ let frameCount = 0
 let showFileoverlay = $state(false)
 
 function getCurrentLine(time = s.audioTime) {
-	// 	const lyrics = s.lyrics.filter(e=>e.time!=-1)
-
-	// return lyrics.findIndex((line, i) => time >= line.time && (i === s.lyrics.length - 1 || time < s.lyrics[i + 1].time || s.lyrics[i + 1].time == -1))
-
-	if (!s.lyrics || !Array.isArray(s.lyrics) || typeof time !== "number" || time < 0) {
+	if (!s.lyrics || time < 0) {
 		return -1
 	}
+
+	// round to prevent weird things idk
+	const newtime = Math.round(time * 1) / 1
 
 	// backwards
 	for (let i = s.lyrics.length - 1; i >= 0; i--) {
@@ -45,7 +44,7 @@ function getCurrentLine(time = s.audioTime) {
 		if (line.time < 0) continue
 
 		// find last lines's time that's less than current time
-		if (time >= line.time) {
+		if (newtime >= line.time) {
 			return i
 		}
 	}
@@ -53,8 +52,11 @@ function getCurrentLine(time = s.audioTime) {
 	return -1
 }
 
+let lasttime = -1
 function updateCurrentLine() {
 	const time = s.audioTime
+	if (time == lasttime) return
+	lasttime = time
 
 	let newIndex = getCurrentLine()
 
