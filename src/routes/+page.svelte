@@ -389,14 +389,14 @@ function handlePrevButtonClick() {
 					+{fastforwardbuttonvalue}s
 				</KeybindButton>
 
-				<KeybindButton onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
-				<KeybindButton onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
+				<KeybindButton title={"Move the audio to the start of next line"} onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
+				<KeybindButton title={"Move the audio to the start of previous line"} onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
 			</div>
 			<div>
 				<KeybindButton
 					onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
 					disabled={s.currentCaretLine < 0}
-					title={`Move selected line earlier by -${stepbuttonvalue}s`}
+					title={`Move currently playing line earlier by -${stepbuttonvalue}s`}
 					shortcut={{ key: "x" }}
 					ignoremods={true}
 				>
@@ -406,7 +406,7 @@ function handlePrevButtonClick() {
 				<KeybindButton
 					onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
 					disabled={s.currentCaretLine < 0}
-					title={`Move selected line later by +${stepbuttonvalue}s`}
+					title={`Move currently playing line later by +${stepbuttonvalue}s`}
 					shortcut={{ key: "c" }}
 					ignoremods={true}
 				>
