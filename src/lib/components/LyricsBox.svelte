@@ -191,7 +191,6 @@ import { s } from "$lib/state.svelte"
 			.text {
 				flex: 1;
 				line-height: 1;
-				overflow: hidden;
 				text-overflow: ellipsis;
 				white-space: nowrap;
 				min-width: 0;
