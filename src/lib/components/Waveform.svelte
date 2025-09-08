@@ -265,7 +265,7 @@ function updateVolume() {
 	wavesurfer.setVolume(volume2)
 }
 
-onMount(() => {
+onMount(async () => {
 	regions = Regions.create()
 	timeline = Timeline.create()
 	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
@@ -378,6 +378,15 @@ onMount(() => {
 	}
 
 	updateVolume()
+
+	try {
+		const res = await fetch("/defaultaudio.flac")
+		const blob = await res.blob()
+		const defaultFile = new File([blob], "defaultaudio.flac", { type: blob.type })
+		await loadFile(defaultFile)
+	} catch (e) {
+		console.error("couldnt load default audio:", e)
+	}
 })
 
 onDestroy(() => {
