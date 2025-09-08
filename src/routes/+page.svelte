@@ -355,7 +355,7 @@ function handlePrevButtonClick() {
 		</div>
 
 		<div class="controls">
-			<div>
+			<div style="display: flex; flex-direction: row">
 				<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
 					{s.isAudioPlaying ? "Pause" : "Play"}
 				</KeybindButton>

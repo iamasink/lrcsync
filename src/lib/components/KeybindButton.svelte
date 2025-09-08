@@ -1,11 +1,13 @@
 <script lang="ts">
 import { onDestroy, onMount } from "svelte"
 import type { MouseEventHandler } from "svelte/elements"
+import Tooltip from "./Tooltip.svelte"
 
 type shortcut = { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; alt?: boolean }
 
 interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	disabled?: boolean
+	title?: string
 	shortcut: shortcut
 	onclick: MouseEventHandler<HTMLButtonElement>
 	ignoremods?: boolean
@@ -13,7 +15,7 @@ interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	[key: string]: any
 }
 
-let { disabled = false, shortcut, onclick = $bindable(), ignoremods = false, children, ...rest }: Props = $props()
+let { disabled = false, title = "", shortcut, onclick = $bindable(), ignoremods = false, children, ...rest }: Props = $props()
 
 let btn: HTMLButtonElement
 
@@ -81,14 +83,18 @@ function getShortcutText(shortcut: shortcut) {
 }
 </script>
 
-<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
-	<span class="label">{@render children?.()}</span>
-	<span class="shortcut">{getShortcutText(shortcut)}</span>
-</button>
+<Tooltip message={title}>
+	<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
+		<span class="label">{@render children?.()}</span>
+		<span class="shortcut">{getShortcutText(shortcut)}</span>
+	</button>
+</Tooltip>
 
 <style>
 .button {
-  position: relative;
+  display: block;
+  padding: revert;
+
   .label {
     font-weight: bold;
   }
