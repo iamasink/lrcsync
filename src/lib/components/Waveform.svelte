@@ -3,6 +3,7 @@ import { type LyricLine, roundTimestamp } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { s } from "$lib/state.svelte"
 import { onDestroy, onMount } from "svelte"
+import type { WheelEventHandler } from "svelte/elements"
 import WaveSurfer from "wavesurfer.js"
 import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js"
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js"
@@ -28,6 +29,9 @@ let currentTime = $state(0)
 let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
+
+const AUTOCENTER_DEFAULT = true
+const AUTOSCROLL_DEFAULT = true
 
 let autoScrollTimeout: number = $state(0)
 
@@ -69,11 +73,11 @@ function regionHasEndTime(index: number) {
 	if (nextlyric.text == "") {
 		return true
 	}
-	if (nextlyrictime - regionStart > 5) {
-		return true
-	} else {
-		return false
-	}
+	// if (nextlyrictime - regionStart > 5) {
+	// 	return true
+	// }
+
+	return false
 }
 function getRegionEndTime(index: number) {
 	const lyric = s.lyrics[index]
@@ -243,7 +247,7 @@ export function togglePlayPause() {
 	}
 }
 
-function onwheel(e: WheelEvent) {
+function onvolumewheel(e: WheelEvent) {
 	let delta = e.deltaY || -e.deltaX || e.deltaZ
 	let newvolume = volume
 	if (delta > 0) {
@@ -254,6 +258,7 @@ function onwheel(e: WheelEvent) {
 	if (newvolume < 0) newvolume = 0
 	if (newvolume > 100) newvolume = 100
 	volume = newvolume
+	e.preventDefault()
 	updateVolume()
 }
 function updateVolume() {
@@ -276,7 +281,8 @@ onMount(() => {
 		dragToSeek: false, // this doesnt work over regions anyway, so keep it consistent
 		minPxPerSec: 100,
 		plugins: [timeline, spectrogram, regions, minimap],
-		autoCenter: false,
+		autoCenter: AUTOCENTER_DEFAULT,
+		autoScroll: AUTOSCROLL_DEFAULT,
 	})
 	ensureEvenWidth(waveformContainer)
 	window.addEventListener("resize", () => ensureEvenWidth(waveformContainer))
@@ -307,8 +313,35 @@ onMount(() => {
 		// updateVisibleRegions()
 	})
 
+	function throttle(fn: any, limit: number) {
+		let inThrottle: boolean
+		return function(...args: any) {
+			if (!inThrottle) {
+				fn(...args)
+				inThrottle = true
+				setTimeout(() => (inThrottle = false), limit)
+			}
+		}
+	}
+
+	// runs while the user drags
+	let lastregionupdate = 0
+	regions.on("region-update", (r, side) => {
+		if (performance.now() < lastregionupdate + 25) return
+		lastregionupdate = performance.now()
+		if (side == "end" && !regionHasEndTime(parseInt(r.id.substring(6)))) return
+		updateregion(r, side)
+		wavesurfer.setTime(r.start)
+	})
+
+	// runs when the user stops dragging
 	regions.on("region-updated", (r) => {
-		console.log("region updated", r)
+		updateregion(r)
+		wavesurfer.setTime(r.start)
+	})
+
+	function updateregion(r: Region, side: "start" | "end" | undefined = undefined) {
+		// console.log("region updated", r.id)
 		const idx = parseInt(r.id.substring(6))
 		console.log(idx)
 
@@ -316,22 +349,21 @@ onMount(() => {
 		s.lyrics[idx].time = start
 
 		if (regionHasEndTime(idx)) {
-			console.log(idx, s.lyrics.length)
+			// console.log(idx, s.lyrics.length)
 			if (idx + 1 == s.lyrics.length) {
-				console.log("1")
+				// console.log("1")
 				s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
 			} else {
 				if (s.lyrics[idx + 1].text != "") {
-					console.log("2")
+					// console.log("2")
 					s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
 				} else {
-					console.log("3")
+					// console.log("3")
 					s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
 				}
 			}
 		}
 
-		wavesurfer.setTime(start / 1000)
 		wavesurfer.options.autoCenter = false
 		// wavesurfer.options.autoScroll = false
 
@@ -339,11 +371,11 @@ onMount(() => {
 			clearTimeout(autoScrollTimeout)
 		}
 		autoScrollTimeout = window.setTimeout(() => {
-			wavesurfer.options.autoCenter = true
-			wavesurfer.options.autoScroll = true
+			wavesurfer.options.autoCenter = AUTOCENTER_DEFAULT
+			wavesurfer.options.autoScroll = AUTOSCROLL_DEFAULT
 		}, 5000)
 		wavesurfer.play()
-	})
+	}
 
 	updateVolume()
 })
@@ -353,6 +385,25 @@ onDestroy(() => {
 		wavesurfer.destroy()
 	}
 })
+
+function handleScroll(e: WheelEvent) {
+	let delta = e.deltaY
+	if (!delta) return
+	let newscroll = wavesurfer.getScroll() + (delta / 2)
+	wavesurfer.options.autoCenter = false
+	wavesurfer.options.autoScroll = false
+	wavesurfer.setScroll(newscroll)
+
+	if (autoScrollTimeout) {
+		clearTimeout(autoScrollTimeout)
+	}
+	autoScrollTimeout = window.setTimeout(() => {
+		wavesurfer.options.autoCenter = AUTOCENTER_DEFAULT
+		wavesurfer.options.autoScroll = AUTOSCROLL_DEFAULT
+	}, 5000)
+
+	e.preventDefault()
+}
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -378,14 +429,14 @@ onDestroy(() => {
 	{/if}
 	<div class="above">
 		<div class="volume">
-			<input {onwheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
+			<input onwheel={onvolumewheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
 			<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
 		</div>
 		<div class="nextlyric">
 			<i>syncing:</i> {s.lyrics[s.currentCaretLine]?.text ?? ""}
 		</div>
 	</div>
-	<div bind:this={waveformContainer} id="waveform"></div>
+	<div bind:this={waveformContainer} id="waveform" onwheel={handleScroll}></div>
 	<!-- <div bind:this={spectrogramContainer} class="spectrogram"></div> -->
 </div>
 
