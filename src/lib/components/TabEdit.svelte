@@ -136,26 +136,28 @@ function handleBlankButtonClick() {
 </script>
 
 <div class="edit-view">
-	<div class="synccontrols">
-		<div>
-			<!-- <button onclick={handleSyncButtonClick}>sync (s)</button> -->
-			<KeybindButton onclick={handleSyncButtonClick} shortcut={{ key: "s" }}>sync</KeybindButton>
-			<KeybindButton onclick={handleBackButtonClick} shortcut={{ key: "e" }}>up line</KeybindButton>
+	<div class="above">
+		<div class="synccontrols">
+			<div>
+				<!-- <button onclick={handleSyncButtonClick}>sync (s)</button> -->
+				<KeybindButton onclick={handleSyncButtonClick} shortcut={{ key: "s" }}>sync</KeybindButton>
+				<KeybindButton onclick={handleBackButtonClick} shortcut={{ key: "e" }}>up line</KeybindButton>
+			</div>
+			<div style="margin-left: 8px"></div>
+			<div>
+				<KeybindButton onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
+				<KeybindButton onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
+			</div>
 		</div>
-		<div style="margin-left: 8px"></div>
-		<div>
-			<KeybindButton onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
-			<KeybindButton onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
+		<div class="controls">
+			<label>convert from:
+				<select bind:value={s.convertedLyricsLang}>
+					{#each ["ja", "none"] as lang}
+						<option value={lang}>{lang.toUpperCase()}</option>
+					{/each}
+				</select>
+			</label>
 		</div>
-	</div>
-	<div class="controls">
-		<label>convert from:
-			<select bind:value={s.convertedLyricsLang}>
-				{#each ["ja", "none"] as lang}
-					<option value={lang}>{lang.toUpperCase()}</option>
-				{/each}
-			</select>
-		</label>
 	</div>
 
 	<div class="editboxes">
@@ -193,16 +195,24 @@ function handleBlankButtonClick() {
   display: flex;
   flex-direction: column;
   height: 100%; /* inherit height from parent */
-  box-sizing: border-box;
+
+  .above {
+    display: flex;
+    flex-direction: column;
+    > div {
+      div {
+        display: flex;
+        flex-direction: row;
+      }
+    }
+  }
 
   .editboxes {
     display: flex;
     flex-direction: row;
-    box-sizing: border-box;
     overflow-y: hidden;
 
     textarea {
-      box-sizing: border-box;
       flex: 1;
       resize: none;
       background-color: var(--bg-light);
@@ -212,7 +222,6 @@ function handleBlankButtonClick() {
       font-size: 14px;
     }
     .lyricsboxcontainer {
-      box-sizing: border-box;
       flex: 1;
       overflow-y: scroll;
     }
