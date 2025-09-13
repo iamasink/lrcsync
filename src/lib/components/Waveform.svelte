@@ -47,8 +47,7 @@ $effect(() => {
 	if (!file || !wavesurfer) return
 	isReady = false
 	wavesurfer.stop()
-	const url = URL.createObjectURL(file)
-	wavesurfer.load(url)
+	loadFile(file)
 })
 
 let volume: number = $state(50)
@@ -283,6 +282,7 @@ onMount(async () => {
 		plugins: [timeline, spectrogram, regions, minimap],
 		autoCenter: AUTOCENTER_DEFAULT,
 		autoScroll: AUTOSCROLL_DEFAULT,
+		backend: "WebAudio",
 	})
 	ensureEvenWidth(waveformContainer)
 	window.addEventListener("resize", () => ensureEvenWidth(waveformContainer))
@@ -437,8 +437,8 @@ function handleScroll(e: WheelEvent) {
 		</div>
 	{/if}
 	<div class="above">
-		<div class="volume">
-			<input onwheel={onvolumewheel} oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
+		<div class="volume" onwheel={onvolumewheel}>
+			<input oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
 			<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
 		</div>
 		<div class="nextlyric">
