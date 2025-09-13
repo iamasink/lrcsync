@@ -355,25 +355,23 @@ function handlePrevButtonClick() {
 		</div>
 
 		<div class="controls">
-			<div style="display: flex; flex-direction: row">
-				<KeybindButton onclick={togglePlayPause} disabled={!audioFile} shortcut={{ key: "Space" }}>
+			<div>
+				<KeybindButton onclick={togglePlayPause} shortcut={{ key: "Space" }}>
 					{s.isAudioPlaying ? "Pause" : "Play"}
 				</KeybindButton>
 				<KeybindButton
 					onclick={() => {
 						if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
 					}}
-					disabled={!audioFile}
 					shortcut={{ key: "w" }}
 				>
 					Play @ caret
 				</KeybindButton>
-				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} disabled={!audioFile} shortcut={{ key: "r" }}>
+				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} shortcut={{ key: "r" }}>
 					Replay line
 				</KeybindButton>
 				<KeybindButton
 					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
-					disabled={!audioFile}
 					title={`Go back ${fastforwardbuttonvalue}s`}
 					shortcut={{ key: "left" }}
 					ignoremods={true}
@@ -383,7 +381,6 @@ function handlePrevButtonClick() {
 
 				<KeybindButton
 					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
-					disabled={!audioFile}
 					title={`Fastforward ${fastforwardbuttonvalue}s`}
 					shortcut={{ key: "right" }}
 					ignoremods={true}
@@ -499,6 +496,11 @@ function handlePrevButtonClick() {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+
+  div {
+    display: flex;
+    flex-direction: row;
+  }
 }
 
 button:hover:not(:disabled) {
