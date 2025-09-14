@@ -345,13 +345,21 @@ function handlePrevButtonClick() {
 			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 		</CollapsibleText>
-		<div style="max-height: 2rem; height: 2rem">
-			current lyric:
-			{#if !breaktime}
-				<span class:flash={flash}>{currentText}</span>
-			{:else}
-				<span class:break={breaktime}>🎵</span>
-			{/if}
+		<div class="currentlyric" style="max-height: 2rem; height: 2rem; font-size: large">
+			<span style="color: var(--text-muted)">
+				current lyric:
+			</span>
+			<span style="font-size: x-large">
+				{#if !breaktime}
+					<span class:flash={flash}>{currentText}</span>
+				{:else}
+					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
+						<span class="emoji">🎵</span>
+						<span class="emoji">🎶</span>
+						<span class="emoji">🎵</span>
+					</span>
+				{/if}
+			</span>
 		</div>
 
 		<div class="controls">
@@ -589,5 +597,28 @@ input[type="file"] {
 
 .break {
   background-color: #ffffff;
+}
+.break.animate {
+  .emoji {
+    display: inline-block;
+    /* margin: 0 0rem; */
+    animation: bounce 0.6s infinite alternate ease-in-out;
+    transition: opacity 0.3s ease;
+  }
+
+  .emoji:nth-child(2) {
+    animation-delay: -0.2s;
+  }
+  .emoji:nth-child(3) {
+    animation-delay: -0.4s;
+  }
+}
+@keyframes bounce {
+  from {
+    transform: translateY(5px);
+  }
+  to {
+    transform: translateY(-7px);
+  }
 }
 </style>
