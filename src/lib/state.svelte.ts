@@ -11,7 +11,7 @@ interface State {
 	currentCaretLine: number
 	audioTime: number
 	isAudioPlaying: boolean
-	activeTab: "sync" | "edit" | "metadata"
+	activeTab: "edit" | "metadata"
 	modkeysHeld: { shift: boolean, ctrl: boolean, alt: boolean }
 	syncCaretWithAudio: boolean
 	waveformRef: Waveform | undefined
@@ -30,7 +30,7 @@ export const s: State = $state({
 	currentCaretLine: -1,
 	audioTime: 0,
 	isAudioPlaying: false,
-	activeTab: "sync",
+	activeTab: "edit",
 	modkeysHeld: { shift: false, ctrl: false, alt: false },
 	syncCaretWithAudio: true,
 	waveformRef: undefined,

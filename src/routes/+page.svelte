@@ -436,15 +436,17 @@ function handlePrevButtonClick() {
 
 		<div class="tabarea">
 			<div class="tabs">
-				<button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button>
+				<!-- <button onclick={() => (s.activeTab = "sync")} class:active={s.activeTab === "sync"}>Sync</button> -->
 				<button onclick={() => (s.activeTab = "edit")} class:active={s.activeTab === "edit"}>Edit</button>
 				<button onclick={() => (s.activeTab = "metadata")} class:active={s.activeTab === "metadata"}>Metadata</button>
 			</div>
 
 			<div class="tabcontent">
-				{#if s.activeTab === "sync"}
+				<!--
+					{#if s.activeTab === "sync"}
 					<SyncView />
-				{:else if s.activeTab === "edit"}
+				-->
+				{#if s.activeTab === "edit"}
 					<EditView />
 				{:else if s.activeTab === "metadata"}
 					<TabMetadata />
