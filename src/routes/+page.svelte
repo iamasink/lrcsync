@@ -235,6 +235,7 @@ let stepbuttonvalue = $derived(0.01 * multiplier)
 let fastforwardbuttonvalue = $derived(1 * multiplier)
 
 let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
+let currentTextConverted = $derived(s.convertedLyrics[s.currentAudioLine] ?? "")
 let flash = $state(false)
 let breaktime = $derived(currentText == "")
 $effect(() => {
@@ -345,13 +346,16 @@ function handlePrevButtonClick() {
 			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 		</CollapsibleText>
-		<div class="currentlyric" style="max-height: 2rem; height: 2rem; font-size: large">
+		<div class="currentlyric">
 			<span style="color: var(--text-muted)">
 				current lyric:
 			</span>
-			<span style="font-size: x-large">
+			<div class="lyrictext">
 				{#if !breaktime}
 					<span class:flash={flash}>{currentText}</span>
+					{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
+						<span class="converted" class:flash={flash}>{currentTextConverted}</span>
+					{/if}
 				{:else}
 					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
 						<span class="emoji">🎵</span>
@@ -359,7 +363,7 @@ function handlePrevButtonClick() {
 						<span class="emoji">🎵</span>
 					</span>
 				{/if}
-			</span>
+			</div>
 		</div>
 
 		<div class="controls">
@@ -425,8 +429,7 @@ function handlePrevButtonClick() {
 					onclick={() => {
 						s.lyrics = sortLines(s.lyrics)
 					}}
-					disabled={!allHaveTimestamps(s.lyrics)}
-					title="sort lines by timestamp (all lines must have a timestamp)"
+					title="sort lines by timestamp"
 				>
 					Sort
 				</button>
@@ -621,6 +624,20 @@ input[type="file"] {
   }
   to {
     transform: translateY(-7px);
+  }
+}
+
+.currentlyric {
+  max-height: 4rem;
+  height: 4rem;
+  font-size: large;
+  display: flex;
+
+  .lyrictext {
+    margin-left: 1rem;
+    font-size: x-large;
+    display: flex;
+    flex-direction: column;
   }
 }
 </style>
