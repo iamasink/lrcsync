@@ -171,19 +171,33 @@ describe("format helpers", () => {
 		expect(formatLine({ time: -1, text: "Line" })).toBe("Line")
 	})
 
-	it("sortLines sorts only if all have timestamps", () => {
-		const lines: LyricLine[] = [
+	it("sortLines correctly", () => {
+		const lines2: LyricLine[] = [
 			{ time: 2000, text: "two" },
 			{ time: 1000, text: "one" }
 		]
-		expect(sortLines(lines).map(l => l.text)).toEqual(["one", "two"])
+		expect(sortLines(lines2).map(l => l.text)).toEqual(["one", "two"])
+
+
+		const lines: LyricLine[] =
+			[
+				{ "time": 10500, "text": "one" },
+				{ "time": -1, "text": "" },
+				{ "time": -1, "text": "" },
+				{ "time": 11500, "text": "three" },
+				{ "time": -1, "text": "" },
+				{ "time": 10600, "text": "two" }]
+
+
+		expect(sortLines(lines).map(l => l.text)).toEqual(["one", "", "", "two", "", "three"])
+
 
 		const mixed: LyricLine[] = [
 			{ time: -1, text: "no time" },
 			{ time: 1000, text: "has time" },
 			{ time: -1, text: "no time too" },
 		]
-		expect(sortLines(mixed)).toBe(mixed)
+		expect(sortLines(mixed)).toEqual(mixed)
 	})
 
 	it("allHaveTimestamps works", () => {

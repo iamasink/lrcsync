@@ -215,13 +215,24 @@ export function formatLine(l: { time: number; text: string }) {
 	}
 }
 
-export function sortLines(lines: LyricLine[]) {
-	// maybe we can modify this function to sort without all lines having timestamps at some point
+export function sortLines(lines: LyricLine[]): LyricLine[] {
+	// lines with timestamps
+	const timestamped: LyricLine[] = lines.filter(l => l.time !== -1)
 
+	timestamped.sort((a, b) => (a.time! - b.time!))
 
-	return allHaveTimestamps(lines)
-		? lines.sort((a, b) => a.time - b.time)
-		: lines
+	const result: LyricLine[] = []
+	let tsIndex = 0
+
+	for (const line of lines) {
+		if (line.time !== -1) {
+			result.push(timestamped[tsIndex++])
+		} else {
+			result.push(line) // keep non-timestamped lines in place
+		}
+	}
+
+	return result
 }
 
 export function allHaveTimestamps(lines: LyricLine[]) {
