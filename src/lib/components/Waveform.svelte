@@ -97,7 +97,6 @@ const regionCache: Record<string, Region> = {}
 export function updateRegions() {
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
 	const existingRegions = regions.getRegions()
-	console.log("hi")
 
 	const usedRegions = new Set<string>()
 
@@ -166,7 +165,7 @@ let prevAudioLine: number | null = null
 let prevCaretLine: number | null = null
 
 export function updateSelectedRegions() {
-	console.log("update regions")
+	// console.log("update regions")
 	// const linesToUpdate = new Set<number>()
 
 	// if (prevAudioLine !== null) linesToUpdate.add(prevAudioLine)
@@ -327,11 +326,11 @@ onMount(async () => {
 	// runs while the user drags
 	let lastregionupdate = 0
 	regions.on("region-update", (r, side) => {
-		if (performance.now() < lastregionupdate + 25) return
-		lastregionupdate = performance.now()
-		if (side == "end" && !regionHasEndTime(parseInt(r.id.substring(6)))) return
-		updateregion(r, side)
-		wavesurfer.setTime(r.start)
+		// if (performance.now() < lastregionupdate + 25) return
+		// lastregionupdate = performance.now()
+		// if (side == "end" && !regionHasEndTime(parseInt(r.id.substring(6)))) return
+		// updateregion(r, side)
+		// wavesurfer.setTime(r.start)
 	})
 
 	// runs when the user stops dragging
@@ -346,6 +345,7 @@ onMount(async () => {
 		console.log(idx)
 
 		const start = roundTimestamp(r.start * 1000)
+		// const start = r.start * 1000
 		s.lyrics[idx].time = start
 
 		if (regionHasEndTime(idx)) {
