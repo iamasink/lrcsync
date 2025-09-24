@@ -26,6 +26,11 @@ export async function convert(text: string): Promise<string> {
 
 	return converted.replace(/ (\p{P})/gu, '$1')
 		.replace(/(\p{P}) /gu, '$1')
+		.replaceAll("　", " ") // jp fullwidth space
+		.replaceAll("   ", " ") // replace duplicate spaces
+		.replaceAll("  ", " ") // ''
+
+
 
 }
 
