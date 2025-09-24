@@ -47,6 +47,7 @@ import { s } from "$lib/state.svelte"
 
 	import { onMount } from "svelte";
 	import type { UIEventHandler } from "svelte/elements";
+	import Tooltip from "./Tooltip.svelte";
 
 	function handleLineClick(lineIndex: number) {
 		console.log("lineclick",lineIndex)
@@ -149,7 +150,8 @@ function getLine(lineIndex: number) {
 				{lineinfo.text}
 			</div>
 			<div class="buttons">
-				<button onclick={() => {s.lyrics.splice(i,1)}}>🗑️</button>
+				<Tooltip message="Remove Time"><button onclick={() => {s.lyrics[i].time=-1}}>✖️</button></Tooltip>
+				<Tooltip message="Delete"><button onclick={() => {s.lyrics.splice(i,1)}}>🗑️</button></Tooltip>
 			</div>
 			{#if getWarnings(i).length>0}
 			<div class="warning-indicator"
@@ -220,7 +222,7 @@ function getLine(lineIndex: number) {
 				  display: none; /* hidden by default */
 			}
 			&.lyric-line:hover .buttons {
-				  display: block; /* show when parent is hovered */
+				  display: flex; /* show when parent is hovered */
 			}
 
 		}
