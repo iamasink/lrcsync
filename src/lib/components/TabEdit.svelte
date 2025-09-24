@@ -16,7 +16,6 @@ let isScrolling = false
 let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
-const waveformRef = s.waveformRef
 
 function handleInput() {
 	if (!textAreaElement) return
@@ -91,18 +90,18 @@ function setLineTime(time: number, lineIndex: number) {
 
 function handleSyncButtonClick() {
 	s.syncCaretWithAudio = false
-	if (!waveformRef) {
+	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
 	if (s.currentCaretLine == -1) s.currentAudioLine == 0
-	setLineTime(waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
+	setLineTime(s.waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
 	s.currentCaretLine++
 	scrollLineIntoView(s.currentCaretLine)
-	waveformRef.updateRegions()
+	s.waveformRef.updateRegions()
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false
-	if (!waveformRef) {
+	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
 	let newline
@@ -112,12 +111,12 @@ function handleBackButtonClick() {
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
 
-	waveformRef.updateSelectedRegions()
+	s.waveformRef.updateSelectedRegions()
 }
 
 function handleSkipButtonClick() {
 	s.syncCaretWithAudio = false
-	if (!waveformRef) {
+	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
 	let newline
@@ -126,12 +125,12 @@ function handleSkipButtonClick() {
 	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
-	waveformRef.updateSelectedRegions()
+	s.waveformRef.updateSelectedRegions()
 }
 
 function handleBlankButtonClick() {
 	s.lyrics.splice(s.currentCaretLine + 1, 0, { text: "", time: s.audioTime })
-	waveformRef?.updateRegions()
+	s.waveformRef?.updateRegions()
 }
 </script>
 
