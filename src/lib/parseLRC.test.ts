@@ -8,7 +8,8 @@ import {
 	sortLines,
 	allHaveTimestamps,
 	roundTimestamp,
-	type LyricLine
+	type LyricLine,
+	cleanup
 } from "./parseLRC"
 
 // mock state.svelte metadata
@@ -105,14 +106,14 @@ describe("parseLRC", () => {
 	})
 
 
-	// TODO: empty line timestamps (to show paragraphs)
-	// 	it("handles empty lines", () => {
-	// 		const input = `[00:07.39] But secretly, I'm- (hehe)
+	// // TODO: empty line timestamps(to show paragraphs)
+	// it("handles empty lines", () => {
+	// 	const input = `[00:07.39] But secretly, I'm- (hehe)
 
 	// [00:09.74] うりゃ おい! うりゃ おい! Ooh, fighter!`
-	// 		const { lyrics } = parseLRC(input)
-	// 		expect(lyrics[1]).toEqual({ time: 9 * 1000 + 740 - 10, text: "" })
-	// 	})
+	// 	const { lyrics } = parseLRC(input)
+	// 	expect(lyrics[1]).toEqual({ time: 9 * 1000 + 740 - 10, text: "" })
+	// })
 
 
 	it("outputs stably", () => {
@@ -146,7 +147,7 @@ describe("exportLRC", () => {
 	it("handles lines without timestamps", () => {
 		const lines: LyricLine[] = [{ time: -1, text: "Untimed" }]
 		const output = exportLRC(lines)
-		expect(output).toBe("Untimed")
+		expect(output).toEqual("Untimed")
 	})
 })
 
@@ -162,13 +163,13 @@ describe("exportWithMetadata", () => {
 
 describe("format helpers", () => {
 	it("formats time correctly", () => {
-		expect(formatTime(10500)).toBe("00:10.50")
-		expect(formatTime(-1)).toBe("")
+		expect(formatTime(10500)).toEqual("00:10.50")
+		expect(formatTime(-1)).toEqual("")
 	})
 
 	it("formats lines with and without time", () => {
-		expect(formatLine({ time: 10500, text: "Line" })).toBe("[00:10.50] Line")
-		expect(formatLine({ time: -1, text: "Line" })).toBe("Line")
+		expect(formatLine({ time: 10500, text: "Line" })).toEqual("[00:10.50] Line")
+		expect(formatLine({ time: -1, text: "Line" })).toEqual("Line")
 	})
 
 	it("sortLines correctly", () => {
@@ -202,14 +203,40 @@ describe("format helpers", () => {
 
 	it("allHaveTimestamps works", () => {
 		const all = [{ time: 1000, text: "a" }, { time: 2000, text: "b" }]
-		expect(allHaveTimestamps(all)).toBe(true)
+		expect(allHaveTimestamps(all)).toEqual(true)
 
 		const mixed = [{ time: -1, text: "a" }]
-		expect(allHaveTimestamps(mixed)).toBe(false)
+		expect(allHaveTimestamps(mixed)).toEqual(false)
 	})
 
 	it("roundTimestamp rounds to 2 decimals", () => {
-		expect(roundTimestamp(1.23456)).toBe(1.23)
-		expect(roundTimestamp(1.23567)).toBe(1.24)
+		expect(roundTimestamp(1.23456)).toEqual(1.23)
+		expect(roundTimestamp(1.23567)).toEqual(1.24)
+	})
+
+
+
+	it("cleans up [chorus] etc.", () => {
+		const lines: LyricLine[] =
+			[
+				{ "time": 10000, "text": "[Chorus]" },
+				{ "time": 12000, "text": "the chorus!" },
+				{ "time": 14000, "text": "[Verse 1]" },
+				{ "time": 16000, "text": "verse one.." },
+				{ "time": -1, "text": "" },
+				{ "time": -1, "text": "[Verse 2]" },
+				{ "time": 20000, "text": "verse two?" }
+			]
+		const correctlines: LyricLine[] =
+			[
+				{ "time": -1, "text": "" },
+				{ "time": 12000, "text": "the chorus!" },
+				{ "time": -1, "text": "" },
+				{ "time": 16000, "text": "verse one.." },
+				{ "time": -1, "text": "" },
+				{ "time": 20000, "text": "verse two?" }
+			]
+
+		expect(cleanup(lines)).toEqual(correctlines)
 	})
 })

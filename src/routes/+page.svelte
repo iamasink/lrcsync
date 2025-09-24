@@ -5,7 +5,7 @@ import SyncView from "$lib/components/TabSync.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
 import { loadAudio, loadLRC } from "$lib/loadFiles"
-import { allHaveTimestamps, exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
+import { allHaveTimestamps, cleanup, exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
@@ -432,6 +432,14 @@ function handlePrevButtonClick() {
 					title="sort lines by timestamp"
 				>
 					Sort
+				</button>
+				<button
+					onclick={() => {
+						s.lyrics = cleanup(s.lyrics)
+					}}
+					title="cleanup"
+				>
+					Cleanup
 				</button>
 				<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
 			</div>

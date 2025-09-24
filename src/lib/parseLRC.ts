@@ -235,6 +235,35 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 	return result
 }
 
+export function cleanup(lines: LyricLine[]): LyricLine[] {
+	const regex = /\[(Pre-|Post-)?(Chorus|Bridge|Verse|Intro|Outro|Break|Instrumental)( \d*)?\]/gi
+	const result: LyricLine[] = []
+
+	for (const line of lines) {
+		const match = line.text.match(regex)
+		if (match) {
+			result.push({ time: -1, text: "" })
+		} else {
+			result.push(line)
+		}
+	}
+
+	// now cleanup any double lines
+	const cleaned: LyricLine[] = []
+
+	for (const [index, line] of result.entries()) {
+		if (line.text == "") {
+			if (cleaned.at(-1)?.text == "") {
+				continue
+			}
+		}
+		cleaned.push(line)
+	}
+
+	console.log(cleaned)
+	return cleaned
+}
+
 export function allHaveTimestamps(lines: LyricLine[]) {
 	return lines.every(line =>
 		line.time !== null && line.time !== undefined && line.time !== -1 && line.time >= 0
