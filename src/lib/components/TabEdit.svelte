@@ -1,6 +1,7 @@
 <script lang="ts">
+import { goto } from "$app/navigation"
 import LyricsBox from "$lib/components/LyricsBox.svelte"
-import { exportLRC, formatLine, formatTime, parseLRC } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, parseLRC, roundTimestamp } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -16,6 +17,8 @@ let isScrolling = false
 let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
+
+let syncoffset = 0
 
 function handleInput() {
 	if (!textAreaElement) return
@@ -88,14 +91,39 @@ function setLineTime(time: number, lineIndex: number) {
 	}
 }
 
+function gotoNextLine() {
+	function getLineOffset() {
+		let offset = 1
+		let limit = 3
+		for (let i = 0; i < limit; i++) {
+			const lyric = s.lyrics[s.currentCaretLine + offset]
+			if (!lyric) return 1
+			if (s.lyrics[s.currentCaretLine + offset].text == "") {
+				offset++
+			} else {
+				return offset
+			}
+		}
+		return 1
+	}
+
+	s.currentCaretLine += getLineOffset()
+}
+
 function handleSyncButtonClick() {
 	s.syncCaretWithAudio = false
 	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
-	if (s.currentCaretLine == -1) s.currentAudioLine == 0
-	setLineTime(s.waveformRef.getCurrentTime() * 1000, s.currentCaretLine)
-	s.currentCaretLine++
+	if (s.currentCaretLine == -1) s.currentAudioLine = 0
+
+	// const time = roundTimestamp(s.waveformRef.getCurrentTime() * 1000)
+	const time = s.waveformRef.getCurrentTime() * 1000
+
+	setLineTime(time - syncoffset, s.currentCaretLine)
+
+	gotoNextLine()
+
 	scrollLineIntoView(s.currentCaretLine)
 	s.waveformRef.updateRegions()
 }
@@ -129,7 +157,8 @@ function handleSkipButtonClick() {
 }
 
 function handleBlankButtonClick() {
-	s.lyrics.splice(s.currentCaretLine + 1, 0, { text: "", time: s.audioTime })
+	s.lyrics.splice(s.currentCaretLine, 0, { text: "", time: s.audioTime - syncoffset })
+	gotoNextLine()
 	s.waveformRef?.updateRegions()
 }
 </script>
@@ -155,6 +184,9 @@ function handleBlankButtonClick() {
 						<option value={lang}>{lang.toUpperCase()}</option>
 					{/each}
 				</select>
+			</label>
+			<label>sync offset:
+				<input type="number" bind:value={syncoffset} min="-500" max="500">
 			</label>
 		</div>
 	</div>
