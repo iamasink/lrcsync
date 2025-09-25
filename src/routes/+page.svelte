@@ -359,11 +359,15 @@ function handlePrevButtonClick() {
 				{:else}
 					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
 						<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
-						{#each { length: Math.min(10, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1]?.time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
-							{#if index % 2}
-								<span class="emoji" style="--i: {index+1}">🎵</span>
+						{#each { length: Math.min(30, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1]?.time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
+							{#if index > 6 && Math.random() < (1 / 20)}
+								<span class="emoji" style="--i: {index+1}">🎷🐈</span>
 							{:else}
-								<span class="emoji" style="--i: {index+1}">🎶</span>
+								{#if index % 2}
+									<span class="emoji" style="--i: {index+1}">🎵</span>
+								{:else}
+									<span class="emoji" style="--i: {index+1}">🎶</span>
+								{/if}
 							{/if}
 						{/each}
 					</span>
