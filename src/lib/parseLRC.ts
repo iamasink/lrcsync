@@ -252,7 +252,7 @@ export function cleanup(lines: LyricLine[]): LyricLine[] {
 	const cleaned: LyricLine[] = []
 
 	for (const [index, line] of result.entries()) {
-		if (line.text == "") {
+		if (line.text == "" && line.time == -1) {
 			if (cleaned.at(-1)?.text == "") {
 				continue
 			}
