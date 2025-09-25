@@ -294,6 +294,10 @@ function handlePrevButtonClick() {
 }
 </script>
 
+<svelte:head>
+	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCEdit` : "LRCEdit"}</title>
+</svelte:head>
+
 <div class="app">
 	<div class="container">
 		{#if showFileoverlay}
