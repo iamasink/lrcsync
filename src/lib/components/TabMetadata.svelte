@@ -81,6 +81,7 @@ async function copy() {
 	<label><button
 			onclick={() => {
 				s.metadata.re = "iamasink/lrcsync"
+				s.metadata.ve = "1"
 			}}
 		>
 			a

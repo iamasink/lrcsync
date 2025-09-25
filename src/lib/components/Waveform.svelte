@@ -22,7 +22,7 @@ let {}: Props = $props()
 let file: File | null = $state(null)
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
-let wavesurfer: WaveSurfer
+let wavesurfer: WaveSurfer | null = null
 let regions: RegionsPlugin
 let timeline: TimelinePlugin
 let currentTime = $state(0)
@@ -36,6 +36,13 @@ const AUTOSCROLL_DEFAULT = true
 let autoScrollTimeout: number = $state(0)
 
 const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.3)", caret: "rgba(74, 144, 226, 0.3)" }
+let volume: number = $state(50)
+let volume2: number = $derived(perceptualToAmplitude(volume / 100))
+
+let regionCache: Record<string, Region> = {}
+
+let lastObjectUrl: string | null = null
+let resizeHandler: (() => void) | null = null
 
 $effect(() => {
 	s.lyrics
@@ -43,21 +50,132 @@ $effect(() => {
 
 	updateRegions()
 })
+
 $effect(() => {
-	if (!file || !wavesurfer) return
+	// run whenever file or waveformContainer changes
+	if (!waveformContainer) return
+
+	// if there's no file, destroy any existing instance and bail
+	if (!file) {
+		if (wavesurfer) {
+			wavesurfer.destroy()
+			wavesurfer = null
+		}
+		regionCache = {}
+		isReady = false
+		if (lastObjectUrl) {
+			URL.revokeObjectURL(lastObjectUrl)
+			lastObjectUrl = null
+		}
+		// remove resize handler if present
+		if (resizeHandler) {
+			window.removeEventListener("resize", resizeHandler)
+			resizeHandler = null
+		}
+		return
+	}
+
+	// destroy previous instance
+	if (wavesurfer) {
+		wavesurfer.destroy()
+		wavesurfer = null
+	}
+	regionCache = {}
 	isReady = false
-	wavesurfer.stop()
-	loadFile(file)
+	visibleRegionIds = new Set()
+
+	regions = RegionsPlugin.create()
+	timeline = Timeline.create()
+	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
+	const spectrogram = Spectrogram.create({ labels: true, height: 200 })
+
+	wavesurfer = WaveSurfer.create({
+		container: waveformContainer,
+		waveColor: "#4F4A85",
+		progressColor: "#383351",
+		height: 120,
+		dragToSeek: false,
+		minPxPerSec: 100,
+		plugins: [timeline, spectrogram, regions, minimap],
+		autoCenter: AUTOCENTER_DEFAULT,
+		autoScroll: AUTOSCROLL_DEFAULT,
+		backend: "WebAudio",
+	})
+
+	// ensure even width and add resize listener (remember to remove on cleanup)
+	ensureEvenWidth(waveformContainer)
+	resizeHandler = () => ensureEvenWidth(waveformContainer)
+	window.addEventListener("resize", resizeHandler)
+
+	wavesurfer.on("ready", () => {
+		audioDuration = wavesurfer?.getDuration() ?? 0
+
+		wavesurfer?.setVolume(perceptualToAmplitude(volume / 100))
+	})
+
+	spectrogram.on("ready", () => {
+		isReady = true
+		updateRegions()
+	})
+
+	minimap.on("drag", (x) => {
+		wavesurfer?.setScroll(x)
+	})
+
+	wavesurfer.on("timeupdate", (newtime) => {
+		s.audioTime = newtime * 1000
+	})
+	wavesurfer.on("seeking", (newtime) => {
+		s.audioTime = newtime * 1000
+	})
+
+	regions.on("region-updated", (r) => {
+		updateregion(r)
+		wavesurfer?.setTime(r.start)
+	})
+
+	if (lastObjectUrl) {
+		URL.revokeObjectURL(lastObjectUrl)
+		lastObjectUrl = null
+	}
+	lastObjectUrl = URL.createObjectURL(file)
+	wavesurfer.load(lastObjectUrl)
+
+	// cleanup
+	return () => {
+		if (wavesurfer) {
+			wavesurfer.destroy()
+			wavesurfer = null
+		}
+		if (lastObjectUrl) {
+			URL.revokeObjectURL(lastObjectUrl)
+			lastObjectUrl = null
+		}
+		if (resizeHandler) {
+			window.removeEventListener("resize", resizeHandler)
+			resizeHandler = null
+		}
+		regionCache = {}
+		isReady = false
+	}
+})
+$effect(() => {
+	if (!wavesurfer) return
+	wavesurfer.setVolume(volume2)
 })
 
-let volume: number = $state(50)
-let volume2: number = $derived(perceptualToAmplitude(volume / 100))
-
 export async function loadFile(loadfile: File) {
-	if (!loadfile || !wavesurfer) return
-	const url = URL.createObjectURL(loadfile)
+	if (!loadfile) return
 	file = loadfile
-	await wavesurfer.load(url)
+
+	if (wavesurfer) {
+		if (lastObjectUrl) {
+			URL.revokeObjectURL(lastObjectUrl)
+			lastObjectUrl = null
+		}
+		lastObjectUrl = URL.createObjectURL(loadfile)
+		await wavesurfer.load(lastObjectUrl)
+	}
 }
 
 function regionHasEndTime(index: number) {
@@ -89,13 +207,12 @@ function getRegionEndTime(index: number) {
 		return nextLyric.time / 1000 - 0.01
 	}
 
-	return wavesurfer.getDuration() ?? 9999
+	return wavesurfer?.getDuration() ?? 9999
 }
-
-const regionCache: Record<string, Region> = {}
 
 export function updateRegions() {
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
+	if (!regions || !wavesurfer) return
 	const existingRegions = regions.getRegions()
 
 	const usedRegions = new Set<string>()
@@ -205,13 +322,13 @@ function ensureEvenWidth(container: HTMLElement) {
 }
 
 export function play() {
-	console.log("play!")
+	// console.log("play!")
 	s.isAudioPlaying = true
 	wavesurfer?.play()
 }
 
 export function pause() {
-	console.log("pause!")
+	// console.log("pause!")
 	s.isAudioPlaying = false
 	wavesurfer?.pause()
 }
@@ -238,10 +355,10 @@ export function getDuration() {
 export function togglePlayPause() {
 	if (!isPlaying()) {
 		play()
-		console.log("play")
+		// console.log("play")
 	} else {
 		pause()
-		console.log("pause")
+		// console.log("pause")
 	}
 }
 
@@ -260,110 +377,36 @@ function onvolumewheel(e: WheelEvent) {
 	updateVolume()
 }
 function updateVolume() {
-	wavesurfer.setVolume(volume2)
+	if (wavesurfer) {
+		wavesurfer.setVolume(volume2)
+	}
 }
 
-onMount(async () => {
-	regions = Regions.create()
-	timeline = Timeline.create()
-	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
+function updateregion(r: Region, side: "start" | "end" | undefined = undefined) {
+	// console.log("region updated", r.id)
+	const idx = parseInt(r.id.substring(6))
+	console.log(idx)
 
-	const options: SpectrogramPluginOptions = { labels: true, height: 200, splitChannels: false }
-	const spectrogram = Spectrogram.create(options)
+	const start = roundTimestamp(r.start * 1000)
+	// const start = r.start * 1000
+	s.lyrics[idx].time = start
 
-	wavesurfer = WaveSurfer.create({
-		container: waveformContainer,
-		waveColor: "#4F4A85",
-		progressColor: "#383351",
-		height: 120,
-		dragToSeek: false, // this doesnt work over regions anyway, so keep it consistent
-		minPxPerSec: 100,
-		plugins: [timeline, spectrogram, regions, minimap],
-		autoCenter: AUTOCENTER_DEFAULT,
-		autoScroll: AUTOSCROLL_DEFAULT,
-		backend: "WebAudio",
-	})
-	ensureEvenWidth(waveformContainer)
-	window.addEventListener("resize", () => ensureEvenWidth(waveformContainer))
-
-	wavesurfer.on("ready", () => {
-		console.log("im ready!")
-		audioDuration = wavesurfer.getDuration()
-	})
-
-	spectrogram.on("ready", () => {
-		console.log("spectrogram ready!")
-		isReady = true
-		updateRegions()
-	})
-
-	minimap.on("drag", (x) => {
-		wavesurfer.setScroll(x)
-	})
-
-	wavesurfer.on("timeupdate", (newtime) => {
-		s.audioTime = newtime * 1000
-		// updateVisibleRegions()
-	})
-
-	wavesurfer.on("seeking", (newtime) => {
-		console.log("seek!")
-		s.audioTime = newtime * 1000
-		// updateVisibleRegions()
-	})
-
-	function throttle(fn: any, limit: number) {
-		let inThrottle: boolean
-		return function(...args: any) {
-			if (!inThrottle) {
-				fn(...args)
-				inThrottle = true
-				setTimeout(() => (inThrottle = false), limit)
+	if (regionHasEndTime(idx)) {
+		// console.log(idx, s.lyrics.length)
+		if (idx + 1 == s.lyrics.length) {
+			// console.log("1")
+			s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
+		} else {
+			if (s.lyrics[idx + 1].text != "") {
+				// console.log("2")
+				s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
+			} else {
+				// console.log("3")
+				s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
 			}
 		}
 	}
-
-	// runs while the user drags
-	let lastregionupdate = 0
-	regions.on("region-update", (r, side) => {
-		// if (performance.now() < lastregionupdate + 25) return
-		// lastregionupdate = performance.now()
-		// if (side == "end" && !regionHasEndTime(parseInt(r.id.substring(6)))) return
-		// updateregion(r, side)
-		// wavesurfer.setTime(r.start)
-	})
-
-	// runs when the user stops dragging
-	regions.on("region-updated", (r) => {
-		updateregion(r)
-		wavesurfer.setTime(r.start)
-	})
-
-	function updateregion(r: Region, side: "start" | "end" | undefined = undefined) {
-		// console.log("region updated", r.id)
-		const idx = parseInt(r.id.substring(6))
-		console.log(idx)
-
-		const start = roundTimestamp(r.start * 1000)
-		// const start = r.start * 1000
-		s.lyrics[idx].time = start
-
-		if (regionHasEndTime(idx)) {
-			// console.log(idx, s.lyrics.length)
-			if (idx + 1 == s.lyrics.length) {
-				// console.log("1")
-				s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
-			} else {
-				if (s.lyrics[idx + 1].text != "") {
-					// console.log("2")
-					s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
-				} else {
-					// console.log("3")
-					s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
-				}
-			}
-		}
-
+	if (wavesurfer) {
 		wavesurfer.options.autoCenter = false
 		// wavesurfer.options.autoScroll = false
 
@@ -371,42 +414,30 @@ onMount(async () => {
 			clearTimeout(autoScrollTimeout)
 		}
 		autoScrollTimeout = window.setTimeout(() => {
+			if (!wavesurfer) return
+
 			wavesurfer.options.autoCenter = AUTOCENTER_DEFAULT
 			wavesurfer.options.autoScroll = AUTOSCROLL_DEFAULT
 		}, 5000)
 		wavesurfer.play()
 	}
-
-	updateVolume()
-
-	// try {
-	// 	const res = await fetch("/defaultaudio.flac")
-	// 	const blob = await res.blob()
-	// 	const defaultFile = new File([blob], "defaultaudio.flac", { type: blob.type })
-	// 	await loadFile(defaultFile)
-	// } catch (e) {
-	// 	console.error("couldnt load default audio:", e)
-	// }
-})
-
-onDestroy(() => {
-	if (wavesurfer) {
-		wavesurfer.destroy()
-	}
-})
+}
 
 function handleScroll(e: WheelEvent) {
 	let delta = e.deltaY
 	if (!delta) return
-	let newscroll = wavesurfer.getScroll() + (delta / 2)
-	wavesurfer.options.autoCenter = false
-	wavesurfer.options.autoScroll = false
-	wavesurfer.setScroll(newscroll)
+	let newscroll = (wavesurfer?.getScroll() ?? 0) + (delta / 2)
+	if (wavesurfer) {
+		wavesurfer.options.autoCenter = false
+		wavesurfer.options.autoScroll = false
+		wavesurfer.setScroll(newscroll)
+	}
 
 	if (autoScrollTimeout) {
 		clearTimeout(autoScrollTimeout)
 	}
 	autoScrollTimeout = window.setTimeout(() => {
+		if (!wavesurfer) return
 		wavesurfer.options.autoCenter = AUTOCENTER_DEFAULT
 		wavesurfer.options.autoScroll = AUTOSCROLL_DEFAULT
 	}, 5000)
