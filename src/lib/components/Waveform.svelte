@@ -490,6 +490,9 @@ function handleScroll(e: WheelEvent) {
 :global(#waveform ::part(scroll)) {
   scrollbar-width: auto;
 }
+:global(#waveform ::part(region-content)) {
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.836);
+}
 /* 
 :global(#waveform ::part(region-handle-right)) {
   display: none;
