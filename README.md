@@ -16,6 +16,7 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 - [ ] save cookies for settings, current lyrics etc.
 - [ ] also localstorage for dict files?
 
+- [ ] undo/redo
 
 
  - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
