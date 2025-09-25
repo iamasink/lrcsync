@@ -358,9 +358,13 @@ function handlePrevButtonClick() {
 					{/if}
 				{:else}
 					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
-						<span class="emoji">🎵</span>
-						<span class="emoji">🎶</span>
-						<span class="emoji">🎵</span>
+						{#each { length: Math.min(10, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1].time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
+							{#if index % 2}
+								<span class="emoji" style="--i: {index+1}">🎵</span>
+							{:else}
+								<span class="emoji" style="--i: {index+1}">🎶</span>
+							{/if}
+						{/each}
 					</span>
 				{/if}
 			</div>
@@ -617,14 +621,18 @@ input[type="file"] {
     /* margin: 0 0rem; */
     animation: bounce 0.6s infinite alternate ease-in-out;
     transition: opacity 0.3s ease;
+    animation-delay: calc(-0.2s * var(--i));
   }
 
-  .emoji:nth-child(2) {
+  /* .emoji:nth-child(2) {
     animation-delay: -0.2s;
   }
   .emoji:nth-child(3) {
     animation-delay: -0.4s;
   }
+    .emoji:nth-child(4) {
+    animation-delay: -0.6s;
+  } */
 }
 @keyframes bounce {
   from {
