@@ -10,7 +10,7 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 - [ ] fix weird line index stuff when before first lyric
 
 - [ ] support multiple timestamps?  ( eg "[00:01.10][00:10.00] lyric")
-- [ ] support kareoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
+- [ ] support karaoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
 - [ ] support comments?
 
 - [ ] save cookies for settings, current lyrics etc.
