@@ -1,7 +1,7 @@
 <script lang="ts">
 import { goto } from "$app/navigation"
 import LyricsBox from "$lib/components/LyricsBox.svelte"
-import { exportLRC, formatLine, formatTime, parseLRC, roundTimestamp } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, parseLRC, roundTimestamp, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -159,6 +159,9 @@ function handleSkipButtonClick() {
 function handleBlankButtonClick() {
 	s.lyrics.splice(s.currentCaretLine, 0, { text: "", time: s.audioTime - syncoffset })
 	gotoNextLine()
+
+	s.lyrics = sortLines(s.lyrics)
+
 	s.waveformRef?.updateRegions()
 }
 </script>
