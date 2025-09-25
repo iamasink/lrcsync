@@ -13,4 +13,7 @@
 
 
 
- - [x] sync blank line -> skip to next valid line
+ - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
+   - [ ] warnings check
+   - [ ] break countdown
+   - [ ] etc
