@@ -236,7 +236,7 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 }
 
 export function cleanup(lines: LyricLine[]): LyricLine[] {
-	const regex = /\[(Pre-|Post-)?(Chorus|Bridge|Verse|Intro|Outro|Break|Instrumental)( \d*)?\]/gi
+	const regex = /\[(Pre-|Post-)?(Chorus|Bridge|Verse|Intro|Outro|Break|Instrumental|Refrain|Interlude)( \d*)?\]/gi
 	const result: LyricLine[] = []
 
 	for (const line of lines) {
