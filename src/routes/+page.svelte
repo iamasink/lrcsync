@@ -296,8 +296,6 @@ function handlePrevButtonClick() {
 
 <svelte:head>
 	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCSync` : "LRCSync"}</title>
-	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-	<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 </svelte:head>
 
 <div class="app">
@@ -484,6 +482,12 @@ function handlePrevButtonClick() {
 	</div>
 	<div>
 		<p>hello world</p>
+		<br />
+		<div class="footer">
+			<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
+			<p><a href="https://github.com/iamasink/lrcsync">source</a></p>
+			<p><a href="https://iamas.ink/support">support me ❣️</a></p>
+		</div>
 	</div>
 </div>
 
@@ -510,6 +514,24 @@ function handlePrevButtonClick() {
   }
   label:hover {
     border: 1px dashed red;
+  }
+}
+
+.footer {
+  color: rgba(255, 255, 255, 0.486);
+  span {
+    display: inline-block;
+
+    :nth-child(1) {
+      transform: translateY(0.2rem) rotate(5deg);
+    }
+    :nth-child(2) {
+      transform: translateX(-0.3rem);
+    }
+  }
+
+  a {
+    color: rgba(100, 61, 172, 0.534);
   }
 }
 
