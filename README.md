@@ -14,7 +14,7 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 - [ ] support comments?
 
 - [ ] save cookies for settings, current lyrics etc.
-- [ ] 
+- [ ] also localstorage for dict files?
 
 
 
@@ -29,6 +29,7 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
   - [ ] lrclib integration?
     - [ ] check if it exists first
+
 
 
 

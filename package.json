@@ -28,10 +28,12 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.7.4",
 		"@tauri-apps/api": "^2.8.0",
 		"@tauri-apps/plugin-dialog": "^2.4.0",
 		"@tauri-apps/plugin-fs": "^2.4.2",
 		"dprint": "^0.50.1",
+		"floating-ui": "^5.2.8",
 		"kuroshiro-browser": "^0.1.0",
 		"wanakana": "^5.3.1",
 		"wavesurfer.js": "^7.10.1"

@@ -2,19 +2,27 @@
 let lastTooltipTime = 0 // shared
 </script>
 <script lang="ts">
+import { arrow, computePosition, flip, offset, shift } from "@floating-ui/dom"
+
+export type position = "left" | "right" | "top" | "bottom"
 interface Props {
 	message: string
 	children?: any
+	position?: position
 	[key: string]: any
 }
-let { message, children, ...rest }: Props = $props()
+let { message, children, position = "bottom", ...rest }: Props = $props()
 
 let show = $state(false)
 let timeout: number | null = null
+// svelte-ignore non_reactive_update
+let tooltipEl: HTMLDivElement
+let arrowEl: HTMLDivElement
+let referenceEl: HTMLElement
 
 const showDelay = 1000
 // const reshowDelay = 100
-const subseqtime = 100
+const subseqtime = 250
 
 const clearTimeoutIfAny = () => {
 	if (timeout) {
@@ -33,9 +41,10 @@ function onmouseenter() {
 
 	// ask others to hide immediately
 	clearTimeoutIfAny()
-	timeout = window.setTimeout(() => {
+	timeout = window.setTimeout(async () => {
 		show = true
 		timeout = null
+		await updatePosition()
 	}, delay)
 }
 
@@ -45,14 +54,30 @@ function onmouseleave() {
 
 	show = false
 }
+
+async function updatePosition() {
+	if (referenceEl && tooltipEl) {
+		const { x, y, placement } = await computePosition(referenceEl, tooltipEl, { placement: position, middleware: [offset(6), flip(), shift({ padding: 5 })] })
+
+		Object.assign(tooltipEl.style, { left: `${x}px`, top: `${y}px` })
+	}
+}
 </script>
 
-<div class="tooltip-wrapper" {onmouseenter} {onmouseleave} {...rest}>
+<div bind:this={referenceEl} class="tooltip-wrapper {position}" {onmouseenter} {onmouseleave} {...rest}>
 	{@render children()}
-	{#if message}
-		<div class="tooltip-message" class:show={show} role="tooltip">{message}</div>
-	{/if}
+	<!--
+		{#if message}
+			<div bind:this={tooltipEl} class="tooltip-message" class:show={show} role="tooltip">{message}</div>
+		{/if}
+	-->
 </div>
+
+{#if message}
+	<div bind:this={tooltipEl} class="tooltip-message" class:show={show} role="tooltip">
+		{message}
+	</div>
+{/if}
 
 <style>
 .tooltip-wrapper {
@@ -61,9 +86,9 @@ function onmouseleave() {
 
 .tooltip-message {
   position: absolute;
-  left: 50%;
+  /* left: 50%;
   top: 100%;
-  transform: translateX(-50%);
+  transform: translateX(-50%); */
   background: var(--bg-light);
   color: white;
   padding: 4px 8px;
@@ -74,12 +99,11 @@ function onmouseleave() {
   opacity: 0;
   pointer-events: none;
   transition: transform 0.2s ease, opacity 0.2s ease;
-  margin-top: 4px;
+  /* margin-top: 4px; */
   z-index: 10;
 }
 
 .tooltip-message.show {
-  transform: translateX(-50%) scale(1);
   opacity: 1;
 }
 </style>
