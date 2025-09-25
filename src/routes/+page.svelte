@@ -358,7 +358,8 @@ function handlePrevButtonClick() {
 					{/if}
 				{:else}
 					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
-						{#each { length: Math.min(10, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1].time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
+						<!-- TODO: make a function and skip empty lines -->
+						{#each { length: Math.min(10, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1]?.time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
 							{#if index % 2}
 								<span class="emoji" style="--i: {index+1}">🎵</span>
 							{:else}
