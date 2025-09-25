@@ -96,7 +96,7 @@ import { s } from "$lib/state.svelte"
 
 		const gap = nextLine.time - line.time;
 
-		if ( gap > 10 * 1000) {
+		if ( gap > 10 * 1000 && line.text != "") {
 			return "big gap!"
 		}
 	}
