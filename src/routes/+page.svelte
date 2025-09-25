@@ -540,9 +540,13 @@ function handlePrevButtonClick() {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  height: 100vh;
+  gap: 0.8rem;
+  height: 100svh;
   overflow: hidden;
+
+  @media only screen and (max-width: 600px) {
+    gap: 0px;
+  }
 }
 .topcontrols {
   display: flex;
