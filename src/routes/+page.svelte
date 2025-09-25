@@ -9,6 +9,7 @@ import { allHaveTimestamps, cleanup, exportLRC, formatLine, formatTime, parseLRC
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
+import Button from "$lib/components/Button.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
@@ -28,6 +29,7 @@ let lastFrameTime = performance.now()
 let frameCount = 0
 
 let showFileoverlay = $state(false)
+let showTopControls = $state(true)
 
 function getCurrentLine(time = s.audioTime) {
 	if (!s.lyrics || time < 0) {
@@ -185,6 +187,7 @@ async function doLoad() {
 		s.lyrics = l
 		s.metadata = meta
 	}
+	showTopControls = false
 }
 
 onMount(() => {
@@ -304,9 +307,10 @@ function handlePrevButtonClick() {
 			<div class="drag-overlay">Drop files anywhere</div>
 		{/if}
 
-		<div class="topcontrols">
-			<p>Audio</p>
-			{#if !audioFile}
+		{#if showTopControls}
+			<div class="topcontrols">
+				<p>Audio</p>
+				<!-- {#if !audioFile} -->
 				<input
 					id="fileinputaudio"
 					type="file"
@@ -316,8 +320,8 @@ function handlePrevButtonClick() {
 						if (t?.files?.[0]) audioFile = t.files[0]
 					}}
 				/>
-			{/if}
-			{#if !lrcFile}
+				<!-- {/if} -->
+				<!-- {#if !lrcFile} -->
 				<p>.lrc</p>
 				<input
 					id="fileinputlyric"
@@ -328,9 +332,18 @@ function handlePrevButtonClick() {
 						if (t?.files?.[0]) lrcFile = t.files[0]
 					}}
 				/>
-			{/if}
-			<button onclick={doLoad}>Load</button>
-		</div>
+				<!-- {/if} -->
+				<button onclick={doLoad}>Load</button>
+				<Button
+					title="hide this"
+					onclick={() => {
+						showTopControls = false
+					}}
+				>
+					x
+				</Button>
+			</div>
+		{/if}
 
 		<!-- {#if audioFile} -->
 		<div class="waveform">
@@ -488,6 +501,13 @@ function handlePrevButtonClick() {
 	<div>
 		<hr />
 		<p>hello world</p>
+		<hr />
+		<Button
+			onclick={() => {
+				scrollTo({ top: 0 })
+				showTopControls = !showTopControls
+			}}
+		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
 		<br />
 		<hr />
 		<div class="footer">
@@ -564,6 +584,7 @@ function handlePrevButtonClick() {
   gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
+  border: 1px solid var(--border-muted);
 }
 .controls {
   display: flex;
