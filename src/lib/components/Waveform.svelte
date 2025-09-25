@@ -12,13 +12,6 @@ import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/p
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
 import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
 
-interface Props {
-	// file: File
-}
-
-// let { file = $bindable() }: Props = $props()
-let {}: Props = $props()
-
 let file: File | null = $state(null)
 let waveformContainer: HTMLDivElement
 let spectrogramContainer: HTMLDivElement
