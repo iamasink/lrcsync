@@ -17,3 +17,5 @@
    - [ ] warnings check
    - [ ] break countdown
    - [ ] etc
+ 
+  - [ ] fix loading jank
