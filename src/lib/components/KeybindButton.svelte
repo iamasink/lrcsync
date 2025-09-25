@@ -20,7 +20,6 @@ let { disabled = false, title = "", shortcut, onclick = $bindable(), ignoremods 
 let btn: HTMLButtonElement
 
 const keyAliases: Record<string, string> = {
-	// Arrow keys
 	left: "ArrowLeft",
 	"←": "ArrowLeft",
 
@@ -106,7 +105,7 @@ function getShortcutText(shortcut: shortcut) {
     padding-right: 2px;
     font-size: 0.8em;
     opacity: 0.5;
-    pointer-events: none; /* so it doesn’t interfere with clicking */
+    pointer-events: none;
   }
 }
 </style>
