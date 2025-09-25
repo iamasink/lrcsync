@@ -286,8 +286,8 @@ function getLine(lineIndex: number) {
 		z-index: 10;
 	}
 
-	.warning-item {
+	/* .warning-item {
 		
-	}
+	} */
 
 </style>

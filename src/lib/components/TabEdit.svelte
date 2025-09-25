@@ -18,7 +18,7 @@ let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
 
-let syncoffset = 0
+let syncoffset = $state(0)
 
 function handleInput() {
 	if (!textAreaElement) return

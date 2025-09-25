@@ -100,6 +100,6 @@ function handleSkipButtonClick() {
     overflow-y: scroll;
   }
 
-  .synccontrols {}
+  /* .synccontrols {} */
 }
 </style>

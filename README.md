@@ -10,6 +10,8 @@
 - [ ] support kareoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
 - [ ] support comments?
 
+- [ ] save cookies for settings, current lyrics etc.
+- [ ] 
 
 
 
@@ -20,3 +22,7 @@
    - [ ] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
  
   - [ ] fix loading jank
+
+
+  - [ ] lrclib integration?
+    - [ ] check if it exists first
