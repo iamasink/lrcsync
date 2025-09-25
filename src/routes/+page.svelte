@@ -481,8 +481,10 @@ function handlePrevButtonClick() {
 		</div>
 	</div>
 	<div>
+		<hr />
 		<p>hello world</p>
 		<br />
+		<hr />
 		<div class="footer">
 			<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
 			<p><a href="https://github.com/iamasink/lrcsync">source</a></p>
@@ -533,6 +535,10 @@ function handlePrevButtonClick() {
   a {
     color: rgba(100, 61, 172, 0.534);
   }
+
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 10rem;
 }
 
 .container {

@@ -1,5 +1,5 @@
-# lrcsync
-<img title="temporary?? favicon :3" src="./static/favicon.svg" alt="cat playing saxophone logo" width="100"/>  
+# lrcsync (wip)
+<img href="https://lrcsync.iamas.ink" title="temporary?? favicon :3" src="./static/favicon.svg" alt="cat playing saxophone logo" width="100"/>  
   
 open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
@@ -29,3 +29,13 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
   - [ ] lrclib integration?
     - [ ] check if it exists first
+
+
+
+
+
+
+
+# attribution
+favicon/icon uses twemoji
+https://github.com/jdecked/twemoji
