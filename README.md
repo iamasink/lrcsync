@@ -1,5 +1,7 @@
 # lrcsync
-<img title="temporary?? favicon :3" src="./static/favicon.svg" alt="cat playing saxophone logo" width="100"/>
+<img title="temporary?? favicon :3" src="./static/favicon.svg" alt="cat playing saxophone logo" width="100"/>  
+  
+open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
 
 ## todo
