@@ -17,5 +17,6 @@
    - [ ] warnings check
    - [ ] break countdown
    - [ ] etc
+   - [ ] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
  
   - [ ] fix loading jank
