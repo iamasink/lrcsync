@@ -171,13 +171,14 @@ function handleBlankButtonClick() {
 		<div class="synccontrols">
 			<div>
 				<!-- <button onclick={handleSyncButtonClick}>sync (s)</button> -->
-				<KeybindButton onclick={handleSyncButtonClick} shortcut={{ key: "s" }}>sync</KeybindButton>
-				<KeybindButton onclick={handleBackButtonClick} shortcut={{ key: "e" }}>up line</KeybindButton>
+				<KeybindButton title="sync the current caret line to the current audio time" onclick={handleSyncButtonClick} shortcut={{ key: "s" }}
+				>sync</KeybindButton>
+				<KeybindButton title="move the caret up" onclick={handleBackButtonClick} shortcut={{ key: "e" }}>up line</KeybindButton>
 			</div>
 			<div style="margin-left: 8px"></div>
 			<div>
-				<KeybindButton onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
-				<KeybindButton onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
+				<KeybindButton title="move the caret down" onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
+				<KeybindButton title="insert an empty timed line (break)" onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
 			</div>
 		</div>
 		<div class="controls">
