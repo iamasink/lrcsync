@@ -389,10 +389,15 @@ function handlePrevButtonClick() {
 						if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
 					}}
 					shortcut={{ key: "w" }}
+					title="Move the audio to the caret"
 				>
 					Play @ caret
 				</KeybindButton>
-				<KeybindButton onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)} shortcut={{ key: "r" }}>
+				<KeybindButton
+					onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)}
+					shortcut={{ key: "r" }}
+					title="Move the audio to the start of current line"
+				>
 					Replay line
 				</KeybindButton>
 				<KeybindButton
