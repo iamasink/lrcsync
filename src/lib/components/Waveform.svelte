@@ -379,14 +379,14 @@ onMount(async () => {
 
 	updateVolume()
 
-	try {
-		const res = await fetch("/defaultaudio.flac")
-		const blob = await res.blob()
-		const defaultFile = new File([blob], "defaultaudio.flac", { type: blob.type })
-		await loadFile(defaultFile)
-	} catch (e) {
-		console.error("couldnt load default audio:", e)
-	}
+	// try {
+	// 	const res = await fetch("/defaultaudio.flac")
+	// 	const blob = await res.blob()
+	// 	const defaultFile = new File([blob], "defaultaudio.flac", { type: blob.type })
+	// 	await loadFile(defaultFile)
+	// } catch (e) {
+	// 	console.error("couldnt load default audio:", e)
+	// }
 })
 
 onDestroy(() => {
