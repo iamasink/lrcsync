@@ -295,7 +295,9 @@ function handlePrevButtonClick() {
 </script>
 
 <svelte:head>
-	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCEdit` : "LRCEdit"}</title>
+	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCSync` : "LRCSync"}</title>
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 </svelte:head>
 
 <div class="app">
