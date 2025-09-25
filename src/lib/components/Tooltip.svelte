@@ -47,6 +47,13 @@ function onmouseleave() {
 }
 </script>
 
+<div class="tooltip-wrapper" {onmouseenter} {onmouseleave} {...rest}>
+	{@render children()}
+	{#if message}
+		<div class="tooltip-message" class:show={show} role="tooltip">{message}</div>
+	{/if}
+</div>
+
 <style>
 .tooltip-wrapper {
   position: relative;
@@ -56,7 +63,7 @@ function onmouseleave() {
   position: absolute;
   left: 50%;
   top: 100%;
-  transform: translateX(-50%) scale(1);
+  transform: translateX(-50%);
   background: var(--bg-light);
   color: white;
   padding: 4px 8px;
@@ -76,10 +83,3 @@ function onmouseleave() {
   opacity: 1;
 }
 </style>
-
-<div class="tooltip-wrapper" {onmouseenter} {onmouseleave} {...rest}>
-	{@render children()}
-	{#if message}
-		<div class="tooltip-message" class:show={show} role="tooltip">{message}</div>
-	{/if}
-</div>
