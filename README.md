@@ -18,6 +18,9 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
 - [ ] undo/redo
 
+- [ ] tauri:
+  - [ ] filetype association and loading?
+  - [ ] test
 
  - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
    - [ ] warnings check
