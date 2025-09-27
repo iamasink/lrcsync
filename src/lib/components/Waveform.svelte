@@ -106,6 +106,7 @@ $effect(() => {
 		audioDuration = wavesurfer?.getDuration() ?? 0
 
 		wavesurfer?.setVolume(perceptualToAmplitude(volume / 100))
+		ensureEvenWidth(waveformContainer)
 	})
 
 	spectrogram.on("ready", () => {
@@ -309,15 +310,17 @@ export function updateSelectedRegions() {
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
 function ensureEvenWidth(container: HTMLElement) {
-	requestAnimationFrame(() => {
-		console.log("1")
-		if (!container) return
-		console.log("2")
-		let width = container.clientWidth
-		if (width % 2 !== 0) {
-			container.style.width = width - 1 + "px"
-		}
-	})
+	if (!container) return
+
+	const cssWidth = container.clientWidth
+	const evenCssWidth = cssWidth - (cssWidth % 2) // make even
+
+	const innerdiv = container.querySelector("div")
+	// console.log(innerdiv)
+	if (!innerdiv) return
+	// idk
+	innerdiv.style.width = (Math.floor(evenCssWidth / 10) * 10).toString() + "px"
+	// q.style.width = "501px"
 }
 
 export function play() {
