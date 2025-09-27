@@ -48,9 +48,10 @@ $effect(() => {
 	// run whenever file or waveformContainer changes
 	if (!waveformContainer) return
 
-	// if there's no file, destroy any existing instance and bail
+	// if there's no file, destroy any existing instance
 	if (!file) {
 		if (wavesurfer) {
+			wavesurfer.stop()
 			wavesurfer.destroy()
 			wavesurfer = null
 		}
@@ -96,7 +97,7 @@ $effect(() => {
 		backend: "WebAudio",
 	})
 
-	// ensure even width and add resize listener (remember to remove on cleanup)
+	// ensure even width
 	ensureEvenWidth(waveformContainer)
 	resizeHandler = () => ensureEvenWidth(waveformContainer)
 	window.addEventListener("resize", resizeHandler)
@@ -308,12 +309,15 @@ export function updateSelectedRegions() {
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
 function ensureEvenWidth(container: HTMLElement) {
-	if (!container) return
-	let width = container.clientWidth
-	if (width % 2 !== 0) {
-		// force odd width
-		container.style.width = width - 1 + "px"
-	}
+	requestAnimationFrame(() => {
+		console.log("1")
+		if (!container) return
+		console.log("2")
+		let width = container.clientWidth
+		if (width % 2 !== 0) {
+			container.style.width = width - 1 + "px"
+		}
+	})
 }
 
 export function play() {
@@ -383,20 +387,15 @@ function updateregion(r: Region, side: "start" | "end" | undefined = undefined) 
 	console.log(idx)
 
 	const start = roundTimestamp(r.start * 1000)
-	// const start = r.start * 1000
 	s.lyrics[idx].time = start
 
 	if (regionHasEndTime(idx)) {
-		// console.log(idx, s.lyrics.length)
 		if (idx + 1 == s.lyrics.length) {
-			// console.log("1")
 			s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
 		} else {
 			if (s.lyrics[idx + 1].text != "") {
-				// console.log("2")
 				s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
 			} else {
-				// console.log("3")
 				s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
 			}
 		}
@@ -472,7 +471,6 @@ function handleScroll(e: WheelEvent) {
 		</div>
 	</div>
 	<div bind:this={waveformContainer} id="waveform" onwheel={handleScroll}></div>
-	<!-- <div bind:this={spectrogramContainer} class="spectrogram"></div> -->
 </div>
 
 <style>
