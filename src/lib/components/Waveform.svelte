@@ -70,6 +70,7 @@ $effect(() => {
 
 	// destroy previous instance
 	if (wavesurfer) {
+		wavesurfer.stop()
 		wavesurfer.destroy()
 		wavesurfer = null
 	}
@@ -137,6 +138,7 @@ $effect(() => {
 	// cleanup
 	return () => {
 		if (wavesurfer) {
+			wavesurfer.stop()
 			wavesurfer.destroy()
 			wavesurfer = null
 		}
