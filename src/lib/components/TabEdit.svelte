@@ -1,7 +1,7 @@
 <script lang="ts">
 import { goto } from "$app/navigation"
 import LyricsBox from "$lib/components/LyricsBox.svelte"
-import { exportLRC, formatLine, formatTime, parseLRC, roundTimestamp, sortLines } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -92,22 +92,7 @@ function setLineTime(time: number, lineIndex: number) {
 }
 
 function gotoNextLine() {
-	function getLineOffset() {
-		let offset = 1
-		let limit = 3
-		for (let i = 0; i < limit; i++) {
-			const lyric = s.lyrics[s.currentCaretLine + offset]
-			if (!lyric) return 1
-			if (s.lyrics[s.currentCaretLine + offset].text == "") {
-				offset++
-			} else {
-				return offset
-			}
-		}
-		return 1
-	}
-
-	s.currentCaretLine += getLineOffset()
+	s.currentCaretLine += getOffsetToNextLyric()
 }
 
 function handleSyncButtonClick() {
