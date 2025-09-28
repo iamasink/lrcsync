@@ -13,7 +13,6 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 - [ ] support comments?
 
 - [ ] save cookies for settings, current lyrics etc.
-- [ ] also localstorage for dict files?
 
 - [ ] undo/redo
 

@@ -8,6 +8,41 @@ import { save } from "@tauri-apps/plugin-dialog"
 import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs"
 import { getContext } from "svelte"
 
+function getLrcName() {
+	let filename
+
+	if (s.filePaths.lyrics) {
+		// because we might've imported a .txt or something
+		const index = s.filePaths.lyrics.lastIndexOf(".")
+		if (index > 0) filename = getBaseName(s.filePaths.lyrics).slice(0, index) + ".lrc"
+	} else if (s.filePaths.audio) {
+		const index = s.filePaths.audio.lastIndexOf(".")
+		if (index > 0) filename = getBaseName(s.filePaths.audio).slice(0, index) + ".lrc"
+	}
+
+	return filename ? filename : ""
+}
+
+function getParentDir(filePath: string): string {
+	if (!filePath) return ""
+	const parts = filePath.split(/[\\/]/)
+	parts.pop()
+	return parts.join("/") || ""
+}
+function getBaseName(filePath: string): string {
+	if (!filePath) return ""
+	const parts = filePath.split(/[\\/]/)
+	return parts.pop() || ""
+}
+
+let parentDir: string = $derived(getParentDir(s.filePaths.lyrics || s.filePaths.audio || ""))
+let audioName: string = $derived(getBaseName(s.filePaths.audio ?? ""))
+let lrcName: string = $derived(getLrcName())
+
+// if (s.isTauri) {
+// 	parentDir = getParentDir(s.filePaths.lyrics || s.filePaths.audio || "")
+// }
+
 async function saveFile() {
 	console.log("saving lyrics")
 	const text = exportWithMetadata(s.lyrics)
@@ -42,15 +77,7 @@ async function saveFile() {
 			const url = URL.createObjectURL(blob)
 			const a = document.createElement("a")
 			a.href = url
-			let filename
-			if (s.filePaths.lyrics) {
-				// because we might've imported a .txt or something
-				const index = s.filePaths.lyrics.lastIndexOf(".")
-				if (index > 0) filename = s.filePaths.lyrics.slice(0, index) + ".lrc"
-			} else if (s.filePaths.audio) {
-				const index = s.filePaths.audio.lastIndexOf(".")
-				if (index > 0) filename = s.filePaths.audio.slice(0, index) + ".lrc"
-			}
+			let filename = getLrcName()
 			if (!filename) filename = "unknown.lrc"
 
 			a.download = filename
@@ -68,13 +95,17 @@ async function copy() {
 
 <div class="metadata-view">
 	<div>
+		<!-- TODO: FIX THIS -->
 		{#if s.isTauri}
 			<p>straight up tauri'ng it</p>
+			<label>base path <input type="text" bind:value={parentDir} /></label><br />
+			<label>audio name: <input type="text" bind:value={audioName} /></label><br />
+			<label>lrc name: <input type="text" bind:value={lrcName} placeholder={getLrcName()} /></label>
 		{:else}
 			<p>im browser</p>
+			<label>audio name: <input type="text" bind:value={s.filePaths.audio} /></label><br />
+			<label>lrc name: <input type="text" bind:value={s.filePaths.lyrics} placeholder={getLrcName()} /></label>
 		{/if}
-		<p>audio {s.filePaths.audio}</p>
-		<p>lyrics {s.filePaths.lyrics}</p>
 	</div>
 
 	<pre>{exportWithMetadata(s.lyrics)}</pre>
@@ -97,6 +128,10 @@ async function copy() {
   pre {
     height: 10vh;
     overflow-y: scroll;
+  }
+
+  input {
+    width: 50%;
   }
 }
 </style>
