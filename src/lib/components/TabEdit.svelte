@@ -235,6 +235,8 @@ function handleBlankButtonClick() {
     display: flex;
     flex-direction: column;
     > div {
+      display: flex;
+      flex-direction: row;
       div {
         display: flex;
         flex-direction: row;
