@@ -3,7 +3,7 @@ import LyricsBox from "$lib/components/LyricsBox.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
-import { s } from "$lib/state.svelte"
+import { preferences, s } from "$lib/state.svelte"
 import { save } from "@tauri-apps/plugin-dialog"
 import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs"
 import { getContext } from "svelte"
@@ -113,11 +113,12 @@ async function copy() {
 			onclick={() => {
 				s.metadata.re = "iamasink/lrcsync"
 				s.metadata.ve = "1"
+				s.metadata.by = $preferences.username ?? ""
 			}}
 		>
 			a
 		</button></label>
-	<label>lrc by: <input type="text" bind:value={s.metadata.by}></label>
+	<label>lrc by: <input type="text" bind:value={$preferences.username}></label>
 	<br />
 	<button onclick={saveFile}>save</button>
 	<button onclick={copy}>copy</button>

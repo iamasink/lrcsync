@@ -44,10 +44,12 @@ export const s: State = $state({
 
 interface Preferences {
 	syncDelayMs: number
+	username: string
 }
 
 export const preferences: Persisted<Preferences> = persisted('preferences', {
 	syncDelayMs: 200,
+	username: "",
 })
 
 
