@@ -4,7 +4,7 @@ import LyricsBox from "$lib/components/LyricsBox.svelte"
 import { exportLRC, formatLine, formatTime, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
-import { s } from "$lib/state.svelte"
+import { preferences, s } from "$lib/state.svelte"
 import KeybindButton from "./KeybindButton.svelte"
 
 let textAreaElement: HTMLTextAreaElement
@@ -18,7 +18,7 @@ let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
 
-let syncoffset = $state(0)
+// let preferences.syncDelayMs = $state(0)
 
 function handleInput() {
 	if (!textAreaElement) return
@@ -105,7 +105,7 @@ function handleSyncButtonClick() {
 	// const time = roundTimestamp(s.waveformRef.getCurrentTime() * 1000)
 	const time = s.waveformRef.getCurrentTime() * 1000
 
-	setLineTime(time - syncoffset, s.currentCaretLine)
+	setLineTime(time - $preferences.syncDelayMs, s.currentCaretLine)
 
 	gotoNextLine()
 
@@ -142,7 +142,7 @@ function handleSkipButtonClick() {
 }
 
 function handleBlankButtonClick() {
-	s.lyrics.splice(s.currentCaretLine, 0, { text: "", time: s.audioTime - syncoffset })
+	s.lyrics.splice(s.currentCaretLine, 0, { text: "", time: s.audioTime - $preferences.syncDelayMs })
 	gotoNextLine()
 
 	s.lyrics = sortLines(s.lyrics)
@@ -175,7 +175,7 @@ function handleBlankButtonClick() {
 				</select>
 			</label>
 			<label>sync offset:
-				<input type="number" bind:value={syncoffset} min="-500" max="500">
+				<input type="number" bind:value={$preferences.syncDelayMs} min="-500" max="500">
 			</label>
 		</div>
 	</div>

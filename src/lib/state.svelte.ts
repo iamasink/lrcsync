@@ -1,4 +1,5 @@
 import type { LyricLine, Metadata } from "$lib/parseLRC"
+import { persisted, type Persisted } from "svelte-persisted-store"
 import type Waveform from "./components/Waveform.svelte"
 
 
@@ -41,13 +42,23 @@ export const s: State = $state({
 	filePaths: {}
 })
 
+interface Preferences {
+	syncDelayMs: number
+}
+
+export const preferences: Persisted<Preferences> = persisted('preferences', {
+	syncDelayMs: 200,
+})
 
 
-// export let lyrics = $state<LyricLine[]>([{ text: 'default line 1', time: -1 }])
-// export let currentAudioLine = $state<number>(-1)
-// export let currentCaretLine = $state<number>(-1)
-// export let audioTime = $state(0)
-// export let activeTab = $state<"edit" | "sync">("sync")
-// export let shiftHeld = $state(true)
-// export let syncCaretWithAudio = $state(true)
+interface Saved {
+	lyrics: LyricLine[]
+	audioName: string
+	lrcName: string
+}
 
+export const saved: Persisted<Saved> = persisted('saved', {
+	lyrics: [],
+	audioName: "",
+	lrcName: ""
+})
