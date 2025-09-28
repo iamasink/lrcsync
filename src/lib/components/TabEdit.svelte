@@ -55,7 +55,7 @@ let timeoutid: number | null = null
 function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea" | "lyrics") {
 	if (scrollSource && scrollSource !== origin) return // another scroll is happening
 
-	console.log("scroll!", origin)
+	// console.log("scroll!", origin)
 
 	scrollSource = origin
 	const scrollPercentage = source.scrollTop / (source.scrollHeight - source.clientHeight)
