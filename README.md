@@ -5,7 +5,6 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
 
 ## todo
-- [ ] better name?
 - [ ] toggle autocentre or whatever its called
 - [ ] fix weird line index stuff when before first lyric
 
@@ -29,6 +28,7 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
    - [ ] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
  
   - [ ] fix loading jank
+  - [ ] speed up loading and stuff
 
 
   - [ ] lrclib integration?

@@ -135,7 +135,12 @@ $effect(() => {
 		lastObjectUrl = null
 	}
 	lastObjectUrl = URL.createObjectURL(file)
-	wavesurfer.load(lastObjectUrl)
+	// you must be patient.
+	// (allow other stuff to load before the big hang from loading waveforms)
+	// there must be a better way to handle it, but this works for now<3
+	setTimeout(() => {
+		wavesurfer?.load(lastObjectUrl!)
+	}, 100)
 
 	// cleanup
 	return () => {
