@@ -13,17 +13,15 @@ export function initDragDrop(
 	if (s.isTauri) {
 		const unlisten = getCurrentWebview().onDragDropEvent(async (e) => {
 			if (e.payload.type === 'over') {
-				// console.log('User hovering', e.payload.position)
 				setOverlay(true)
 			} else if (e.payload.type === 'drop') {
-				// console.log('User dropped', e.payload.paths)
 				setOverlay(false)
 
 				// read files and give to onFiles
 				if (e.payload.paths.length) {
 					const files = []
 					for (const path of e.payload.paths) {
-						const contents = await readFile(path) // returns Uint8Array
+						const contents = await readFile(path)
 						const name = path.split("/").pop() || "file"
 						files.push(new File([contents], name))
 					}
