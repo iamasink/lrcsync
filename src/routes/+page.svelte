@@ -5,7 +5,17 @@ import SyncView from "$lib/components/TabSync.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
 import { loadAudio, loadLRC } from "$lib/loadFiles"
-import { allHaveTimestamps, cleanup, exportLRC, formatLine, formatTime, parseLRC, sortLines } from "$lib/parseLRC"
+import {
+	allHaveTimestamps,
+	cleanup,
+	exportLRC,
+	formatLine,
+	formatTime,
+	getOffsetToNextLyric,
+	getOffsetToNextLyricAudio,
+	parseLRC,
+	sortLines,
+} from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
@@ -295,6 +305,23 @@ function handlePrevButtonClick() {
 		s.currentAudioLine = i
 	}
 }
+
+function getBreakTimeRemaining() {
+	const max = 30
+	const offset = getOffsetToNextLyricAudio()
+
+	const lyric = s.lyrics[s.currentAudioLine + offset]
+	let time: number
+	if (lyric) {
+		time = lyric.time
+	} else {
+		time = 1
+	}
+
+	const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
+
+	return Math.min(max, result)
+}
 </script>
 
 <svelte:head>
@@ -376,7 +403,7 @@ function handlePrevButtonClick() {
 				{:else}
 					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
 						<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
-						{#each { length: Math.min(30, 1 + Math.floor((s.lyrics[s.currentAudioLine + 1]?.time ?? 0) / 1000 - s.audioTime / 1000)) }, index}
+						{#each { length: getBreakTimeRemaining() }, index}
 							{#if index > 6 && Math.random() < (1 / 20)}
 								<span class="emoji" style="--i: {index+1}">🎷🐈</span>
 							{:else}
