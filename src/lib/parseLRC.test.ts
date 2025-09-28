@@ -149,6 +149,14 @@ describe("exportLRC", () => {
 		const output = exportLRC(lines)
 		expect(output).toEqual("Untimed")
 	})
+
+	it("rounds well", () => {
+		const input: LyricLine[] = [{ time: 999.9, text: "lyric" }, { time: 999.1, text: "lyric2" }, { time: 994, text: "lyric3" }]
+		const output = exportLRC(input).split("\n")
+		expect(output[0]).toEqual("[00:01.00] lyric")
+		expect(output[1]).toEqual("[00:01.00] lyric2")
+		expect(output[2]).toEqual("[00:00.99] lyric3")
+	})
 })
 
 describe("exportWithMetadata", () => {

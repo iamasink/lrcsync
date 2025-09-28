@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type LyricLine, roundTimestamp } from "$lib/parseLRC"
+import { type LyricLine, roundTimestamp, toCentiseconds } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { s } from "$lib/state.svelte"
 import { onDestroy, onMount } from "svelte"
@@ -394,12 +394,12 @@ function updateregion(r: Region, side: "start" | "end" | undefined = undefined) 
 	const idx = parseInt(r.id.substring(6))
 	console.log(idx)
 
-	const start = roundTimestamp(r.start * 1000)
+	const start = toCentiseconds(r.start * 1000)
 	s.lyrics[idx].time = start
 
 	if (regionHasEndTime(idx)) {
 		if (idx + 1 == s.lyrics.length) {
-			s.lyrics.push({ time: roundTimestamp(r.end * 1000), text: "" })
+			s.lyrics.push({ time: toCentiseconds(r.end * 1000), text: "" })
 		} else {
 			if (s.lyrics[idx + 1].text != "") {
 				s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })

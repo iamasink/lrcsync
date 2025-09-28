@@ -1,7 +1,7 @@
 <script lang="ts">
 import { goto } from "$app/navigation"
 import LyricsBox from "$lib/components/LyricsBox.svelte"
-import { exportLRC, formatLine, formatTime, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines } from "$lib/parseLRC"
+import { exportLRC, formatLine, formatTime, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { preferences, s } from "$lib/state.svelte"
@@ -104,8 +104,9 @@ function handleSyncButtonClick() {
 
 	// const time = roundTimestamp(s.waveformRef.getCurrentTime() * 1000)
 	const time = s.waveformRef.getCurrentTime() * 1000
+	const newtime = toCentiseconds(time - $preferences.syncDelayMs)
 
-	setLineTime(time - $preferences.syncDelayMs, s.currentCaretLine)
+	setLineTime(newtime, s.currentCaretLine)
 
 	gotoNextLine()
 

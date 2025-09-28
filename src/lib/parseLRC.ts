@@ -139,25 +139,29 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 export function exportLRC(lines: LyricLine[]) {
 
 	return lines.map(({ time, text }) => {
-		const timeInSeconds = time / 1000
+		// const timeInSeconds = time / 1000
 
-		if (time === null || time === undefined || time === -1 || timeInSeconds < 0) {
+		if (time === null || time === undefined || time === -1 || time < 0) {
 			return text
 		}
 
-		const minutes = Math.floor(timeInSeconds / 60)
-		const seconds = timeInSeconds % 60
-		const wholeSeconds = Math.floor(seconds)
-		const centiseconds = Math.round((seconds - wholeSeconds) * 100)
+		// const minutes = Math.floor(timeInSeconds / 60)
+		// const seconds = timeInSeconds % 60
+		// const wholeSeconds = Math.floor(seconds)
+		// const centiseconds = Math.round((seconds - wholeSeconds) * 100)
 
-		const round = (n: number, mult: number = 100) => {
-			return Math.round(n * mult) / mult
-		}
-		const formattedMinutes = round(minutes).toString().padStart(2, "0")
-		const formattedSeconds = round(wholeSeconds).toString().padStart(2, "0")
-		const formattedCentiseconds = round(centiseconds).toString().padStart(2, "0")
+		// const round = (n: number, mult: number = 100) => {
+		// 	return Math.round(n * mult) / mult
+		// }
+		// const formattedMinutes = round(minutes).toString().padStart(2, "0")
+		// const formattedSeconds = round(wholeSeconds).toString().padStart(2, "0")
+		// const formattedCentiseconds = round(centiseconds).toString().padStart(2, "0")
 
-		return `[${formattedMinutes}:${formattedSeconds}.${formattedCentiseconds}] ${text}`
+		const timestamp = formatTimestamp(time)
+		return `${timestamp} ${text}`
+
+
+
 	}).join("\n")
 }
 
@@ -189,16 +193,21 @@ export function formatTime(time: number) {
 	if (time == -1) return ``
 
 	if (!Number.isFinite(time) || time < 0) time = 0
-	const m = Math.floor(time / 60000)
-		.toString()
-		.padStart(2, "0")
-	const s = Math.floor((time % 60000) / 1000)
-		.toString()
-		.padStart(2, "0")
-	const cs = Math.floor((time % 1000) / 10) // centiseconds
-		.toString()
-		.padStart(2, "0")
+
+	// round to nearest 10 ms
+	time = Math.round(time / 10) * 10
+
+	const m = Math.floor(time / 60000).toString().padStart(2, "0")
+	const s = Math.floor((time % 60000) / 1000).toString().padStart(2, "0")
+	const cs = Math.floor((time % 1000) / 10).toString().padStart(2, "0") // centiseconds
+
 	return `${m}:${s}.${cs}`
+}
+export function toCentiseconds(timeMs: number) {
+	if (!Number.isFinite(timeMs) || timeMs < 0) timeMs = 0
+	// round to nearest 10 ms
+	timeMs = Math.round(timeMs / 10) * 10
+	return timeMs
 }
 
 export function formatTimestamp(time: number) {
