@@ -120,7 +120,7 @@ describe("parseLRC", () => {
 		const input = `[00:12.30]line2
 
 
-[00:17.49] 
+[00:17.49]
 [00:19.61] line5`
 		const { lyrics } = parseLRC(input)
 		const first = lyrics
@@ -213,9 +213,9 @@ describe("format helpers", () => {
 		expect(roundTimestamp(1.23456)).toEqual(1.23)
 		expect(roundTimestamp(1.23567)).toEqual(1.24)
 	})
+})
 
-
-
+describe("clean up", () => {
 	it("cleans up [chorus] etc.", () => {
 		const lines: LyricLine[] =
 			[
@@ -236,6 +236,26 @@ describe("format helpers", () => {
 				{ "time": -1, "text": "" },
 				{ "time": 20000, "text": "verse two?" }
 			]
+
+		expect(cleanup(lines)).toEqual(correctlines)
+	})
+
+
+	it("correctly swaps []blank; [time]blank to [time]blank; []blank", () => {
+		const lines: LyricLine[] = [
+			{ "time": 12000, "text": "text!" },
+			{ "time": -1, "text": "" },
+			{ "time": 17000, "text": "" },
+			{ "time": -1, "text": "" },
+			{ "time": 20000, "text": "text 2!" },
+		]
+		const correctlines: LyricLine[] = [
+			{ "time": 12000, "text": "text!" },
+			{ "time": 17000, "text": "" },
+			{ "time": -1, "text": "" },
+			{ "time": -1, "text": "" },
+			{ "time": 20000, "text": "text 2!" },
+		]
 
 		expect(cleanup(lines)).toEqual(correctlines)
 	})

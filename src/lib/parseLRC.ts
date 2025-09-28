@@ -253,11 +253,27 @@ export function cleanup(lines: LyricLine[]): LyricLine[] {
 
 	for (const [index, line] of result.entries()) {
 		if (line.text == "" && line.time == -1) {
-			if (cleaned.at(-1)?.text == "") {
+			const last = cleaned.at(-1)
+			if (last && last.time == -1 && last.text == "") {
 				continue
 			}
 		}
 		cleaned.push(line)
+	}
+
+	// now swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank
+	for (let i = 0; i < cleaned.length - 1; i++) {
+		if (
+			cleaned[i].time === -1 &&
+			cleaned[i].text === "" &&
+			cleaned[i + 1].time !== -1 &&
+			cleaned[i + 1].text === ""
+		) {
+			// swap
+			const temp = cleaned[i]
+			cleaned[i] = cleaned[i + 1]
+			cleaned[i + 1] = temp
+		}
 	}
 
 	console.log(cleaned)
@@ -273,4 +289,27 @@ export function allHaveTimestamps(lines: LyricLine[]) {
 
 export function roundTimestamp(num: number) {
 	return Math.round((num + Number.EPSILON) * 100) / 100
+}
+
+// Skip blank lines and return offset to next non-empty lyric
+function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit = 3): number {
+	let offset = 1
+	for (let i = 0; i < limit; i++) {
+		const lyric = lines[currentIndex + offset]
+		if (!lyric) return 1
+		if (lyric.text === "") {
+			offset++
+		} else {
+			return offset
+		}
+	}
+	return 1
+}
+
+export function getOffsetToNextLyric() {
+	return getOffsetToNext(s.lyrics, s.currentCaretLine)
+}
+
+export function getOffsetToNextLyricAudio() {
+	return getOffsetToNext(s.lyrics, s.currentAudioLine)
 }
