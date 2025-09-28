@@ -23,9 +23,9 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
  - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
    - [ ] warnings check
-   - [ ] break countdown
+   - [x] break countdown
    - [ ] etc
-   - [ ] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
+   - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
  
   - [ ] fix loading jank
   - [ ] speed up loading and stuff
