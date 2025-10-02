@@ -40,6 +40,12 @@ describe("parseLRC", () => {
 		expect(lyrics[0]).toEqual({ time: -1, text: "No timestamp here" })
 	})
 
+	it("ignores colon in tags", () => {
+		const input = "[Chorus: Artist]"
+		const { lyrics } = parseLRC(input)
+		expect(lyrics[0]).toEqual({ time: -1, text: "[Chorus: Artist]" })
+	})
+
 
 
 	// messed up stuff:
@@ -151,11 +157,21 @@ describe("exportLRC", () => {
 	})
 
 	it("rounds well", () => {
-		const input: LyricLine[] = [{ time: 999.9, text: "lyric" }, { time: 999.1, text: "lyric2" }, { time: 994, text: "lyric3" }]
+		const input: LyricLine[] = [
+			{ time: 999.9, text: "lyric" },
+			{ time: 999.1, text: "lyric2" },
+			{ time: 994, text: "lyric3" },
+			{ time: 994.9999999999999, text: "lyric4" },
+			{ time: 994.99999999999999, text: "lyric5" }, // inprecision rounds
+		]
+		console.log(input[4])
+
 		const output = exportLRC(input).split("\n")
 		expect(output[0]).toEqual("[00:01.00] lyric")
 		expect(output[1]).toEqual("[00:01.00] lyric2")
 		expect(output[2]).toEqual("[00:00.99] lyric3")
+		expect(output[3]).toEqual("[00:00.99] lyric4")
+		expect(output[4]).toEqual("[00:01.00] lyric5")
 	})
 })
 
