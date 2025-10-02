@@ -1,6 +1,7 @@
 <script lang="ts" module>
 let lastTooltipTime = 0 // shared
 </script>
+
 <script lang="ts">
 import { arrow, computePosition, flip, offset, shift } from "@floating-ui/dom"
 
@@ -9,9 +10,11 @@ interface Props {
 	message: string
 	children?: any
 	position?: position
+	showDelay?: number
+	subseqtime?: number
 	[key: string]: any
 }
-let { message, children, position = "bottom", ...rest }: Props = $props()
+let { message, children, position = "bottom", showDelay = 1000, subseqtime = 250, ...rest }: Props = $props()
 
 let show = $state(false)
 let timeout: number | null = null
@@ -20,9 +23,9 @@ let tooltipEl: HTMLDivElement
 let arrowEl: HTMLDivElement
 let referenceEl: HTMLElement
 
-const showDelay = 1000
+// const showDelay = 1000
 // const reshowDelay = 100
-const subseqtime = 250
+// const subseqtime = 250
 
 const clearTimeoutIfAny = () => {
 	if (timeout) {
@@ -74,7 +77,7 @@ async function updatePosition() {
 </div>
 
 {#if message}
-	<div bind:this={tooltipEl} class="tooltip-message" class:show={show} role="tooltip">
+	<div bind:this={tooltipEl} class="tooltip-message" class:show role="tooltip">
 		{message}
 	</div>
 {/if}
@@ -82,6 +85,9 @@ async function updatePosition() {
 <style>
 .tooltip-wrapper {
   position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: max-content;
 }
 
 .tooltip-message {
