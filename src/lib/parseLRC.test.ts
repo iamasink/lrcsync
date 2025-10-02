@@ -228,24 +228,55 @@ describe("clean up", () => {
 		const lines: LyricLine[] =
 			[
 				{ "time": 10000, "text": "[Chorus]" },
-				{ "time": 12000, "text": "the chorus!" },
+				{ "time": 12000, "text": "the chorus [ha]!" },
+				{ "time": 13000, "text": "[laughs]" },
 				{ "time": 14000, "text": "[Verse 1]" },
 				{ "time": 16000, "text": "verse one.." },
 				{ "time": -1, "text": "" },
 				{ "time": -1, "text": "[Verse 2: An artist]" },
-				{ "time": 20000, "text": "verse two?" }
+				{ "time": 20000, "text": "verse two?" },
+				{ "time": -1, "text": "[Verse 3 (an artist)]" },
+				{ "time": 21000, "text": "hi" },
+				{ "time": -1, "text": "[something else:()]" },
+				{ "time": 22000, "text": "bleh?" },
+				{ "time": -1, "text": "[Chorus (with text after)] hi" },
+				{ "time": 24000, "text": "end" },
 			]
 		const correctlines: LyricLine[] =
 			[
 				{ "time": -1, "text": "" },
-				{ "time": 12000, "text": "the chorus!" },
+				{ "time": 12000, "text": "the chorus [ha]!" },
+				{ "time": 13000, "text": "[laughs]" },
 				{ "time": -1, "text": "" },
 				{ "time": 16000, "text": "verse one.." },
 				{ "time": -1, "text": "" },
-				{ "time": 20000, "text": "verse two?" }
+				{ "time": 20000, "text": "verse two?" },
+				{ "time": -1, "text": "" },
+				{ "time": 21000, "text": "hi" },
+				{ "time": -1, "text": "[something else:()]" },
+				{ "time": 22000, "text": "bleh?" },
+				{ "time": -1, "text": "[Chorus (with text after)] hi" },
+				{ "time": 24000, "text": "end" },
+			]
+		const correctlinesForce: LyricLine[] =
+			[
+				{ "time": -1, "text": "" },
+				{ "time": 12000, "text": "the chorus [ha]!" },
+				{ "time": 13000, "text": "[laughs]" },
+				{ "time": -1, "text": "" },
+				{ "time": 16000, "text": "verse one.." },
+				{ "time": -1, "text": "" },
+				{ "time": 20000, "text": "verse two?" },
+				{ "time": -1, "text": "" },
+				{ "time": 21000, "text": "hi" },
+				{ "time": -1, "text": "" },
+				{ "time": 22000, "text": "bleh?" },
+				{ "time": -1, "text": "[Chorus (with text after)] hi" }, // should this be removed? idk.
+				{ "time": 24000, "text": "end" },
 			]
 
 		expect(cleanup(lines)).toEqual(correctlines)
+		expect(cleanup(lines, true)).toEqual(correctlinesForce)
 	})
 
 

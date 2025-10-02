@@ -228,8 +228,15 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 	return result
 }
 
-export function cleanup(lines: LyricLine[]): LyricLine[] {
-	const regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*)?\]/gi
+export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
+	let regex: RegExp
+
+	if (force) {
+		regex = /\[(?!(?:laugh|applause|cheer|clap|yeah|oh|huh|uh|ha|heh|la|lol|sigh|cough|grr|tsk|mmm|ah|eh|ooh|aah|hmm|shh|yo|hey|woo|whoa|hee|yawn|sniff|snicker|giggle|sob|cry|scream|shout|chant|sing|hum))[^\]]*?\]$/gi
+	} else {
+		regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/gi
+	}
+
 	const result: LyricLine[] = []
 
 	for (const line of lines) {
@@ -269,7 +276,7 @@ export function cleanup(lines: LyricLine[]): LyricLine[] {
 		}
 	}
 
-	console.log(cleaned)
+	// console.log(cleaned)
 	return cleaned
 }
 
