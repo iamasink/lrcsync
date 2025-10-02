@@ -205,7 +205,7 @@ onMount(() => {
 	s.isTauri = !!(window.__TAURI_INTERNALS__)
 
 	console.log("hi world")
-	const cleanup = initDragDrop(
+	const cleanupfns = initDragDrop(
 		// files
 		(files) => {
 			Array.from(files).forEach((file) => {
@@ -237,7 +237,7 @@ onMount(() => {
 	requestAnimationFrame(countfps)
 
 	return () => {
-		cleanup
+		cleanupfns
 		window.removeEventListener("keydown", handleKeydown)
 		window.removeEventListener("keyup", handleKeyup)
 	}
