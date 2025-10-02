@@ -232,7 +232,7 @@ describe("clean up", () => {
 				{ "time": 14000, "text": "[Verse 1]" },
 				{ "time": 16000, "text": "verse one.." },
 				{ "time": -1, "text": "" },
-				{ "time": -1, "text": "[Verse 2]" },
+				{ "time": -1, "text": "[Verse 2: An artist]" },
 				{ "time": 20000, "text": "verse two?" }
 			]
 		const correctlines: LyricLine[] =
