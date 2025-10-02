@@ -483,8 +483,6 @@ function handleScroll(e: WheelEvent) {
 
 <style>
 .waveforms-container {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   min-height: 450px;
   overflow: hidden;
