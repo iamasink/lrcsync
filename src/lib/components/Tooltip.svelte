@@ -86,8 +86,6 @@ async function updatePosition() {
 .tooltip-wrapper {
   position: relative;
   display: inline-block;
-  width: fit-content;
-  max-width: max-content;
 }
 
 .tooltip-message {
