@@ -47,40 +47,24 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 	const lyrics: LyricLine[] = []
 
 	const lines = content.split("\n")
+	const metaRegex = /^\[(ti|ar|al|au|by|re|ve|offset|length|lr):(.*)\]$/i
 
 	for (const line of lines) {
-		const metaMatch = line.match(/^\[(\w+):(.*)\]$/)
+		const metaMatch = line.match(metaRegex)
 		if (metaMatch) {
 			const [, key, value] = metaMatch
-
 			switch (key.toLowerCase()) {
-				case "ti":
-					meta.ti = value.trim()
-					break
-				case "ar":
-					meta.ar = value.trim()
-					break
-				case "al":
-					meta.al = value.trim()
-					break
-				case "au":
-					meta.au = value.trim()
-					break
-				case "by":
-					meta.by = value.trim()
-					break
-				case "lr":
-					meta.lr = value.trim()
-					break
-				case "offset":
-					meta.offset = value.trim()
-					break
-				case "re":
-					meta.re = value.trim()
-					break
-				case "ve":
-					meta.ve = value.trim()
-					break
+				case "ti": meta.ti = value.trim(); break
+				case "ar": meta.ar = value.trim(); break
+				case "al": meta.al = value.trim(); break
+				case "au": meta.au = value.trim(); break
+				case "by": meta.by = value.trim(); break
+				case "lr": meta.lr = value.trim(); break
+				case "offset": meta.offset = value.trim(); break
+				case "re": meta.re = value.trim(); break
+				case "ve": meta.ve = value.trim(); break
+				case "length": meta.length = value.trim(); break
+				default: // should be unreachable cuz regex
 			}
 			continue
 		}
@@ -245,7 +229,7 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 }
 
 export function cleanup(lines: LyricLine[]): LyricLine[] {
-	const regex = /\[(Pre-|Post-)?(Chorus|Bridge|Verse|Intro|Outro|Break|Instrumental|Refrain|Interlude)( \d*)?\]/gi
+	const regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*)?\]/gi
 	const result: LyricLine[] = []
 
 	for (const line of lines) {
