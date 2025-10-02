@@ -391,9 +391,11 @@ function getBreakTimeRemaining() {
 			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 		</CollapsibleText>
 		<div class="currentlyric">
-			<span style="color: var(--text-muted)">
-				current lyric:
-			</span>
+			<div class="left">
+				<span>
+					current lyric:
+				</span>
+			</div>
 			<div class="lyrictext">
 				{#if !breaktime}
 					<span class:flash={flash}>{currentText}</span>
@@ -614,14 +616,9 @@ function getBreakTimeRemaining() {
   border: 1px solid var(--border-muted);
 }
 .controls {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  /* gap: 0.5rem; */
 
-  div {
-    display: flex;
-    flex-direction: row;
-  }
+  /* div {} */
 }
 
 button:hover:not(:disabled) {
@@ -744,6 +741,13 @@ input[type="file"] {
   height: 4rem;
   font-size: large;
   display: flex;
+
+  .left {
+    color: var(--text-muted);
+    align-self: center;
+    /* move slightly up */
+    transform: translateY(-0.5rem);
+  }
 
   .lyrictext {
     margin-left: 1rem;
