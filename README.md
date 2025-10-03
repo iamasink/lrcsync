@@ -12,7 +12,10 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 - [ ] support karaoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
 - [ ] support comments?
 
-- [ ] save cookies for settings, current lyrics etc.
+- [ ] save cookies for 
+  - [x] settings, 
+  - [ ] current lyrics 
+  - [ ] etc.
 
 - [ ] undo/redo
 
@@ -31,12 +34,13 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
 
   - [ ] lrclib integration?
-    - [ ] check if it exists first
+    - [ ] check if theres valid lyrics, compare them?
 
 
-
-
-
+  - [ ] custom romanization & different scripts
+    - [ ] user can add romanized version and itll map to current lyrics?
+    - [ ] loading multiple lrc files (.Romanized.lrc or something?)
+    - [ ] furigana etc?
 
 
 
