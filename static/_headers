@@ -1,47 +1,10 @@
-/dict/base.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
 
-/dict/cc.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex
 
-/dict/check.dat.br
-  Content-Type: application/octet-stream
+# Force the Content-Encoding Tag to be sent for the .br encoded dict files...
+/dict/*.dat.br
   Content-Encoding: br
-
-/dict/tid_map.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/tid_pos.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/tid.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk_char.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk_compat.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk_invoke.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk_map.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk_pos.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
-
-/dict/unk.dat.br
-  Content-Type: application/octet-stream
-  Content-Encoding: br
+  Cache-Control: public, max-age=2592000
