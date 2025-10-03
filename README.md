@@ -23,24 +23,24 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
   - [ ] filetype association and loading?
   - [ ] test
 
- - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
-   - [ ] warnings check
-   - [x] break countdown
-   - [ ] etc
-   - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
- 
-  - [ ] fix loading jank
-  - [ ] speed up loading and stuff
+- [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
+ - [ ] warnings check
+ - [x] break countdown
+ - [ ] etc
+ - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
+
+- [ ] fix loading jank
+- [ ] speed up loading and stuff
 
 
-  - [ ] lrclib integration?
-    - [ ] check if theres valid lyrics, compare them?
+- [ ] lrclib integration?
+  - [ ] check if theres valid lyrics, compare them?
 
 
-  - [ ] custom romanization & different scripts
-    - [ ] user can add romanized version and itll map to current lyrics?
-    - [ ] loading multiple lrc files (.Romanized.lrc or something?)
-    - [ ] furigana etc?
+- [ ] custom romanization & different scripts
+  - [ ] user can add romanized version and itll map to current lyrics?
+  - [ ] loading multiple lrc files (.Romanized.lrc or something?)
+  - [ ] furigana etc?
 
 
 
