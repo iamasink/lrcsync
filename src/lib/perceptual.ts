@@ -47,7 +47,9 @@ export function perceptualToAmplitude(
 	} else {
 		db = (perceptual / normalizedMax) * range - range
 	}
-	return normalizedMax * Math.pow(10, db / 20)
+	const final = normalizedMax * Math.pow(10, db / 20)
+	if (!Number.isFinite(final) || Number.isNaN(final)) return 50
+	return final
 }
 
 /*
