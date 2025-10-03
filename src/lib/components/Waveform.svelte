@@ -29,7 +29,7 @@ const AUTOSCROLL_DEFAULT = true
 let autoScrollTimeout: number = $state(0)
 
 const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.3)", caret: "rgba(74, 144, 226, 0.3)" }
-let volume: number = $state(50)
+let volume: number = $state(75)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
 let regionCache: Record<string, Region> = {}
