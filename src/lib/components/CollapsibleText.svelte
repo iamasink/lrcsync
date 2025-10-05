@@ -1,10 +1,15 @@
 <script lang="ts">
-export let title: string = "Details"
-let open = false
+let { title = "Details", children } = $props()
 </script>
 
 <style>
-.header {
+details {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+summary {
   cursor: pointer;
   font-weight: bold;
   user-select: none;
@@ -21,18 +26,13 @@ let open = false
   color: #eee;
   border-radius: 4px;
   overflow: auto;
-  max-height: 200px; /* optional scroll limit */
+  max-height: 200px;
 }
 </style>
 
-<div class="collapsible-text">
-	<button class="header" on:click={() => (open = !open)}>
-		{open ? "▼" : "▶"} {title}
-	</button>
-
-	{#if open}
-		<div class="content">
-			<slot />
-		</div>
-	{/if}
-</div>
+<details>
+	<summary>{title}</summary>
+	<div class="content">
+		{@render children()}
+	</div>
+</details>
