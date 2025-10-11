@@ -108,7 +108,7 @@ async function copy() {
 		{/if}
 	</div>
 
-	<pre>{exportWithMetadata(s.lyrics)}</pre>
+	<pre class="lrcpreview">{exportWithMetadata(s.lyrics)}</pre>
 	<label><button
 			onclick={() => {
 				s.metadata.re = "iamasink/lrcsync"
@@ -116,9 +116,28 @@ async function copy() {
 				s.metadata.by = $preferences.username ?? ""
 			}}
 		>
-			a
+			add metadata
 		</button></label>
-	<label>lrc by: <input type="text" bind:value={$preferences.username}></label>
+	<!-- <details> -->
+	<!-- <summary>edit metadata</summary> -->
+	<!-- <div class="content"> -->
+	<!-- <label><button bind:value={s.metadata.}></button></label> -->
+	<!--
+		<label>Title (ti)<input bind:value={s.metadata.ti}></label><br />
+		<label>Artist (ar)<input bind:value={s.metadata.ar}></label><br />
+		<label>Album (al)<input bind:value={s.metadata.al}></label><br />
+		<label>Author (au)<input bind:value={s.metadata.au}></label><br />
+		<label>Lyricist (lr)<input bind:value={s.metadata.lr}></label><br />
+		<label>Length of the song (length)<input bind:value={s.metadata.length}></label><br />
+		<label>LRC file author (by)<input bind:value={s.metadata.by}></label><br />
+		<label>Timing offset (offset)<input bind:value={s.metadata.offset}></label><br />
+		<label>Program/tool (re)<input bind:value={s.metadata.re}></label><br />
+		<label>Program version (ve)<input bind:value={s.metadata.ve}></label><br />
+	-->
+	<!-- <label>Comment marker (#)<input bind:value={s.metadata.c}> -->
+	<!-- </div> -->
+	<!-- </details> -->
+	<label>lrc by: <input type="text" bind:value={$preferences.username} placeholder="your name"></label>
 	<br />
 	<button onclick={saveFile}>save</button>
 	<button onclick={copy}>copy</button>
@@ -129,6 +148,15 @@ async function copy() {
   pre {
     height: 10vh;
     overflow-y: scroll;
+    border: var(--border-muted) 1px solid;
+    margin: 0.5rem;
+  }
+
+  details {
+    overflow-y: auto;
+    max-height: 10rem;
+    border: var(--border-muted) 1px solid;
+    margin: 0.5rem;
   }
 
   input {
