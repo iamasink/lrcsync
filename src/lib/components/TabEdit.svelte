@@ -108,7 +108,7 @@ function gotoNextLine() {
 	s.currentCaretLine += getOffsetToNextLyric()
 }
 
-let syncTimeout: number
+// let syncTimeout: number
 function handleSyncButtonClick() {
 	s.syncCaretWithAudio = false
 	if (!s.waveformRef) {
@@ -128,12 +128,14 @@ function handleSyncButtonClick() {
 	scrollLineIntoView(s.currentCaretLine)
 	s.waveformRef.updateRegions()
 
-	if (syncTimeout) clearTimeout(syncTimeout)
-	syncTimeout = window.setTimeout(() => {
-		requestAnimationFrame(() => {
-			historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
-		})
-	}, 500)
+	// if (syncTimeout) clearTimeout(syncTimeout)
+	// syncTimeout = window.setTimeout(() => {
+	// 	requestAnimationFrame(() => {
+	// 		historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
+	// 	})
+	// }, 500)
+
+	historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false
@@ -165,12 +167,17 @@ function handleSkipButtonClick() {
 }
 
 function handleBlankButtonClick() {
-	s.lyrics.splice(s.currentCaretLine, 0, { text: "", time: s.audioTime - $preferences.syncDelayMs })
+	const line = s.currentCaretLine
+	const time = s.audioTime - $preferences.syncDelayMs
+
+	s.lyrics.splice(line, 0, { text: "", time })
 	gotoNextLine()
 
 	s.lyrics = sortLines(s.lyrics)
 
 	s.waveformRef?.updateRegions()
+
+	historyManager.push(`added blank line line ${line} (${formatTimestamp(time)})`)
 }
 </script>
 

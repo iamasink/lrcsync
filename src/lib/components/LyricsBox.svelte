@@ -143,6 +143,9 @@ function getLine(lineIndex: number) {
 				}
 			}}
 		>
+		<div class="index">
+			{i}
+		</div>
 			<div class="timestamp">
 				{formatTimestamp(line.time)}
 			</div>

@@ -15,6 +15,19 @@ export interface HistoryState {
 let index = 1
 // let current = -1
 
+interface DebouncedAction {
+	timeout: number | null
+	name: string
+	data: {
+		totalOffset: number
+		count: number
+		line?: number
+	}
+}
+
+let pending: DebouncedAction | null = null
+
+
 export const historyManager = {
 	undo() {
 		console.log("undo()")
@@ -37,6 +50,12 @@ export const historyManager = {
 	},
 
 
+	clearNewer(from: number = s.historyCurrent + 1) {
+		// clear history from history[current] to end
+		s.history.splice(from)
+	},
+
+
 	push(name: string) {
 		const lyrics = $state.snapshot(s.lyrics)
 
@@ -44,13 +63,14 @@ export const historyManager = {
 			console.log("! no historycurrent")
 		} else {
 			// dont do anything if they're identical
-			if (JSON.stringify(s.history[s.historyCurrent].lyrics) == JSON.stringify(lyrics)) {
-				console.log("! identical history")
-				return
-			}
+			// if (JSON.stringify(s.history[s.historyCurrent].lyrics) == JSON.stringify(lyrics)) {
+			// 	console.log("! identical history")
+			// 	console.log(s.history[s.historyCurrent].lyrics)
+			// 	console.log(lyrics)
+			// 	return
+			// }
+			this.clearNewer()
 
-			// clear history from history[current] to end
-			s.history.splice(s.historyCurrent + 1)
 		}
 
 
@@ -58,9 +78,50 @@ export const historyManager = {
 		s.historyCurrent = s.history.length - 1
 		console.log("history push", s.history)
 	},
+	pushDebounced(name: string, data: { offset?: number; line?: number } = {}) {
+		// flush if type changes
+		if (pending && pending.name !== name) {
+			this.flush()
+		}
+
+		if (!pending) {
+			pending = {
+				timeout: null,
+				name,
+				data: { totalOffset: 0, count: 0, line: data.line }
+			}
+		}
+
+		if (data.offset) pending.data.totalOffset += data.offset
+		pending.data.count++
+
+		if (pending.timeout) clearTimeout(pending.timeout)
+		pending.timeout = window.setTimeout(() => {
+			this.flush()
+		}, 500)
+	},
+	flush() {
+		if (!pending) return
+		const { name, data } = pending
+
+		let desc = name
+		if (name.startsWith("adjust")) {
+			if (data.totalOffset === 0) return
+			desc = `${name} by ${data.totalOffset.toFixed(2)} (${data.count})`
+			if (data.line !== undefined) desc += ` on line ${data.line}`
+		}
+
+		this.push(desc)
+		pending = null
+	},
 
 	check() {
 		console.log("history current", s.history[s.historyCurrent])
+	},
+
+	goto(index: number) {
+		s.historyCurrent = index
+		s.lyrics = s.history[s.historyCurrent].lyrics
 	},
 
 	getHistory() {
