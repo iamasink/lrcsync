@@ -1,10 +1,11 @@
 <script lang="ts">
-import { goto } from "$app/navigation"
 import LyricsBox from "$lib/components/LyricsBox.svelte"
-import { exportLRC, formatLine, formatTime, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
+import { historyManager } from "$lib/history.svelte"
+import { exportLRC, formatLine, formatTime, formatTimestamp, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { preferences, s } from "$lib/state.svelte"
+import { onMount } from "svelte"
 import KeybindButton from "./KeybindButton.svelte"
 
 let textAreaElement: HTMLTextAreaElement
@@ -20,9 +21,19 @@ let lineElements = $state(new Array())
 
 // let preferences.syncDelayMs = $state(0)
 
-function handleInput() {
+function handleBlur() {
 	if (!textAreaElement) return
 
+	handleInput()
+
+	// wait because we have to wait for the debounce thing
+	// TODO: improve this idk
+	window.setTimeout(() => {
+		historyManager.push("input edited")
+	}, 1000)
+}
+
+function handleInput() {
 	const currentScrollTop = textAreaElement.scrollTop
 
 	s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
@@ -37,8 +48,10 @@ function handleInput() {
 			requestAnimationFrame(() => {
 				const updatedLyrics = parseLRC(lyricsText).lyrics
 
-				if (s.lyrics != updatedLyrics) {
+				if (JSON.stringify(s.lyrics) != JSON.stringify(updatedLyrics)) {
 					s.lyrics = updatedLyrics
+				} else {
+					console.log("no change")
 				}
 				if (textAreaElement && lyricsBoxElement) {
 					textAreaElement.scrollTop = currentScrollTop
@@ -95,6 +108,7 @@ function gotoNextLine() {
 	s.currentCaretLine += getOffsetToNextLyric()
 }
 
+let syncTimeout: number
 function handleSyncButtonClick() {
 	s.syncCaretWithAudio = false
 	if (!s.waveformRef) {
@@ -107,11 +121,19 @@ function handleSyncButtonClick() {
 	const newtime = toCentiseconds(time - $preferences.syncDelayMs)
 
 	setLineTime(newtime, s.currentCaretLine)
+	const oldline = s.currentCaretLine
 
 	gotoNextLine()
 
 	scrollLineIntoView(s.currentCaretLine)
 	s.waveformRef.updateRegions()
+
+	if (syncTimeout) clearTimeout(syncTimeout)
+	syncTimeout = window.setTimeout(() => {
+		requestAnimationFrame(() => {
+			historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
+		})
+	}, 500)
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false
@@ -185,6 +207,7 @@ function handleBlankButtonClick() {
 		<textarea
 			bind:this={textAreaElement}
 			bind:value={lyricsText}
+			onblur={handleBlur}
 			onclick={handleInput}
 			onkeyup={handleInput}
 			oninput={handleInput}
@@ -234,6 +257,7 @@ function handleBlankButtonClick() {
     display: flex;
     flex-direction: row;
     overflow-y: hidden;
+    flex: 1;
 
     textarea {
       flex: 1;

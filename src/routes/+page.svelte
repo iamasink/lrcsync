@@ -20,8 +20,10 @@ import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
 import Button from "$lib/components/Button.svelte"
+import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
+import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 let isPlaying = s.waveformRef?.isPlaying() ?? false
@@ -118,9 +120,20 @@ function adjustSelectedLine(offset: number) {
 	}
 }
 
+let adjustTimeout: number = 0
+let total = 0
 function handleAdjustClick(offset: number, event: MouseEvent) {
 	const adjustment = offset
+	total += Math.round(offset * 100)
 	adjustSelectedLine(adjustment)
+
+	if (adjustTimeout) clearTimeout(adjustTimeout)
+	adjustTimeout = window.setTimeout(() => {
+		requestAnimationFrame(() => {
+			historyManager.push(`adjusted line ${s.currentAudioLine} by ${total / 100}`)
+			total = 0
+		})
+	}, 500)
 }
 
 function togglePlayPause() {
@@ -196,6 +209,10 @@ async function doLoad() {
 		const { lyrics: l, meta } = await loadLRC(lrcFile)
 		s.lyrics = l
 		s.metadata = meta
+
+		// reset history
+		historyManager.clear()
+		historyManager.push(`Loaded ${$state.snapshot(s.filePaths.audio)}`)
 	}
 	showTopControls = false
 }
@@ -483,6 +500,15 @@ function getBreakTimeRemaining() {
 				>
 					+{stepbuttonvalue}s
 				</KeybindButton>
+
+				<!--  -->
+
+				<KeybindButton onclick={(e) => historyManager.undo()} title="Undo" shortcut={{ key: "z", ctrl: true }}>
+					Undo
+				</KeybindButton>
+				<KeybindButton onclick={(e) => historyManager.redo()} title="Redo" shortcut={{ key: "z", ctrl: true, shift: true }}>
+					Redo
+				</KeybindButton>
 			</div>
 			<div>
 				<button
@@ -496,6 +522,7 @@ function getBreakTimeRemaining() {
 				<button
 					onclick={() => {
 						s.lyrics = cleanup(s.lyrics)
+						historyManager.push("cleanup")
 					}}
 					title="cleanup"
 				>
@@ -529,7 +556,8 @@ function getBreakTimeRemaining() {
 	</div>
 	<div>
 		<hr />
-		<p>hello world</p>
+		<History></History>
+		<hr />
 		<hr />
 		<Button
 			onclick={() => {
@@ -679,6 +707,7 @@ input[type="file"] {
   min-height: 0; /*allow it to shrink??*/
   padding: 0.5rem;
   box-sizing: border-box;
+  flex: 1;
 }
 
 .info {

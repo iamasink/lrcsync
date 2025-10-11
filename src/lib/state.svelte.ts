@@ -1,6 +1,7 @@
 import type { LyricLine, Metadata } from "$lib/parseLRC"
 import { persisted, type Persisted } from "svelte-persisted-store"
 import type Waveform from "./components/Waveform.svelte"
+import type { HistoryState } from "./history.svelte"
 
 
 
@@ -21,6 +22,8 @@ interface State {
 	metadata: Metadata,
 	isTauri: boolean,
 	filePaths: { lyrics?: string, audio?: string }
+	history: HistoryState[],
+	historyCurrent: number,
 }
 
 export const s: State = $state({
@@ -39,7 +42,9 @@ export const s: State = $state({
 	lineElements2: [],
 	metadata: { re: "iamasink/lrcsync", ve: "1" },
 	isTauri: false,
-	filePaths: {}
+	filePaths: {},
+	history: [],
+	historyCurrent: -1,
 })
 
 interface Preferences {
