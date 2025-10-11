@@ -223,6 +223,8 @@ async function doLoad() {
 		historyManager.push(`Loaded ${$state.snapshot(s.filePaths.audio)}`)
 	}
 	showTopControls = false
+	lrcFile = null
+	audioFile = null
 }
 
 onMount(() => {
