@@ -84,10 +84,10 @@ function updateCurrentLine() {
 
 		if (s.currentCaretLine === s.currentAudioLine) {
 			s.currentCaretLine = newIndex
-			scrollLineIntoView(newIndex, s.activeTab === "edit")
+			scrollLineIntoView(newIndex)
 		} else if (s.syncCaretWithAudio) {
 			s.currentCaretLine = newIndex
-			scrollLineIntoView(newIndex, s.activeTab === "edit")
+			scrollLineIntoView(newIndex)
 		}
 
 		s.currentAudioLine = newIndex
@@ -120,20 +120,28 @@ function adjustSelectedLine(offset: number) {
 	}
 }
 
-let adjustTimeout: number = 0
-let total = 0
+// let adjustTimeout: number = 0
+// let total = 0
+// function handleAdjustClick(offset: number, event: MouseEvent) {
+// 	const adjustment = offset
+// 	total += Math.round(offset * 100)
+// 	adjustSelectedLine(adjustment)
+
+// 	if (adjustTimeout) clearTimeout(adjustTimeout)
+// 	adjustTimeout = window.setTimeout(() => {
+// 		requestAnimationFrame(() => {
+// 			historyManager.push(`adjusted line ${s.currentAudioLine} by ${total / 100}`)
+// 			total = 0
+// 		})
+// 	}, 500)
+// }
+
 function handleAdjustClick(offset: number, event: MouseEvent) {
 	const adjustment = offset
-	total += Math.round(offset * 100)
+	// total += Math.round(offset * 100)
 	adjustSelectedLine(adjustment)
 
-	if (adjustTimeout) clearTimeout(adjustTimeout)
-	adjustTimeout = window.setTimeout(() => {
-		requestAnimationFrame(() => {
-			historyManager.push(`adjusted line ${s.currentAudioLine} by ${total / 100}`)
-			total = 0
-		})
-	}, 500)
+	historyManager.pushDebounced(`adjusted line ${s.currentAudioLine}`, { offset })
 }
 
 function togglePlayPause() {
@@ -403,132 +411,141 @@ function getBreakTimeRemaining() {
 			<p>FPS: {fps}</p>
 		</div>
 
-		<CollapsibleText>
-			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
-			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
-		</CollapsibleText>
-		<div class="currentlyric">
+		<div class="belowwaveform">
 			<div class="left">
-				<span>
-					current lyric:
-				</span>
-			</div>
-			<div class="lyrictext">
-				{#if !breaktime}
-					<span class:flash={flash}>{currentText}</span>
-					{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
-						<span class="converted" class:flash={flash}>{currentTextConverted}</span>
-					{/if}
-				{:else}
-					<span class:break={breaktime} class:animate={s.isAudioPlaying}>
-						<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
-						{#each { length: getBreakTimeRemaining() }, index}
-							{#if index > 6 && Math.random() < (1 / 20)}
-								<span class="emoji" style="--i: {index+1}">🎷🐈</span>
-							{:else}
-								{#if index % 2}
-									<span class="emoji" style="--i: {index+1}">🎵</span>
-								{:else}
-									<span class="emoji" style="--i: {index+1}">🎶</span>
-								{/if}
+				<CollapsibleText>
+					<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
+					<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
+				</CollapsibleText>
+				<div class="currentlyric">
+					<div class="left">
+						<span>
+							current lyric:
+						</span>
+					</div>
+					<div class="lyrictext">
+						{#if !breaktime}
+							<span class:flash={flash}>{currentText}</span>
+							{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
+								<span class="converted" class:flash={flash}>{currentTextConverted}</span>
 							{/if}
-						{/each}
-					</span>
-				{/if}
+						{:else}
+							<span class:break={breaktime} class:animate={s.isAudioPlaying}>
+								<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
+								{#each { length: getBreakTimeRemaining() }, index}
+									{#if index > 6 && Math.random() < (1 / 20)}
+										<span class="emoji" style="--i: {index+1}">🎷🐈</span>
+									{:else}
+										{#if index % 2}
+											<span class="emoji" style="--i: {index+1}">🎵</span>
+										{:else}
+											<span class="emoji" style="--i: {index+1}">🎶</span>
+										{/if}
+									{/if}
+								{/each}
+							</span>
+						{/if}
+					</div>
+				</div>
+
+				<div class="controls">
+					<div>
+						<KeybindButton onclick={togglePlayPause} shortcut={{ key: "Space" }}>
+							{s.isAudioPlaying ? "Pause" : "Play"}
+						</KeybindButton>
+						<KeybindButton
+							onclick={() => {
+								if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
+							}}
+							shortcut={{ key: "w" }}
+							title="Move the audio to the caret"
+						>
+							Play @ caret
+						</KeybindButton>
+						<KeybindButton
+							onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)}
+							shortcut={{ key: "r" }}
+							title="Move the audio to the start of current line"
+						>
+							Replay line
+						</KeybindButton>
+						<KeybindButton
+							onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+							title={`Go back ${fastforwardbuttonvalue}s`}
+							shortcut={{ key: "left" }}
+							ignoremods={true}
+						>
+							-{fastforwardbuttonvalue}s
+						</KeybindButton>
+
+						<KeybindButton
+							onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+							title={`Fastforward ${fastforwardbuttonvalue}s`}
+							shortcut={{ key: "right" }}
+							ignoremods={true}
+						>
+							+{fastforwardbuttonvalue}s
+						</KeybindButton>
+
+						<KeybindButton title={"Move the audio to the start of next line"} onclick={handleNextButtonClick} shortcut={{ key: "down" }}
+						>next line</KeybindButton>
+						<KeybindButton title={"Move the audio to the start of previous line"} onclick={handlePrevButtonClick} shortcut={{ key: "up" }}
+						>prev line</KeybindButton>
+					</div>
+					<div>
+						<KeybindButton
+							onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
+							disabled={s.currentCaretLine < 0}
+							title={`Move currently playing line earlier by -${stepbuttonvalue}s`}
+							shortcut={{ key: "x" }}
+							ignoremods={true}
+						>
+							-{stepbuttonvalue}s
+						</KeybindButton>
+
+						<KeybindButton
+							onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
+							disabled={s.currentCaretLine < 0}
+							title={`Move currently playing line later by +${stepbuttonvalue}s`}
+							shortcut={{ key: "c" }}
+							ignoremods={true}
+						>
+							+{stepbuttonvalue}s
+						</KeybindButton>
+
+						<!--  -->
+
+						<KeybindButton onclick={(e) => historyManager.undo()} title="Undo" shortcut={{ key: "z", ctrl: true }}>
+							Undo
+						</KeybindButton>
+						<KeybindButton onclick={(e) => historyManager.redo()} title="Redo" shortcut={{ key: "z", ctrl: true, shift: true }}>
+							Redo
+						</KeybindButton>
+					</div>
+					<div>
+						<button
+							onclick={() => {
+								s.lyrics = sortLines(s.lyrics)
+							}}
+							title="sort lines by timestamp"
+						>
+							Sort
+						</button>
+						<button
+							onclick={() => {
+								s.lyrics = cleanup(s.lyrics)
+								historyManager.push("cleanup")
+							}}
+							title="cleanup"
+						>
+							Cleanup
+						</button>
+						<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
+					</div>
+				</div>
 			</div>
-		</div>
-
-		<div class="controls">
-			<div>
-				<KeybindButton onclick={togglePlayPause} shortcut={{ key: "Space" }}>
-					{s.isAudioPlaying ? "Pause" : "Play"}
-				</KeybindButton>
-				<KeybindButton
-					onclick={() => {
-						if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
-					}}
-					shortcut={{ key: "w" }}
-					title="Move the audio to the caret"
-				>
-					Play @ caret
-				</KeybindButton>
-				<KeybindButton
-					onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)}
-					shortcut={{ key: "r" }}
-					title="Move the audio to the start of current line"
-				>
-					Replay line
-				</KeybindButton>
-				<KeybindButton
-					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
-					title={`Go back ${fastforwardbuttonvalue}s`}
-					shortcut={{ key: "left" }}
-					ignoremods={true}
-				>
-					-{fastforwardbuttonvalue}s
-				</KeybindButton>
-
-				<KeybindButton
-					onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
-					title={`Fastforward ${fastforwardbuttonvalue}s`}
-					shortcut={{ key: "right" }}
-					ignoremods={true}
-				>
-					+{fastforwardbuttonvalue}s
-				</KeybindButton>
-
-				<KeybindButton title={"Move the audio to the start of next line"} onclick={handleNextButtonClick} shortcut={{ key: "down" }}>next line</KeybindButton>
-				<KeybindButton title={"Move the audio to the start of previous line"} onclick={handlePrevButtonClick} shortcut={{ key: "up" }}>prev line</KeybindButton>
-			</div>
-			<div>
-				<KeybindButton
-					onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
-					disabled={s.currentCaretLine < 0}
-					title={`Move currently playing line earlier by -${stepbuttonvalue}s`}
-					shortcut={{ key: "x" }}
-					ignoremods={true}
-				>
-					-{stepbuttonvalue}s
-				</KeybindButton>
-
-				<KeybindButton
-					onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
-					disabled={s.currentCaretLine < 0}
-					title={`Move currently playing line later by +${stepbuttonvalue}s`}
-					shortcut={{ key: "c" }}
-					ignoremods={true}
-				>
-					+{stepbuttonvalue}s
-				</KeybindButton>
-
-				<!--  -->
-
-				<KeybindButton onclick={(e) => historyManager.undo()} title="Undo" shortcut={{ key: "z", ctrl: true }}>
-					Undo
-				</KeybindButton>
-				<KeybindButton onclick={(e) => historyManager.redo()} title="Redo" shortcut={{ key: "z", ctrl: true, shift: true }}>
-					Redo
-				</KeybindButton>
-			</div>
-			<div>
-				<button
-					onclick={() => {
-						s.lyrics = sortLines(s.lyrics)
-					}}
-					title="sort lines by timestamp"
-				>
-					Sort
-				</button>
-				<button
-					onclick={() => {
-						s.lyrics = cleanup(s.lyrics)
-						historyManager.push("cleanup")
-					}}
-					title="cleanup"
-				>
-					Cleanup
-				</button>
-				<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
+			<div class="history">
+				<History></History>
 			</div>
 		</div>
 
@@ -556,7 +573,6 @@ function getBreakTimeRemaining() {
 	</div>
 	<div>
 		<hr />
-		<History></History>
 		<hr />
 		<hr />
 		<Button
@@ -647,6 +663,19 @@ function getBreakTimeRemaining() {
   /* gap: 0.5rem; */
 
   /* div {} */
+}
+
+.belowwaveform {
+  display: flex;
+  gap: 2rem;
+  > * {
+    flex: 1;
+  }
+
+  .history {
+    margin: 1rem;
+    border: var(--border-muted) solid 1px;
+  }
 }
 
 button:hover:not(:disabled) {
