@@ -2,14 +2,8 @@ import { s } from "./state.svelte"
 
 let currentScrollAnimation: number | null = null
 
-export function scrollLineIntoView(index: number, edittab = true) {
-	let targetElement
-	if (edittab) {
-		targetElement = s.lineElements2[index]
-	} else {
-		index = Math.max(0, Math.min(index, s.lineElements.length - 1))
-		targetElement = s.lineElements[index]
-	}
+export function scrollLineIntoView(index: number, element?: HTMLElement) {
+	let targetElement = element || s.lineElements2[index]
 
 	if (!targetElement || !targetElement.parentElement) return
 
