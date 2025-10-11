@@ -44,6 +44,10 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 
 
 
+- [ ] improve mobile
+
+
+
 # attribution
 favicon/icon uses twemoji
 https://github.com/jdecked/twemoji
