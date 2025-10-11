@@ -154,16 +154,39 @@ export function exportWithMetadata(lines: LyricLine[]) {
 	const metadata = s.metadata ?? {}
 	let final = ""
 
-	for (const key of Object.keys(metadata) as (keyof Metadata)[]) {
+	const preferredOrder: (keyof Metadata | "#")[] = [
+		"ti",       // Title
+		"ar",       // Artist
+		"al",       // Album
+		"au",       // Author
+		"lr",       // Lyricist
+		"length",   // Length of the song
+		"by",       // LRC file author
+		"offset",   // Timing offset
+		"re",       // Program/tool
+		"ve",       // Program version
+		"#"         // Comment marker
+	]
+
+	const allKeys = Object.keys(metadata) as (keyof Metadata)[]
+	const sortedKeys = allKeys.sort((a, b) => {
+		const ai = preferredOrder.indexOf(a)
+		const bi = preferredOrder.indexOf(b)
+		if (ai === -1 && bi === -1) return a.localeCompare(b)
+		if (ai === -1) return 1
+		if (bi === -1) return -1
+		return ai - bi
+	})
+
+	for (const key of sortedKeys) {
 		const value = metadata[key]
 		if (value) final += `[${key}:${value}]\n`
 	}
 
-	final += `\n`
-	final += lyricstext
-
+	final += `\n` + lyricstext
 	return final
 }
+
 
 
 
