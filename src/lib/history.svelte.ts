@@ -1,7 +1,6 @@
 import { persisted } from 'svelte-persisted-store'
 import type { LyricLine } from '$lib/parseLRC'
 import { s } from './state.svelte'
-import { writable, get } from 'svelte/store'
 
 export const persistedLyrics = persisted<LyricLine[]>('lyrics', [])
 
@@ -33,20 +32,23 @@ export const historyManager = {
 		console.log("undo()")
 		if (s.historyCurrent - 1 < 0) s.historyCurrent = 0
 		else s.historyCurrent--
-		s.lyrics = s.history[s.historyCurrent].lyrics
+		console.log("undo()", s.historyCurrent)
+		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
 	},
 
 	redo() {
 		console.log("redo()")
 		if (s.historyCurrent + 1 >= s.history.length) s.historyCurrent = s.history.length - 1
 		else s.historyCurrent++
-		s.lyrics = s.history[s.historyCurrent].lyrics
+		console.log("redo()", s.historyCurrent)
+		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
 	},
 
 
 
 	clear() {
 		s.history = []
+		s.historyCurrent = -1
 	},
 
 
@@ -56,27 +58,29 @@ export const historyManager = {
 	},
 
 
-	push(name: string) {
-		const lyrics = $state.snapshot(s.lyrics)
+	push(name: string, lyrics?: LyricLine[]) {
+		if (!lyrics) {
+			lyrics = $state.snapshot(s.lyrics)
+		}
+		if (!lyrics) return
 
-		if (!s.history[s.historyCurrent]) {
-			console.log("! no historycurrent")
-		} else {
-			// dont do anything if they're identical
-			// if (JSON.stringify(s.history[s.historyCurrent].lyrics) == JSON.stringify(lyrics)) {
-			// 	console.log("! identical history")
-			// 	console.log(s.history[s.historyCurrent].lyrics)
-			// 	console.log(lyrics)
-			// 	return
-			// }
+		if (s.historyCurrent < s.history.length - 1) {
 			this.clearNewer()
-
 		}
 
+		if (s.history[s.historyCurrent] && JSON.stringify(s.history[s.historyCurrent].lyrics) === JSON.stringify(lyrics)) {
+			console.log("! identical history, skipping")
+			return
+		}
 
-		s.history.push({ index: index++, time: Date.now(), lyrics: lyrics, name })
+		s.history.push({
+			index: index++,
+			time: Date.now(),
+			lyrics: JSON.parse(JSON.stringify(lyrics)),
+			name
+		})
 		s.historyCurrent = s.history.length - 1
-		console.log("history push", s.history)
+		console.log("history push", name, s.historyCurrent, s.history)
 	},
 	pushDebounced(name: string, data: { offset?: number; line?: number } = {}) {
 		// flush if type changes
@@ -121,7 +125,7 @@ export const historyManager = {
 
 	goto(index: number) {
 		s.historyCurrent = index
-		s.lyrics = s.history[s.historyCurrent].lyrics
+		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
 	},
 
 	getHistory() {

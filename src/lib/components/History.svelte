@@ -3,6 +3,7 @@ import { historyManager } from "$lib/history.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
+import Tooltip from "./Tooltip.svelte"
 
 // let history: HistoryState[] = $state([])
 
@@ -37,15 +38,17 @@ function handleClickLine(index: number, e: any) {
 				}}
 				class:current={s.history.length - 1 - revIndex === s.historyCurrent}
 			>
-				{#if s.history.length - 1 - revIndex === s.historyCurrent}
-					<span>→</span>
-				{:else}
-					<span>　</span>
-				{/if}
-				<span class="index">{s.history.length - 1 - revIndex}</span>
-				<span class="time">{new Date(h.time).toISOString().split("T")[1].replace("Z", "").slice(0, 8)}</span>
-				<span class="name">"{h.name}"</span>
-				<!-- <span>{JSON.stringify(h.lyrics)}</span> -->
+				<Tooltip message={JSON.stringify(h.lyrics)} allownewline>
+					{#if s.history.length - 1 - revIndex === s.historyCurrent}
+						<span>→</span>
+					{:else}
+						<span>　</span>
+					{/if}
+					<span class="index">{s.history.length - 1 - revIndex}</span>
+					<span class="time">{new Date(h.time).toISOString().split("T")[1].replace("Z", "").slice(0, 8)}</span>
+					<span class="name">"{h.name}"</span>
+					<!-- <span>{JSON.stringify(h.lyrics)}</span> -->
+				</Tooltip>
 			</div>
 		{/each}
 	</div>
