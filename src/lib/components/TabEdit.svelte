@@ -23,45 +23,50 @@ let lineElements = $state(new Array())
 
 function handleBlur() {
 	if (!textAreaElement) return
+	if (textUpdateTimeout) window.clearTimeout(textUpdateTimeout)
 
-	handleInput()
+	setLyrics()
 
-	// wait because we have to wait for the debounce thing
-	// TODO: improve this idk
-	window.setTimeout(() => {
-		historyManager.push("input edited")
-	}, 1000)
+	// because we update the actual lyrics without pushing to history, its possible
+	// that this change is considered part of another..
+	historyManager.push("input edited")
 }
 
 function handleInput() {
-	const currentScrollTop = textAreaElement.scrollTop
-
 	s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
-	console.log("caretline", s.currentCaretLine)
 
-	if (textUpdateTimeout) clearTimeout(textUpdateTimeout)
+	if (textUpdateTimeout) {
+		window.clearTimeout(textUpdateTimeout)
+	} else {
+		console.log("no timeout:)", textUpdateTimeout)
+		historyManager.pushDebounced("input edited", {}, 10000)
+	}
 
 	textUpdateTimeout = window.setTimeout(() => {
 		try {
-			console.log("updating lyrics :)")
-
-			requestAnimationFrame(() => {
-				const updatedLyrics = parseLRC(lyricsText).lyrics
-
-				if (JSON.stringify(s.lyrics) != JSON.stringify(updatedLyrics)) {
-					s.lyrics = updatedLyrics
-				} else {
-					console.log("no change")
-				}
-				if (textAreaElement && lyricsBoxElement) {
-					textAreaElement.scrollTop = currentScrollTop
-					syncScroll(textAreaElement, lyricsBoxElement, "textarea")
-				}
-			})
+			setLyrics()
+			historyManager.pushDebounced("input edited", {}, 10000)
 		} catch (error) {
 			console.warn("Failed to parse LRC text:", error)
+		} finally {
+			// clear the timeout after it fires
+			textUpdateTimeout = null
 		}
 	}, 500)
+}
+function setLyrics() {
+	const currentScrollTop = textAreaElement.scrollTop
+	const updatedLyrics = parseLRC(lyricsText).lyrics
+
+	if (JSON.stringify(s.lyrics) != JSON.stringify(updatedLyrics)) {
+		s.lyrics = updatedLyrics
+	} else {
+		console.log("no change")
+	}
+	if (textAreaElement && lyricsBoxElement) {
+		textAreaElement.scrollTop = currentScrollTop
+		syncScroll(textAreaElement, lyricsBoxElement, "textarea")
+	}
 }
 
 let timeoutid: number | null = null

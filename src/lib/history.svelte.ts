@@ -1,5 +1,5 @@
 import { persisted } from 'svelte-persisted-store'
-import type { LyricLine } from '$lib/parseLRC'
+import type { LyricLine, Metadata } from '$lib/parseLRC'
 import { s } from './state.svelte'
 
 export const persistedLyrics = persisted<LyricLine[]>('lyrics', [])
@@ -8,7 +8,8 @@ export interface HistoryState {
 	index: number,
 	name: string,
 	time: number,
-	lyrics: LyricLine[]
+	lyrics: LyricLine[],
+	metadata: Metadata
 }
 
 let index = 1
@@ -28,45 +29,58 @@ let pending: DebouncedAction | null = null
 
 
 export const historyManager = {
+	restoreStateAt(entry: number) {
+		if (entry < 0 || entry >= s.history.length) return
+		const historyEntry = $state.snapshot(s.history[entry])
+
+		s.lyrics = (historyEntry.lyrics)
+		s.metadata = (historyEntry.metadata)
+		s.historyCurrent = entry
+	},
+
 	undo() {
-		console.log("undo()")
-		if (s.historyCurrent - 1 < 0) s.historyCurrent = 0
-		else s.historyCurrent--
-		console.log("undo()", s.historyCurrent)
-		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
+		const targetIndex = Math.max(0, s.historyCurrent - 1)
+		console.log("undo() to index", targetIndex)
+		this.restoreStateAt(targetIndex)
 	},
 
 	redo() {
-		console.log("redo()")
-		if (s.historyCurrent + 1 >= s.history.length) s.historyCurrent = s.history.length - 1
-		else s.historyCurrent++
-		console.log("redo()", s.historyCurrent)
-		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
+		const targetIndex = Math.min(s.history.length - 1, s.historyCurrent + 1)
+		console.log("redo() to index", targetIndex)
+		this.restoreStateAt(targetIndex)
 	},
-
 
 
 	clear() {
 		s.history = []
 		s.historyCurrent = -1
+		if (pending?.timeout) {
+			clearTimeout(pending.timeout)
+			pending = null
+		}
+		s.historyPending = null
 	},
 
-
 	clearNewer(from: number = s.historyCurrent + 1) {
-		// clear history from history[current] to end
 		s.history.splice(from)
 	},
 
-
-	push(name: string, lyrics?: LyricLine[]) {
-		if (!lyrics) {
-			lyrics = $state.snapshot(s.lyrics)
+	push(name: string) {
+		if (pending) {
+			this.flush()
+			setTimeout(() => this.saveState(name), 0)
+		} else {
+			this.saveState(name)
 		}
-		if (!lyrics) return
+	},
 
+	saveState(name: string) {
 		if (s.historyCurrent < s.history.length - 1) {
 			this.clearNewer()
 		}
+
+		const lyrics = $state.snapshot(s.lyrics)
+		const metadata = $state.snapshot(s.metadata)
 
 		if (s.history[s.historyCurrent] && JSON.stringify(s.history[s.historyCurrent].lyrics) === JSON.stringify(lyrics)) {
 			console.log("! identical history, skipping")
@@ -76,13 +90,16 @@ export const historyManager = {
 		s.history.push({
 			index: index++,
 			time: Date.now(),
-			lyrics: JSON.parse(JSON.stringify(lyrics)),
+			lyrics,
+			metadata,
 			name
 		})
 		s.historyCurrent = s.history.length - 1
-		console.log("history push", name, s.historyCurrent, s.history)
+		console.log("history push", name, "current:", s.historyCurrent)
 	},
-	pushDebounced(name: string, data: { offset?: number; line?: number } = {}) {
+
+
+	pushDebounced(name: string, data: { offset?: number; line?: number } = {}, delay = 2500) {
 		// flush if type changes
 		if (pending && pending.name !== name) {
 			this.flush()
@@ -104,20 +121,32 @@ export const historyManager = {
 		if (pending.timeout) clearTimeout(pending.timeout)
 		pending.timeout = window.setTimeout(() => {
 			this.flush()
-		}, 2500)
+		}, delay)
 	},
+
+
 	flush() {
 		if (!pending) return
-		const { name, data } = pending
 
+		const { name, data } = pending
 		let desc = name
 		if (name.startsWith("adjust")) {
-			if (data.totalOffset === 0) return
+			if (data.totalOffset === 0) {
+				this.clearPending()
+				return
+			}
 			desc = `${name} by ${data.totalOffset.toFixed(2)} (${data.count})`
 			if (data.line !== undefined) desc += ` on line ${data.line}`
 		}
 
-		this.push(desc)
+		this.saveState(desc)
+		this.clearPending()
+	},
+
+	clearPending() {
+		if (pending?.timeout) {
+			clearTimeout(pending.timeout)
+		}
 		pending = null
 		s.historyPending = null
 	},
@@ -129,6 +158,7 @@ export const historyManager = {
 	goto(index: number) {
 		s.historyCurrent = index
 		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
+		s.metadata = $state.snapshot(s.history[s.historyCurrent].metadata)
 	},
 
 	getHistory() {

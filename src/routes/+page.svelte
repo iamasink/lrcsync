@@ -801,6 +801,7 @@ input[type="file"] {
   height: 4rem;
   font-size: large;
   display: flex;
+  margin-bottom: 1rem;
 
   .left {
     color: var(--text-muted);
