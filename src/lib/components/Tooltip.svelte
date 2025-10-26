@@ -12,9 +12,10 @@ interface Props {
 	position?: position
 	showDelay?: number
 	subseqtime?: number
+	allownewline?: boolean
 	[key: string]: any
 }
-let { message, children, position = "bottom", showDelay = 1000, subseqtime = 250, ...rest }: Props = $props()
+let { message, children, position = "bottom", showDelay = 1000, subseqtime = 250, allownewline = false, ...rest }: Props = $props()
 
 let show = $state(false)
 let timeout: number | null = null
@@ -78,7 +79,11 @@ async function updatePosition() {
 
 {#if message}
 	<div bind:this={tooltipEl} class="tooltip-message" class:show role="tooltip">
-		{message}
+		{#if allownewline}
+			{@html message.split("\n").join("<br>")}
+		{:else}
+			{message}
+		{/if}
 	</div>
 {/if}
 
@@ -97,6 +102,7 @@ async function updatePosition() {
   color: white;
   padding: 4px 8px;
   font-size: 0.75rem;
+  white-space: pre-line
   border: var(--border) solid 1px;
   border-radius: 4px;
   white-space: nowrap;
