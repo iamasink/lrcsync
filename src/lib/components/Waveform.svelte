@@ -1,4 +1,5 @@
 <script lang="ts">
+import { historyManager } from "$lib/history.svelte"
 import { type LyricLine, roundTimestamp, toCentiseconds } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { preferences, s } from "$lib/state.svelte"
@@ -180,6 +181,7 @@ export async function loadFile(loadfile: File) {
 	}
 }
 
+// is the next line a blank line (giving this region an end time)?
 function regionHasEndTime(index: number) {
 	const lyric = s.lyrics[index]
 	const regionStart = lyric.time / 1000
@@ -394,17 +396,29 @@ function updateregion(r: Region, side: "start" | "end" | undefined = undefined) 
 	const idx = parseInt(r.id.substring(6))
 	console.log(idx)
 
+	// update start,
 	const start = toCentiseconds(r.start * 1000)
-	s.lyrics[idx].time = start
+	if (start != s.lyrics[idx].time) {
+		console.log("sjkfhdkjsdf")
+		s.lyrics[idx].time = start
+		historyManager.pushDebounced(`updated line ${idx} via region`)
+	}
 
 	if (regionHasEndTime(idx)) {
 		if (idx + 1 == s.lyrics.length) {
+			// if this is the last lyric, add an ending line?
 			s.lyrics.push({ time: toCentiseconds(r.end * 1000), text: "" })
+			historyManager.pushDebounced(`added line ${s.lyrics.length} via region end`)
 		} else {
-			if (s.lyrics[idx + 1].text != "") {
-				s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
-			} else {
+			// if the next lyric is blank,
+			if (s.lyrics[idx + 1].text == "") {
+				// set it to start at the end of this one
 				s.lyrics[idx + 1].time = (r.end + 0.01) * 1000
+				historyManager.pushDebounced(`updated blank line ${idx + 1} via region`)
+			} else {
+				// append a blank line at the region's end
+				s.lyrics.splice(idx + 1, 0, { time: r.end * 1000, text: "" })
+				historyManager.pushDebounced(`added line ${idx + 1} via region end`)
 			}
 		}
 	}
