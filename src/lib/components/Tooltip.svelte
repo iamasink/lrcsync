@@ -102,7 +102,7 @@ async function updatePosition() {
   color: white;
   padding: 4px 8px;
   font-size: 0.75rem;
-  white-space: pre-line
+  white-space: pre-line;
   border: var(--border) solid 1px;
   border-radius: 4px;
   white-space: nowrap;
