@@ -22,7 +22,10 @@ import { onMount, setContext } from "svelte"
 import Button from "$lib/components/Button.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
+import MobileWarning from "$lib/components/ScreensizeWarning.svelte"
+import ScreensizeWarning from "$lib/components/ScreensizeWarning.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
+import Welcome from "$lib/components/Welcome.svelte"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -355,6 +358,16 @@ function getBreakTimeRemaining() {
 	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCSync` : "LRCSync"}</title>
 </svelte:head>
 
+<noscript>
+	<div class="dialog-backdrop" role="dialog" aria-modal="true">
+		<div class="dialog-box">
+			<h1>LRCSync</h1>
+			<p>lrc file editor with timeline audio visualization.</p>
+			<p>JavaScript is required.</p>
+		</div>
+	</div>
+</noscript>
+<ScreensizeWarning />
 <div class="app">
 	<div class="container">
 		{#if showFileoverlay}

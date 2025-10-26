@@ -1,10 +1,13 @@
 # lrcsync (wip)
 <img href="https://lrcsync.iamas.ink" title="temporary?? favicon :3" src="./static/favicon.svg" alt="cat playing saxophone logo" width="100"/>  
   
-open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
+open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)  
 
+advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfer.xyz/))  
 
 ## todo
+- [ ] better readme :)
+
 - [ ] toggle autocentre or whatever its called
 - [ ] fix weird line index stuff when before first lyric
 
