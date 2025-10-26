@@ -15,7 +15,7 @@ interface Props {
 	allownewline?: boolean
 	[key: string]: any
 }
-let { message, children, position = "bottom", showDelay = 1000, subseqtime = 250, allownewline = false, ...rest }: Props = $props()
+let { message, children, position = "bottom", showDelay = 750, subseqtime = 250, allownewline = false, ...rest }: Props = $props()
 
 let show = $state(false)
 let timeout: number | null = null
