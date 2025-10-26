@@ -1,11 +1,14 @@
 
 
 <script lang="ts">
-	import Waveform from "$lib/components/Waveform.svelte";
-	import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
-	import { convertAll } from "$lib/kuroshiro";
+import Waveform from "$lib/components/Waveform.svelte";
+import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
+import { convertAll } from "$lib/kuroshiro";
 import { s } from "$lib/state.svelte"
-	
+import { onMount } from "svelte";
+import type { UIEventHandler } from "svelte/elements";
+import Tooltip from "./Tooltip.svelte";
+import { historyManager } from "$lib/history.svelte";
 
 
 // onMount(async () => {
@@ -44,10 +47,6 @@ import { s } from "$lib/state.svelte"
 	let { onscroll, element = $bindable(), height = 22.4, lineElements=$bindable() }: Props = $props();
 
 	let popupIndex: number | null = $state(null)
-
-	import { onMount } from "svelte";
-	import type { UIEventHandler } from "svelte/elements";
-	import Tooltip from "./Tooltip.svelte";
 
 	function handleLineClick(lineIndex: number) {
 		console.log("lineclick",lineIndex)
@@ -119,6 +118,14 @@ function getLine(lineIndex: number) {
 	return { text, isInfo }
 }
 
+function handleRemovetime(i:number) {
+s.lyrics[i].time=-1
+historyManager.push(`removed time for line ${i}`)
+}
+function handleDelete(i:number) {
+s.lyrics.splice(i,1)
+historyManager.push(`deleted line ${i}`)
+}
 
 </script>
 
@@ -153,8 +160,8 @@ function getLine(lineIndex: number) {
 				{lineinfo.text}
 			</div>
 			<div class="buttons">
-				<Tooltip message="Remove Time"><button onclick={() => {s.lyrics[i].time=-1}}>✖️</button></Tooltip>
-				<Tooltip message="Delete"><button onclick={() => {s.lyrics.splice(i,1)}}>🗑️</button></Tooltip>
+				<Tooltip message="Remove Time"><button onclick={() => handleRemovetime(i)}>✖️</button></Tooltip>
+				<Tooltip message="Delete"><button onclick={() => handleDelete(i)}>🗑️</button></Tooltip>
 			</div>
 			{#if getWarnings(i).length>0}
 			<div class="warning-indicator"
