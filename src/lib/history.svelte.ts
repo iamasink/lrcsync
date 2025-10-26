@@ -94,7 +94,9 @@ export const historyManager = {
 				name,
 				data: { totalOffset: 0, count: 0, line: data.line }
 			}
+			s.historyPending = { name: pending.name, time: Date.now() }
 		}
+		if (s.historyPending) s.historyPending.time = Date.now()
 
 		if (data.offset) pending.data.totalOffset += data.offset
 		pending.data.count++
@@ -102,7 +104,7 @@ export const historyManager = {
 		if (pending.timeout) clearTimeout(pending.timeout)
 		pending.timeout = window.setTimeout(() => {
 			this.flush()
-		}, 500)
+		}, 2500)
 	},
 	flush() {
 		if (!pending) return
@@ -117,6 +119,7 @@ export const historyManager = {
 
 		this.push(desc)
 		pending = null
+		s.historyPending = null
 	},
 
 	check() {

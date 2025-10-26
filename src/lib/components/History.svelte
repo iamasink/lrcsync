@@ -22,12 +22,28 @@ function handleClickLine(index: number, e: any) {
 
 	historyManager.goto(index)
 }
+
+function timeToString(time: number) {
+	return new Date(time).toISOString().split("T")[1].replace("Z", "").slice(0, 8)
+}
 </script>
 
 <div class="history">
 	<p class="header">History:</p>
 	<div class="history-list">
 		{s.historyCurrent}
+		{#if s.historyPending}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="history-line">
+				<Tooltip message={""}>
+					<span class="index">p</span>
+					<span class="time">{timeToString(s.historyPending.time)}</span>
+					<span class="name">"{s.historyPending.name}"</span>
+					<!-- <span>{JSON.stringify(h.lyrics)}</span> -->
+				</Tooltip>
+			</div>
+		{/if}
 		{#each [...s.history].reverse() as h, revIndex}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -45,7 +61,7 @@ function handleClickLine(index: number, e: any) {
 						<span>　</span>
 					{/if}
 					<span class="index">{s.history.length - 1 - revIndex}</span>
-					<span class="time">{new Date(h.time).toISOString().split("T")[1].replace("Z", "").slice(0, 8)}</span>
+					<span class="time">{timeToString(h.time)}</span>
 					<span class="name">"{h.name}"</span>
 					<!-- <span>{JSON.stringify(h.lyrics)}</span> -->
 				</Tooltip>
