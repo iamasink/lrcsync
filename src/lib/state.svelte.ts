@@ -24,7 +24,8 @@ interface State {
 	filePaths: { lyrics?: string, audio?: string }
 	history: HistoryState[],
 	historyCurrent: number,
-	historyPending: { name: string, time: number } | null
+	historyPending: { name: string, time: number } | null,
+	unsavedChanges: boolean
 }
 
 export const s: State = $state({
@@ -46,7 +47,8 @@ export const s: State = $state({
 	filePaths: {},
 	history: [],
 	historyCurrent: -1,
-	historyPending: null
+	historyPending: null,
+	unsavedChanges: true
 })
 
 interface Preferences {

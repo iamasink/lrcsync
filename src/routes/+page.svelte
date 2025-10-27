@@ -260,6 +260,13 @@ onMount(() => {
 		s.modkeysHeld.ctrl = false
 		s.modkeysHeld.alt = false
 	})
+	window.addEventListener("beforeunload", (e) => {
+		console.log("beforeunload fired", s.unsavedChanges)
+		if (s.unsavedChanges) {
+			e.preventDefault()
+			e.returnValue = true
+		}
+	})
 
 	requestAnimationFrame(update)
 	requestAnimationFrame(countfps)
