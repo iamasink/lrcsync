@@ -8,6 +8,8 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 ## todo
 - [ ] better readme :)
 
+- [ ] on drag audio in, and there is already lyrics, prompt to clear current lyrics and metadata
+
 - [ ] toggle autocentre or whatever its called
 - [ ] fix weird line index stuff when before first lyric
 
