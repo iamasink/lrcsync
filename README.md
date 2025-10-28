@@ -7,6 +7,7 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 ## todo
 - [ ] better readme :)
+- [ ] clean existing timestamps button
 
 - [ ] on drag audio in, and there is already lyrics, prompt to clear current lyrics and metadata
 
