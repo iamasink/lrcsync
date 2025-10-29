@@ -292,9 +292,29 @@ export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
 		}
 	}
 
+	// // now cleanup text
+	// for (let i = 0; i < cleaned.length - 1; i++) {
+	// 	const text = cleaned[i].text
+	// 	text
+	// 		.replaceAll("‘", "'")
+	// 		.replaceAll("’", "'")
+	// 		.replaceAll("“", "\"")
+	// 		.replaceAll("”", "\"")
+	// 		.replaceAll("‚", ",")
+	// 		.replaceAll("‛", "'")
+	// 		.replaceAll("‵", "'")
+	// 		.replaceAll("‶", "\"")
+	// 		.replaceAll("‷", "\"")
+	// 		.replaceAll("′", "'")
+
+
+	// cleaned[i].text = text
+	// }
+
 	// console.log(cleaned)
 	return cleaned
 }
+
 
 export function allHaveTimestamps(lines: LyricLine[]) {
 	return lines.every(line =>
