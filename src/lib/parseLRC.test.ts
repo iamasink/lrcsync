@@ -48,6 +48,25 @@ describe("parseLRC", () => {
 
 
 
+	it("parses multi timestamp lines", () => {
+		const input = "[00:10.50][00:20.00] First line"
+		const { lyrics } = parseLRC(input)
+		expect(lyrics).toEqual([
+			{ time: 10500, text: "First line", },
+			{ time: 20000, text: "First line" }
+		])
+
+		const input2 = "[00:10.50][00:20.00][00:30.00] First line"
+		const lyrics2 = parseLRC(input2).lyrics
+		expect(lyrics2).toEqual([
+			{ time: 10500, text: "First line", },
+			{ time: 20000, text: "First line" },
+			{ time: 30000, text: "First line" }
+		])
+	})
+
+
+
 	// messed up stuff:
 
 

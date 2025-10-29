@@ -45,10 +45,8 @@ export interface Metadata {
 export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata } {
 	const meta: Metadata = {}
 	const lyrics: LyricLine[] = []
-
 	const lines = content.split("\n")
 	const metaRegex = /^\[(ti|ar|al|au|by|re|ve|offset|length|lr):(.*)\]$/i
-
 	for (const line of lines) {
 		const metaMatch = line.match(metaRegex)
 		if (metaMatch) {
@@ -69,15 +67,18 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 			continue
 		}
 
-		// const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/)
-		const match = line.match(/\[(\d+):(\d+)(?:\.(\d+))?\](.*)/)
-		if (match) {
-			const [, m, s, ms = "00", text] = match
+		const timestampRegex = /\[(\d+):(\d+)(?:\.(\d+))?\]/g
+		const timestamps: number[] = []
+		let match
+		let lastIndex = 0
+
+		while ((match = timestampRegex.exec(line)) !== null) {
+			const [, m, s, ms = "00"] = match
 			const msNum = parseInt(ms)
 
 			// normalize to milliseconds
 			let msFinal
-			if (ms.length === 1) msFinal = msNum * 100   // 0.1 deciseconds
+			if (ms.length === 1) msFinal = msNum * 100// 0.1 deciseconds
 			else if (ms.length === 2) msFinal = msNum * 10   // 0.01 centiseconds
 			else if (ms.length === 3) msFinal = msNum * 1   // 0.01 centiseconds
 			else {
@@ -86,15 +87,20 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 				continue
 			}
 
+			timestamps.push(
+				60 * 1000 * parseInt(m) +
+				1000 * parseInt(s) +
+				msFinal
+			)
+			lastIndex = match.index + match[0].length
+		}
 
-			lyrics.push({
-				time:
-					60 * 1000 * parseInt(m) +
-					1000 * parseInt(s) +
-					// hundredths
-					msFinal,
-				text: text.trim()
-			})
+		const text = line.substring(lastIndex).trim()
+
+		if (timestamps.length > 0) {
+			for (const time of timestamps) {
+				lyrics.push({ time, text })
+			}
 		} else {
 			lyrics.push({
 				time: -1,
@@ -102,20 +108,6 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 			})
 		}
 	}
-
-
-
-	// for (const [index, line] of lyrics.entries()) {
-	// 	console.log(index, line)
-
-	// 	// all empty lines, without a timestamp will take on the next line's time
-	// 	if (line.time === -1 && line.text == "" && index != lyrics.length - 1 && index != 0) {
-	// 		const nextlyric = lyrics[index + 1]
-	// 		if (nextlyric.time != -1 && nextlyric.text != "") {
-	// 			line.time = nextlyric.time - 10
-	// 		}
-	// 	}
-	// }
 
 	return { lyrics, meta }
 }
