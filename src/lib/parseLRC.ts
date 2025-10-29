@@ -72,15 +72,16 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 		let match
 		let lastIndex = 0
 
+		// this goes over each case cuz funny regex thing
 		while ((match = timestampRegex.exec(line)) !== null) {
 			const [, m, s, ms = "00"] = match
 			const msNum = parseInt(ms)
 
 			// normalize to milliseconds
 			let msFinal
-			if (ms.length === 1) msFinal = msNum * 100// 0.1 deciseconds
-			else if (ms.length === 2) msFinal = msNum * 10   // 0.01 centiseconds
-			else if (ms.length === 3) msFinal = msNum * 1   // 0.01 centiseconds
+			if (ms.length === 1) msFinal = msNum * 100
+			else if (ms.length === 2) msFinal = msNum * 10
+			else if (ms.length === 3) msFinal = msNum * 1
 			else {
 				console.log("weird timestamp!!")
 				lyrics.push({ time: -1, text: line.trim() })
