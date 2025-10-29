@@ -22,6 +22,9 @@ const config = {
 		paths: {
 			base: process.env.VITE_BASE_PATH || ''
 		},
+		serviceWorker: {
+			register: true
+		}
 	}
 };
 
