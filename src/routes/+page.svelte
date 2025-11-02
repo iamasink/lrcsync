@@ -606,7 +606,7 @@ function getBreakTimeRemaining() {
 		<div class="footer">
 			<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
 			<p><a href="https://github.com/iamasink/lrcsync">source</a></p>
-			<p><a href="https://iamas.ink/support">support me ❣️</a></p>
+			<p><a href="https://iamas.ink/support">support me <span class="nounderline">❣️</span></a></p>
 		</div>
 	</div>
 </div>
@@ -652,6 +652,13 @@ function getBreakTimeRemaining() {
 
   a {
     color: rgba(100, 61, 172, 0.534);
+    text-decoration: none;
+    &:hover {
+      text-decoration: revert;
+      .nounderline {
+        text-decoration: none;
+      }
+    }
   }
 
   padding-top: 1rem;
