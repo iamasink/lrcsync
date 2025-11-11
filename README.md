@@ -24,7 +24,8 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
   - [ ] current lyrics 
   - [ ] etc.
 
-- [ ] undo/redo
+- [x] undo/redo
+  - [ ] maybe other stuff needs to be added
 
 - [ ] tauri:
   - [ ] filetype association and loading?
@@ -48,6 +49,10 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
   - [ ] user can add romanized version and itll map to current lyrics?
   - [ ] loading multiple lrc files (.Romanized.lrc or something?)
   - [ ] furigana etc?
+
+
+
+- [ ] bpm sync stuff
 
 
 
