@@ -2,6 +2,7 @@
 // import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
 import { Kuroshiro } from "kuroshiro-browser"
 import { s } from "./state.svelte"
+import { stripFurigana } from "./furigana"
 
 let kuroshiro: any = null
 let analyser: any = null
@@ -23,7 +24,7 @@ export function initKuroshiro(): Promise<void> {
 export async function convert(text: string): Promise<string> {
 	await initKuroshiro()
 	const converted = await kuroshiro.convert(
-		text,
+		stripFurigana(text),
 		{ to: "romaji", mode: "spaced" }
 	)
 	const cleaned = normalize(converted)

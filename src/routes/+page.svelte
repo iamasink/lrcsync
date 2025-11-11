@@ -26,6 +26,7 @@ import ScreensizeWarning from "$lib/components/DialogScreensizeWarning.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
+import { convertFurigana } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -452,7 +453,7 @@ function getBreakTimeRemaining() {
 					</div>
 					<div class="lyrictext">
 						{#if !breaktime}
-							<span class:flash={flash}>{currentText}</span>
+							<span class:flash={flash}>{@html convertFurigana(currentText)}</span>
 							{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
 								<span class="converted" class:flash={flash}>{currentTextConverted}</span>
 							{/if}
