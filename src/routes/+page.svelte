@@ -20,9 +20,11 @@ import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
 import Button from "$lib/components/Button.svelte"
+import DialogLoading from "$lib/components/DialogLoading.svelte"
+import DialogNewAudio from "$lib/components/DialogNewAudio.svelte"
+import ScreensizeWarning from "$lib/components/DialogScreensizeWarning.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
-import ScreensizeWarning from "$lib/components/ScreensizeWarning.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
@@ -36,6 +38,7 @@ let lyricsText = $derived(exportLRC(s.lyrics))
 
 let textAreaElement: HTMLTextAreaElement
 let overlayElement: HTMLDivElement
+let isDialogNewAudioOpen: boolean = $state(false)
 
 let fps = $state(0)
 let lastFrameTime = performance.now()
@@ -205,13 +208,15 @@ async function doLoad() {
 	// if (!audioFile) {
 	// 	console.error("couldn't load! no audio file!")
 	// 	return
-	// }
 	if (audioFile) {
 		console.log("loading audio")
 		const { audioSrc: src } = await loadAudio(audioFile)
 		audioSrc = src
 		if (!s.waveformRef) return
 		s.waveformRef.loadFile(audioFile)
+		if (s.lyrics.length > 1) {
+			isDialogNewAudioOpen = true
+		}
 	}
 	if (lrcFile) {
 		console.log("loading lrc")
@@ -373,6 +378,9 @@ function getBreakTimeRemaining() {
 	</div>
 </noscript>
 <ScreensizeWarning />
+<DialogNewAudio bind:open={isDialogNewAudioOpen} />
+<DialogLoading open={s.waveformLoading} />
+
 <div class="app">
 	<div class="container">
 		{#if showFileoverlay}

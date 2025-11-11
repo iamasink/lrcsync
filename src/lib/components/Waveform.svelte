@@ -58,6 +58,7 @@ $effect(() => {
 		}
 		regionCache = {}
 		isReady = false
+		s.waveformLoading = false
 		if (lastObjectUrl) {
 			URL.revokeObjectURL(lastObjectUrl)
 			lastObjectUrl = null
@@ -78,6 +79,7 @@ $effect(() => {
 	}
 	regionCache = {}
 	isReady = false
+	s.waveformLoading = true
 	visibleRegionIds = new Set()
 
 	regions = RegionsPlugin.create()
@@ -112,6 +114,7 @@ $effect(() => {
 
 	spectrogram.on("ready", () => {
 		isReady = true
+		s.waveformLoading = false
 		updateRegions()
 	})
 

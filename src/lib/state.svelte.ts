@@ -26,6 +26,7 @@ interface State {
 	historyCurrent: number,
 	historyPending: { name: string, time: number } | null,
 	unsavedChanges: boolean
+	waveformLoading: boolean
 }
 
 export const s: State = $state({
@@ -48,7 +49,8 @@ export const s: State = $state({
 	history: [],
 	historyCurrent: -1,
 	historyPending: null,
-	unsavedChanges: true
+	unsavedChanges: true,
+	waveformLoading: false
 })
 
 interface Preferences {
