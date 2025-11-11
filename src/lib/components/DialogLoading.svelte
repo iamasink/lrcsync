@@ -1,6 +1,5 @@
 <script lang="ts">
 import Dialog from "$lib/components/Dialog.svelte"
-import { s } from "$lib/state.svelte"
 
 interface Props {
 	open?: boolean

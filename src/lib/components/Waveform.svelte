@@ -85,7 +85,7 @@ $effect(() => {
 	regions = RegionsPlugin.create()
 	timeline = Timeline.create()
 	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
-	const spectrogram = Spectrogram.create({ labels: true, height: 200 })
+	const spectrogram = Spectrogram.create({ labels: true, height: 200, useWebWorker: true })
 
 	wavesurfer = WaveSurfer.create({
 		container: waveformContainer,

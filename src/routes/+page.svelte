@@ -379,7 +379,6 @@ function getBreakTimeRemaining() {
 </noscript>
 <ScreensizeWarning />
 <DialogNewAudio bind:open={isDialogNewAudioOpen} />
-<DialogLoading open={s.waveformLoading} />
 
 <div class="app">
 	<div class="container">
