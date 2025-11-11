@@ -15,6 +15,7 @@ function clear() {
 }
 </script>
 
+<!-- disable outsideclick because the user might not be tabbed in and they click onto the tab -->
 <Dialog bind:open onOutsideClick={false}>
 	<h2>New Audio</h2>
 	<p>Do you want to clear the current lyrics?</p>

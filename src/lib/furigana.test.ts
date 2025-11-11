@@ -16,7 +16,7 @@ describe("FURIGANA_REGEX", () => {
 
 	it("matches mixed kanji+kana base", () => {
 		const m = [..."東京き[トウキョウ]".matchAll(FURIGANA_REGEX)]
-		expect(m[0][1]).toBe("東京き")
+		expect(m[0][1]).toBe("東京")
 		expect(m[0][2]).toBe("トウキョウ")
 	})
 
@@ -41,14 +41,20 @@ describe("FURIGANA_REGEX", () => {
 	})
 
 	it("ignores malformed tags", () => {
-		expect([... "本気[マジ".matchAll(FURIGANA_REGEX)]).toHaveLength(0)
-		expect([... "本]マジ]".matchAll(FURIGANA_REGEX)]).toHaveLength(0)
+		expect([... "本気[マジ[]".matchAll(FURIGANA_REGEX)]).toHaveLength(0)
+		expect([... "の[本]マジ]]]".matchAll(FURIGANA_REGEX)]).toHaveLength(0)
 	})
 
 	it("supports weird cases", () => {
 		const m = [..."获[フォ]".matchAll(FURIGANA_REGEX)]
 		expect(m[0][1]).toBe("获")
 		expect(m[0][2]).toBe("フォ")
+	})
+
+	it("idk", () => {
+		const m = [..."お生憎様の今日[きょう]".matchAll(FURIGANA_REGEX)]
+		expect(m[0][1]).toBe("今日")
+		expect(m[0][2]).toBe("きょう")
 	})
 })
 

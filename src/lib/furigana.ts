@@ -3,7 +3,7 @@ const KANJI = "一-龯々〆ヵヶ"
 const KANA = "ぁ-ゖァ-ヺー"
 
 export const FURIGANA_REGEX =
-	new RegExp(`(?<![${KANJI}])([${KANJI}][${KANJI}${KANA}]*)\\[([${KANA}]+)\\]`, "gu")
+	new RegExp(`(?<![${KANJI}])([${KANJI}]{1,3})[${KANA}]?\\[([${KANA}]+)\\]`, "gu")
 
 // create ruby tags
 export function convertFurigana(text: string): string {
