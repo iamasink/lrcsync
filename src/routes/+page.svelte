@@ -215,9 +215,6 @@ async function doLoad() {
 		audioSrc = src
 		if (!s.waveformRef) return
 		s.waveformRef.loadFile(audioFile)
-		if (s.lyrics.length > 1) {
-			isDialogNewAudioOpen = true
-		}
 	}
 	if (lrcFile) {
 		console.log("loading lrc")
@@ -229,6 +226,13 @@ async function doLoad() {
 		historyManager.clear()
 		historyManager.push(`Loaded ${$state.snapshot(s.filePaths.audio)}`)
 	}
+	// if only a new audio is loaded, give the warning
+	if (audioFile && !lrcFile) {
+		if (s.lyrics.length > 1) {
+			isDialogNewAudioOpen = true
+		}
+	}
+
 	showTopControls = false
 	lrcFile = null
 	audioFile = null
