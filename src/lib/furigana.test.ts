@@ -20,10 +20,16 @@ describe("FURIGANA_REGEX", () => {
 		expect(m[0][2]).toBe("トウキョウ")
 	})
 
-	it("does not match pure kana before bracket", () => {
+	it("does not match kana before bracket", () => {
 		const m = [..."これは本気[マジ]".matchAll(FURIGANA_REGEX)]
 		expect(m.length).toBe(1)
 		expect(m[0][1]).toBe("本気")
+	})
+
+	it("matches well in a sentence", () => {
+		const m = [..."お生憎様の今日[きょう]".matchAll(FURIGANA_REGEX)]
+		expect(m[0][1]).toBe("今日")
+		expect(m[0][2]).toBe("きょう")
 	})
 
 	it("does not match kana-only bases", () => {
@@ -51,11 +57,10 @@ describe("FURIGANA_REGEX", () => {
 		expect(m[0][2]).toBe("フォ")
 	})
 
-	it("idk", () => {
-		const m = [..."お生憎様の今日[きょう]".matchAll(FURIGANA_REGEX)]
-		expect(m[0][1]).toBe("今日")
-		expect(m[0][2]).toBe("きょう")
-	})
+
+	// it("kinda matches different format", () => {
+	// 	const m = [..."".matchAll(FURIGANA_REGEX)]
+	// })
 })
 
 describe("convertFurigana()", () => {
