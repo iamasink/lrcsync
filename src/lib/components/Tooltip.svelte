@@ -94,7 +94,7 @@ async function updatePosition() {
 }
 
 .tooltip-message {
-  position: absolute;
+  position: fixed;
   /* left: 50%;
   top: 100%;
   transform: translateX(-50%); */
