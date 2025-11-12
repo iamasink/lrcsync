@@ -84,19 +84,27 @@ function syncScroll(source: HTMLElement, target: HTMLElement, origin: "textarea"
 	timeoutid = window.setTimeout(() => {
 		scrollSource = null
 		timeoutid = null
-	}, 1000)
+	}, 10)
 }
 
-function handleTextAreaScroll() {
+function handleTextAreaScroll(e: Event) {
 	if (textAreaElement && lyricsBoxElement) {
 		syncScroll(textAreaElement, lyricsBoxElement, "textarea")
 	}
+	e.stopPropagation()
+	e.preventDefault()
 }
 
-function handleLyricsBoxScroll() {
+function handleLyricsBoxScroll(e: Event) {
 	if (textAreaElement && lyricsBoxElement) {
 		syncScroll(lyricsBoxElement, textAreaElement, "lyrics")
 	}
+	e.stopPropagation()
+	e.preventDefault()
+}
+
+function handleWheel(e: WheelEvent) {
+	e.stopPropagation()
 }
 
 // sync
@@ -224,6 +232,7 @@ function handleBlankButtonClick() {
 			onkeyup={handleInput}
 			oninput={handleInput}
 			onscroll={handleTextAreaScroll}
+			onwheelcapture={handleWheel}
 		></textarea>
 		<!--
 			<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
@@ -240,7 +249,7 @@ function handleBlankButtonClick() {
 						</div>
 		-->
 
-		<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>
+		<div class="lyricsboxcontainer" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll} onwheelcapture={handleWheel}>
 			<LyricsBox bind:lineElements={s.lineElements2} />
 		</div>
 	</div>
