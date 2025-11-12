@@ -351,6 +351,22 @@ function handlePrevButtonClick() {
 	}
 }
 
+let clearButtonConfirm = $state(false)
+let clearButtonTimeout: number | undefined
+function handleClearButtonClick() {
+	if (!clearButtonConfirm) {
+		clearButtonConfirm = true
+		clearButtonTimeout = window.setTimeout(() => {
+			clearButtonConfirm = false
+		}, 5000)
+	} else {
+		if (clearButtonTimeout) clearTimeout(clearButtonTimeout)
+		s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
+		historyManager.push("cleared all timestamps")
+		clearButtonConfirm = false
+	}
+}
+
 function getBreakTimeRemaining() {
 	const max = 30
 	const offset = getOffsetToNextLyricAudio()
@@ -572,6 +588,15 @@ function getBreakTimeRemaining() {
 						>
 							Cleanup
 						</button>
+						<button
+							onclick={() => {
+								handleClearButtonClick()
+							}}
+							title="Clear all existing timestamps"
+							class:danger={clearButtonConfirm}
+						>
+							{clearButtonConfirm ? "Really?" : "Clear"}
+						</button>
 						<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
 					</div>
 				</div>
@@ -640,6 +665,11 @@ function getBreakTimeRemaining() {
     background: var(--text);
     cursor: pointer;
     font-weight: 600;
+
+    .danger {
+      background: var(--danger);
+      color: white;
+    }
   }
   label {
     cursor: pointer;
