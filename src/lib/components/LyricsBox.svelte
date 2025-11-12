@@ -192,8 +192,11 @@ historyManager.push(`deleted line ${i}`)
 		padding-top: 4px;
 		padding-right: 16px;
 
-		--colour-offset-index: -0.4;
-		--colour-offset-timestamp: -0.15;
+		--offset-l-index: -0.4;
+		--offset-c-index: 0;
+
+		--offset-l-timestamp: -0.2;
+		--offset-c-timestamp: -0.03;
 
 		--colour-normal: var(--text);
 		--colour-current: var(--bg);
@@ -217,11 +220,11 @@ historyManager.push(`deleted line ${i}`)
 
 			.index {
 				width: 2ch;
-				color: oklch(from var(--colour-normal) calc(l + var(--colour-offset-index)) c h);
+				color: oklch(from var(--colour-normal) calc(l + var(--offset-l-index)) calc(c + var(--offset-c-index)) h);
 			}
 
 			.timestamp {
-				color: oklch(from var(--colour-normal) calc(l + var(--colour-offset-timestamp)) c h);
+				color: oklch(from var(--colour-normal) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
 				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
 					"Segoe UI Mono", monospace;
 				font-size: 0.85em;
@@ -256,10 +259,10 @@ historyManager.push(`deleted line ${i}`)
 			background-color: #ffffff !important;
 
 			.index {
-				color: oklch(from var(--colour-current) calc(l + var(--colour-offset-index)) c h);
+				color: oklch(from var(--colour-current) calc(l + var(--offset-l-index)) calc(c + var(--offset-c-index)) h);
 			}
 			.timestamp {
-				color: oklch(from var(--colour-current) calc(l + var(--colour-offset-timestamp)) c h);
+				color: oklch(from var(--colour-current) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
 			}
 
 			.text {
@@ -272,10 +275,10 @@ historyManager.push(`deleted line ${i}`)
 			background-color: #4a90e2 !important;
 
 			.index {
-				color: oklch(from var(--colour-caret) calc(l + var(--colour-offset-index)) c h);
+				color: oklch(from var(--colour-caret) calc(l + var(--offset-l-index)) calc(c + var(--offset-c-index)) h);
 			}
 			.timestamp {
-				color: oklch(from var(--colour-caret) calc(l + var(--colour-offset-timestamp)) c h);
+				color: oklch(from var(--colour-caret) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
 			}
 
 			.text {
@@ -289,10 +292,10 @@ historyManager.push(`deleted line ${i}`)
 			/* border: 2px solid #4a90e2; */
 
 			.index {
-				color: oklch(from var(--colour-currentcaret) calc(l + var(--colour-offset-index)) c h);
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--offset-l-index)) calc(c + var(--offset-c-index)) h);
 			}
 			.timestamp {
-				color: oklch(from var(--colour-currentcaret) calc(l + var(--colour-offset-timestamp)) c h);
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
 			}
 			.text {
 				color: var(--colour-currentcaret);
