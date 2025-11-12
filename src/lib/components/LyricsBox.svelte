@@ -191,6 +191,14 @@ historyManager.push(`deleted line ${i}`)
 		font-size: 14px;
 		padding-top: 4px;
 		padding-right: 16px;
+
+		--colour-offset-index: -0.4;
+		--colour-offset-timestamp: -0.15;
+
+		--colour-normal: var(--text);
+		--colour-current: var(--bg);
+		--colour-caret: var(oklch(100% 0.00011 271.152));
+		--colour-currentcaret: oklch(from var(--colour-current) calc(l - 0.1) c h);
 		
 		
 		.lyric-line {
@@ -209,19 +217,21 @@ historyManager.push(`deleted line ${i}`)
 
 			.index {
 				width: 2ch;
-				color: #868686
+				color: oklch(from var(--colour-normal) calc(l + var(--colour-offset-index)) c h);
 			}
 
 			.timestamp {
-				color: #a0a0a0;
+				color: oklch(from var(--colour-normal) calc(l + var(--colour-offset-timestamp)) c h);
 				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono",
 					"Segoe UI Mono", monospace;
 				font-size: 0.85em;
 				width: 70px;
 				text-align: right;
 			}
-
+			
 			.text {
+				color: var(--colour-normal);
+
 				flex: 1;
 				line-height: 1;
 				text-overflow: ellipsis;
@@ -232,6 +242,7 @@ historyManager.push(`deleted line ${i}`)
 					opacity: 50%
 				}
 			}
+
 
 			.buttons {
 				  display: none; /* hidden by default */
@@ -244,38 +255,50 @@ historyManager.push(`deleted line ${i}`)
 		.current {
 			background-color: #ffffff !important;
 
-			.text {
-				color: #353535;
+			.index {
+				color: oklch(from var(--colour-current) calc(l + var(--colour-offset-index)) c h);
+			}
+			.timestamp {
+				color: oklch(from var(--colour-current) calc(l + var(--colour-offset-timestamp)) c h);
 			}
 
-			.timestamp {
-				color: #2c2c2c;
+			.text {
+				color: var(--colour-current);
 			}
+
 		}
 
 		.caret {
 			background-color: #4a90e2 !important;
 
+			.index {
+				color: oklch(from var(--colour-caret) calc(l + var(--colour-offset-index)) c h);
+			}
+			.timestamp {
+				color: oklch(from var(--colour-caret) calc(l + var(--colour-offset-timestamp)) c h);
+			}
+
 			.text {
-				color: #ffffff;
+				color: var(--colour-caret)
 			}
 			
-			.timestamp {
-				color: #e0e0e0;
-			}
 		}
 
 		.current.caret {
 			background-color: rgb(207, 229, 255) !important;
 			/* border: 2px solid #4a90e2; */
 
+			.index {
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--colour-offset-index)) c h);
+			}
+			.timestamp {
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--colour-offset-timestamp)) c h);
+			}
 			.text {
-				color: #353535;
+				color: var(--colour-currentcaret);
 			}
 
-			.timestamp {
-				color: #2c2c2c;
-			}
+
 			
 		}
 	}
