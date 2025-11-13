@@ -44,26 +44,6 @@ onMount(() => {
 {/if}
 
 <style>
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
-}
-
-.dialog-box {
-  background: var(--bg-light, #222);
-  color: var(--text, #fff);
-  padding: 14px;
-  border-radius: 8px;
-  max-width: 520px;
-  width: 90%;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-
 :global {
   .dialog-content {
     .actions {
