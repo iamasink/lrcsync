@@ -12,6 +12,7 @@ import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js"
 import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/plugins/spectrogram.esm.js"
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
 import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
+import { guess } from "web-audio-beat-detector"
 
 let file: File | null = $state(null)
 let waveformContainer: HTMLDivElement
@@ -24,12 +25,25 @@ let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
 
+let isBpmEnabled = $state(false)
+let audioBPM = $state(0)
+let audioBPMOffsetMs = $state(0)
+let bpmLoading = $state(false)
+
+let bpmMin = $state(100)
+let bpmMax = $state(200)
+
 const AUTOCENTER_DEFAULT = true
 const AUTOSCROLL_DEFAULT = true
 
 let autoScrollTimeout: number = $state(0)
 
-const regionColours = { default: "rgba(0, 255, 0, 0.04)", audio: "rgba(255, 255, 255, 0.3)", caret: "rgba(74, 144, 226, 0.3)" }
+const regionColours = {
+	default: "rgba(0, 255, 0, 0.04)",
+	audio: "rgba(255, 255, 255, 0.3)",
+	caret: "rgba(74, 144, 226, 0.3)",
+	beatTick: "rgba(25, 165, 0, 0.5)",
+}
 let volume: number = $state($preferences.volume)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
@@ -43,6 +57,11 @@ $effect(() => {
 	if (!isReady) return
 
 	updateRegions()
+})
+
+$effect(() => {
+	if (!isReady || !wavesurfer) return
+	updateBpmMarkers()
 })
 
 $effect(() => {
@@ -116,6 +135,11 @@ $effect(() => {
 		isReady = true
 		s.waveformLoading = false
 		updateRegions()
+		guessTempo().then(() => {
+			setTimeout(() => {
+				updateBpmMarkers()
+			}, 1000)
+		})
 	})
 
 	minimap.on("drag", (x) => {
@@ -130,8 +154,10 @@ $effect(() => {
 	})
 
 	regions.on("region-updated", (r) => {
-		updateregion(r)
-		wavesurfer?.setTime(r.start)
+		if (!r.id.startsWith("bpm-tick")) {
+			updateregion(r)
+			wavesurfer?.setTime(r.start)
+		}
 	})
 
 	if (lastObjectUrl) {
@@ -217,11 +243,44 @@ function getRegionEndTime(index: number) {
 	return wavesurfer?.getDuration() ?? 9999
 }
 
+export function updateBpmMarkers() {
+	if (!regions || !wavesurfer) return
+
+	const duration = wavesurfer.getDuration()
+	if (!duration || duration <= 0) return
+
+	const beatInterval = 60 / audioBPM // seconds per beat
+
+	const existingRegions = regions.getRegions()
+	const usedBpmRegions = new Set<string>()
+
+	if (isBpmEnabled) {
+		for (let time = audioBPMOffsetMs / 1000; time < duration; time += beatInterval) {
+			if (time < 0) continue
+
+			const regionId = `bpm-tick-${Math.round(time * 1000)}`
+			usedBpmRegions.add(regionId)
+
+			const existingRegion = existingRegions.find(r => r.id === regionId)
+
+			if (!existingRegion) {
+				regions.addRegion({ id: regionId, start: time, content: "", color: regionColours.beatTick, drag: false, resize: false })
+			}
+		}
+	}
+
+	for (const region of existingRegions) {
+		if (region.id.startsWith("bpm-tick") && !usedBpmRegions.has(region.id)) {
+			region.remove()
+		}
+	}
+}
+
 export function updateRegions() {
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
 	if (!regions || !wavesurfer) return
-	const existingRegions = regions.getRegions()
 
+	const existingRegions = regions.getRegions()
 	const usedRegions = new Set<string>()
 
 	for (let i = 0; i < lyrics.length; i++) {
@@ -278,7 +337,7 @@ export function updateRegions() {
 	}
 
 	for (const region of existingRegions) {
-		if (!usedRegions.has(region.id)) {
+		if (!usedRegions.has(region.id) && !region.id.startsWith("bpm-tick")) {
 			region.remove()
 			delete regionCache[region.id]
 		}
@@ -463,6 +522,41 @@ function handleScroll(e: WheelEvent) {
 
 	e.preventDefault()
 }
+
+function handleGuessButton(e: MouseEvent) {
+	bpmMin = 100
+	bpmMax = 200
+	guessTempo()
+}
+
+async function guessTempo(min = bpmMin, max = bpmMax): Promise<{ bpm: number; offset: number } | null> {
+	if (!wavesurfer) return null
+	const mediael = wavesurfer.getMediaElement() as any
+	console.log(mediael)
+	bpmLoading = true
+	const buffer = mediael.buffer
+	try {
+		const { bpm, offset } = await guess(buffer, { minTempo: min, maxTempo: max })
+		const offsetms = offset * 1000
+		console.log(`guessed bpm ${bpm} and offset ${offsetms}ms`)
+		audioBPM = bpm
+		audioBPMOffsetMs = offsetms
+		return { bpm, offset: offsetms }
+	} catch (err) {
+		console.error(err)
+		return null
+	} finally {
+		bpmLoading = false
+	}
+}
+function guessTempoHigher() {
+	bpmMin = audioBPM
+	guessTempo(bpmMin + 0.1, bpmMax + 20)
+}
+function guessTempoLower() {
+	bpmMax = audioBPM
+	guessTempo(bpmMin - 20, bpmMax - 0.5)
+}
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -486,10 +580,33 @@ function handleScroll(e: WheelEvent) {
 			<p class="noaudio">no audio loaded.</p>
 		</div>
 	{/if}
-	<div class="above">
+	<div class="above" onclick={(e) => e.stopPropagation()}>
 		<div class="volume" onwheel={onvolumewheel}>
 			<input oninput={updateVolume} bind:value={volume} type="range" min="0" max="100" step="1" />
 			<span>{volume}</span>% <span>({ampToDB(volume2).toFixed(1)}db)</span>
+		</div>
+		<div class="bpm-controls">
+			<label>
+				{#if !isBpmEnabled}
+					Enable Beat Ticks
+				{/if}
+				<input type="checkbox" bind:checked={isBpmEnabled} />
+			</label>
+			{#if isBpmEnabled}
+				<button onclick={handleGuessButton}>{bpmLoading ? "Guessing..." : "Guess"}</button>
+				{#if audioBPM}
+					<button onclick={guessTempoHigher}>Higher</button>
+					<button onclick={guessTempoLower}>Lower</button>
+				{/if}
+				<label>
+					BPM:
+					<input type="number" bind:value={audioBPM} min="1" max="300" onblur={updateBpmMarkers} />
+				</label>
+				<label>
+					Offset:
+					<input type="number" bind:value={audioBPMOffsetMs} min="0" onblur={updateBpmMarkers} />
+				</label>
+			{/if}
 		</div>
 		<div class="nextlyric">
 			<i>syncing:</i> {s.lyrics[s.currentCaretLine]?.text ?? ""}
@@ -541,10 +658,24 @@ function handleScroll(e: WheelEvent) {
   display: flex;
   min-width: 100%;
   justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem;
+
+  .volume {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .bpm-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
 
   .nextlyric {
     position: absolute;
-    left: 60%;
+    left: 40%;
 
     i {
       opacity: 50%;
