@@ -53,6 +53,8 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 
 - [ ] bpm sync stuff
+  - [ ] nearest beat snap?
+  - [ ] +/- 1/2 1/4 beat?
 
 
 

@@ -404,7 +404,20 @@ function getBreakTimeRemaining() {
 <div class="app">
 	<div class="container">
 		{#if showFileoverlay}
-			<div class="drag-overlay">Drop files anywhere</div>
+			<div class="drag-overlay">
+				<div class="middle">
+					<p>
+						Drop files anywhere
+					</p>
+					<p class="hint">You can also drop both .lrc and audio at the same time :)</p>
+				</div>
+				<div style="top: 5%; left: 5%">Drop files anywhere</div>
+				<!--
+					<div style="bottom: 5%; left: 5%">Drop files anywhere</div>
+					<div style="top: 5%; right: 5%">Drop files anywhere</div>
+					<div style="bottom: 5%; right: 5%">Drop files anywhere</div>
+				-->
+			</div>
 		{/if}
 
 		{#if showTopControls}
@@ -764,21 +777,30 @@ input[type="file"] {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  font-size: 2rem;
-  display: flex;
+  background: rgba(0, 0, 0, 0.884);
+  font-size: 4rem;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   pointer-events: all;
+  display: flex;
+
+  div {
+    position: fixed;
+
+    .hint {
+      color: var(--text);
+      font-weight: lighter;
+      font-size: 3rem;
+    }
+  }
 }
 
 .tabarea {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0; /*allow it to shrink??*/
+  min-height: 0;
 }
 .tabs {
   display: flex;
@@ -802,7 +824,7 @@ input[type="file"] {
 .tabcontent {
   background-color: var(--bg-dark);
   border: 2px solid aqua;
-  min-height: 0; /*allow it to shrink??*/
+  min-height: 0;
   padding: 0.5rem;
   box-sizing: border-box;
   flex: 1;
