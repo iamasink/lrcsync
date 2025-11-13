@@ -856,10 +856,12 @@ input[type="file"] {
 
 .break {
   background-color: #ffffff;
+  .emoji {
+    display: inline-block;
+  }
 }
 .break.animate {
   .emoji {
-    display: inline-block;
     /* margin: 0 0rem; */
     animation: bounce 0.6s infinite alternate ease-in-out;
     transition: opacity 0.3s ease;
