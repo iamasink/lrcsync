@@ -3,7 +3,7 @@
 <script lang="ts">
 const commitHash = import.meta.env.VITE_GIT_HASH
 const branch = import.meta.env.VITE_GIT_BRANCH
-let commitBranchText = ""
+let commitBranchText = $state("")
 if (commitHash) {
 	commitBranchText += `commit: ${commitHash}`
 	if (branch) {
