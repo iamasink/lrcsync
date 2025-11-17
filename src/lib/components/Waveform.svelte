@@ -38,11 +38,13 @@ const AUTOSCROLL_DEFAULT = true
 
 let autoScrollTimeout: number = $state(0)
 
+// BUG: region colours look different (opacity) on firefox, chromium.
+// BUG: firefox: past regions become less opaque??
 const regionColours = {
 	default: "rgba(0, 255, 0, 0.04)",
 	audio: "rgba(255, 255, 255, 0.3)",
 	caret: "rgba(74, 144, 226, 0.3)",
-	beatTick: "rgba(25, 165, 0, 0.5)",
+	beatTick: "rgba(30, 200, 0, 0.2)",
 }
 let volume: number = $state($preferences.volume)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
