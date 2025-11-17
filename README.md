@@ -11,8 +11,9 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] line should not end with punctuation warning
 
 - [x] on drag audio in, and there is already lyrics, prompt to clear current lyrics and metadata
+  - [ ] improve this
 
-- [ ] toggle autocentre or whatever its called
+- [ ] toggle autocentre button 
 - [ ] fix weird line index stuff when before first lyric
 
 - [ ] support multiple timestamps?  ( eg "[00:01.10][00:10.00] lyric")
@@ -55,6 +56,10 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] bpm sync stuff
   - [ ] nearest beat snap?
   - [ ] +/- 1/2 1/4 beat?
+
+
+ - [ ] fix cleanup
+ - [ ] fix beat ticks showing over text
 
 
 

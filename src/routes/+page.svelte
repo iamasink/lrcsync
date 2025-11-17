@@ -23,6 +23,7 @@ import Button from "$lib/components/Button.svelte"
 import DialogLoading from "$lib/components/DialogLoading.svelte"
 import DialogNewAudio from "$lib/components/DialogNewAudio.svelte"
 import ScreensizeWarning from "$lib/components/DialogScreensizeWarning.svelte"
+import Footer from "$lib/components/Footer.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
@@ -653,11 +654,7 @@ function getBreakTimeRemaining() {
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
 		<br />
 		<hr />
-		<div class="footer">
-			<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
-			<p><a href="https://github.com/iamasink/lrcsync">source</a></p>
-			<p><a href="https://iamas.ink/support">support me <span class="nounderline">❣️</span></a></p>
-		</div>
+		<Footer></Footer>
 	</div>
 </div>
 
