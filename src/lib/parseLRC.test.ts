@@ -19,10 +19,11 @@ vi.mock("./state.svelte", () => ({
 
 describe("parseLRC", () => {
 	it("parses metadata correctly", () => {
-		const input = `[ti:My Song]\n[ar:Some Artist]\n`
-		const { meta } = parseLRC(input)
+		const input = `[ti:My Song]\n[ar:Some Artist]\n\n[00:01.00] First lyric`
+		const { meta, lyrics } = parseLRC(input)
 		expect(meta.ti).toBe("My Song")
 		expect(meta.ar).toBe("Some Artist")
+		expect(lyrics[0].text).toBe("First lyric")
 	})
 
 	it("parses lyrics with timestamps", () => {
@@ -215,35 +216,6 @@ describe("format helpers", () => {
 		expect(formatLine({ time: -1, text: "Line" })).toEqual("Line")
 	})
 
-	it("sortLines correctly", () => {
-		const lines2: LyricLine[] = [
-			{ time: 2000, text: "two" },
-			{ time: 1000, text: "one" }
-		]
-		expect(sortLines(lines2).map(l => l.text)).toEqual(["one", "two"])
-
-
-		const lines: LyricLine[] =
-			[
-				{ "time": 10500, "text": "one" },
-				{ "time": -1, "text": "" },
-				{ "time": -1, "text": "" },
-				{ "time": 11500, "text": "three" },
-				{ "time": -1, "text": "" },
-				{ "time": 10600, "text": "two" }]
-
-
-		expect(sortLines(lines).map(l => l.text)).toEqual(["one", "", "", "two", "", "three"])
-
-
-		const mixed: LyricLine[] = [
-			{ time: -1, text: "no time" },
-			{ time: 1000, text: "has time" },
-			{ time: -1, text: "no time too" },
-		]
-		expect(sortLines(mixed)).toEqual(mixed)
-	})
-
 	it("allHaveTimestamps works", () => {
 		const all = [{ time: 1000, text: "a" }, { time: 2000, text: "b" }]
 		expect(allHaveTimestamps(all)).toEqual(true)
@@ -332,5 +304,56 @@ describe("clean up", () => {
 		]
 
 		expect(cleanup(lines)).toEqual(correctlines)
+	})
+
+})
+
+describe("sort", () => {
+	it("sortLines correctly", () => {
+		const lines2: LyricLine[] = [
+			{ time: 2000, text: "two" },
+			{ time: 1000, text: "one" }
+		]
+		expect(sortLines(lines2).map(l => l.text)).toEqual(["one", "two"])
+
+
+		const lines: LyricLine[] =
+			[
+				{ "time": 10500, "text": "one" },
+				{ "time": -1, "text": "" },
+				{ "time": -1, "text": "" },
+				{ "time": 11500, "text": "three" },
+				{ "time": -1, "text": "" },
+				{ "time": 10600, "text": "two" }]
+
+
+		expect(sortLines(lines).map(l => l.text)).toEqual(["one", "", "", "two", "", "three"])
+
+
+		const mixed: LyricLine[] = [
+			{ time: -1, text: "no time" },
+			{ time: 1000, text: "has time" },
+			{ time: -1, text: "no time too" },
+		]
+		expect(sortLines(mixed)).toEqual(mixed)
+	})
+
+	it("sorts correctly with a blank line between", () => {
+		const lines: LyricLine[] = [
+			{ "time": 1000, "text": "やればできちゃう　それが”どりーむもーど”" },
+			{ "time": -1, "text": "" },
+			{ "time": 2000, "text": "" },
+			{ "time": -1, "text": "" },
+			{ "time": 3000, "text": "誰だって　いつかは成人" },
+		]
+		const correctlines: LyricLine[] = [
+			{ "time": 1000, "text": "やればできちゃう　それが”どりーむもーど”" },
+			{ "time": -1, "text": "" },
+			{ "time": 2000, "text": "" },
+			{ "time": -1, "text": "" },
+			{ "time": 3000, "text": "誰だって　いつかは成人" },
+		]
+
+		expect(sortLines(lines)).toEqual(correctlines)
 	})
 })

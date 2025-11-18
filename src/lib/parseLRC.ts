@@ -47,6 +47,8 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 	const lyrics: LyricLine[] = []
 	const lines = content.split("\n")
 	const metaRegex = /^\[(ti|ar|al|au|by|re|ve|offset|length|lr):(.*)\]$/i
+	let lastWasMeta = false
+
 	for (const line of lines) {
 		const metaMatch = line.match(metaRegex)
 		if (metaMatch) {
@@ -64,6 +66,7 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 				case "length": meta.length = value.trim(); break
 				default: // should be unreachable cuz regex
 			}
+			lastWasMeta = true
 			continue
 		}
 
@@ -98,6 +101,16 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 
 		const text = line.substring(lastIndex).trim()
 
+		// skip empty lines immediately after metadata
+		if (text === "" && timestamps.length === 0) {
+			if (lastWasMeta) {
+				lastWasMeta = false
+				continue
+			}
+		}
+
+		lastWasMeta = false
+
 		if (timestamps.length > 0) {
 			for (const time of timestamps) {
 				lyrics.push({ time, text })
@@ -105,7 +118,7 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 		} else {
 			lyrics.push({
 				time: -1,
-				text: line.trim()
+				text: text
 			})
 		}
 	}
@@ -203,6 +216,8 @@ export function formatTime(time: number) {
 
 	return `${m}:${s}.${cs}`
 }
+
+// rounds to nearest 10ms
 export function toCentiseconds(timeMs: number) {
 	if (!Number.isFinite(timeMs) || timeMs < 0) timeMs = 0
 	// round to nearest 10 ms
@@ -315,6 +330,12 @@ export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
 	return cleaned
 }
 
+export function cleanAndSort() {
+	const lyrics = s.lyrics
+	const cleanedLyrics = cleanup(lyrics)
+	const sortedLyrics = sortLines(cleanedLyrics)
+	return sortedLyrics
+}
 
 export function allHaveTimestamps(lines: LyricLine[]) {
 	return lines.every(line =>
@@ -341,6 +362,19 @@ function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit = 3): n
 	}
 	return 1
 }
+function getOffsetToLast(lines: LyricLine[], currentIndex: number, limit = 3): number {
+	let offset = -1
+	for (let i = 0; i < limit; i++) {
+		const lyric = lines[currentIndex + offset]
+		if (!lyric) return 1
+		if (lyric.text === "") {
+			offset--
+		} else {
+			return offset
+		}
+	}
+	return 1
+}
 
 export function getOffsetToNextLyric() {
 	return getOffsetToNext(s.lyrics, s.currentCaretLine)
@@ -348,4 +382,8 @@ export function getOffsetToNextLyric() {
 
 export function getOffsetToNextLyricAudio() {
 	return getOffsetToNext(s.lyrics, s.currentAudioLine)
+}
+
+export function getOffsetToLastLyric() {
+	return getOffsetToLast(s.lyrics, s.currentCaretLine)
 }
