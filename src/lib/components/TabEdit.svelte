@@ -1,7 +1,19 @@
 <script lang="ts">
 import LyricsBox from "$lib/components/LyricsBox.svelte"
 import { historyManager } from "$lib/history.svelte"
-import { exportLRC, formatLine, formatTime, formatTimestamp, getOffsetToNextLyric, parseLRC, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
+import {
+	cleanAndSort,
+	exportLRC,
+	formatLine,
+	formatTime,
+	formatTimestamp,
+	getOffsetToLastLyric,
+	getOffsetToNextLyric,
+	parseLRC,
+	roundTimestamp,
+	sortLines,
+	toCentiseconds,
+} from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { preferences, s } from "$lib/state.svelte"
@@ -156,7 +168,7 @@ function handleBackButtonClick() {
 		return console.log("nuh uh")
 	}
 	let newline
-	newline = s.currentCaretLine - 1
+	newline = s.currentCaretLine + getOffsetToLastLyric()
 	if (newline < 0) newline = 0
 	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
@@ -171,7 +183,7 @@ function handleSkipButtonClick() {
 		return console.log("nuh uh")
 	}
 	let newline
-	newline = s.currentCaretLine + 1
+	newline = s.currentCaretLine + getOffsetToNextLyric()
 	if (newline < 0) newline = 0
 	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
@@ -186,7 +198,7 @@ function handleBlankButtonClick() {
 	s.lyrics.splice(line, 0, { text: "", time })
 	gotoNextLine()
 
-	s.lyrics = sortLines(s.lyrics)
+	cleanAndSort()
 
 	s.waveformRef?.updateRegions()
 
