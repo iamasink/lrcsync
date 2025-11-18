@@ -245,6 +245,8 @@ async function doLoad() {
 		}
 	}
 
+	s.unsavedChanges = true
+
 	showTopControls = false
 	lrcFile = null
 	audioFile = null

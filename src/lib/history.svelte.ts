@@ -126,6 +126,7 @@ export const historyManager = {
 
 
 	flush() {
+		s.unsavedChanges = true
 		if (!pending) return
 
 		const { name, data } = pending
