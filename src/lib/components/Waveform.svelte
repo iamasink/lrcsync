@@ -1,6 +1,6 @@
 <script lang="ts">
 import { historyManager } from "$lib/history.svelte"
-import { type LyricLine, roundTimestamp, toCentiseconds } from "$lib/parseLRC"
+import { cleanAndSort, type LyricLine, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { preferences, s } from "$lib/state.svelte"
 import { onDestroy, onMount } from "svelte"
@@ -39,13 +39,23 @@ const AUTOSCROLL_DEFAULT = true
 let autoScrollTimeout: number = $state(0)
 
 // BUG: region colours look different (opacity) on firefox, chromium.
-// BUG: firefox: past regions become less opaque??
-const regionColours = {
-	default: "rgba(0, 255, 0, 0.04)",
-	audio: "rgba(255, 255, 255, 0.3)",
-	caret: "rgba(74, 144, 226, 0.3)",
-	beatTick: "rgba(30, 200, 0, 0.2)",
+const isFirefox = /Firefox/.test(navigator.userAgent)
+
+function getAlpha(firefox: number, other?: number) {
+	if (other) {
+		return isFirefox ? firefox : other
+	} else {
+		return isFirefox ? firefox : firefox * 2
+	}
 }
+
+const regionColours = {
+	default: `rgba(0, 255, 0,  ${getAlpha(0.02, 0.10)})`,
+	audio: `rgba(255, 255, 255, ${getAlpha(0.15)})`,
+	caret: `rgba(74, 144, 226, ${getAlpha(0.15)})`,
+	beatTick: `rgba(30, 200, 0, ${getAlpha(0.10)})`,
+}
+
 let volume: number = $state($preferences.volume)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
@@ -217,20 +227,19 @@ function regionHasEndTime(index: number) {
 	const lyric = s.lyrics[index]
 	const regionStart = lyric.time / 1000
 
-	const nextlyric = s.lyrics[index + 1]
-	if (!nextlyric) {
-		return true
-	}
-	let nextlyrictime = nextlyric.time / 1000
-	if (nextlyric.text == "") {
-		return true
-	}
-	// if (nextlyrictime - regionStart > 5) {
-	// 	return true
-	// }
+	for (let i = index + 1; i < s.lyrics.length; i++) {
+		const nextLyric = s.lyrics[i]
+		if (nextLyric.time === -1) continue // skip invalid times
 
-	return false
+		if (nextLyric.text === "") {
+			return true
+		}
+		return false
+	}
+
+	return true
 }
+
 function getRegionEndTime(index: number) {
 	const lyric = s.lyrics[index]
 	const regionStart = lyric.time / 1000
@@ -333,6 +342,15 @@ export function updateRegions() {
 				resizeEnd,
 			})
 			regionCache[regionId] = region
+		}
+
+		// add part for lyrics that can be dragged on the right
+		if (regionHasEndTime(i)) {
+			console.log("awawa") // region.element?.querySelector(".region-handle-right")!.classList.add("nextblank")
+			 // region.element?.querySelector(".region-handle-right")!.part.add("handle-right-nextblank")
+			;(region.element?.childNodes[1] as HTMLElement).part.add("handle-right-nextblank")
+		} else {
+			;(region.element?.childNodes[1] as HTMLElement).part.remove("handle-right-nextblank")
 		}
 
 		usedRegions.add(regionId)
@@ -464,7 +482,10 @@ function updateregion(r: Region, side: "start" | "end" | undefined = undefined) 
 	const start = toCentiseconds(r.start * 1000)
 	if (start != s.lyrics[idx].time) {
 		console.log("sjkfhdkjsdf")
-		s.lyrics[idx].time = start
+		console.log("start", start)
+		console.log(toCentiseconds(s.lyrics[idx - 1].time ?? 0) + 10)
+
+		s.lyrics[idx].time = Math.max(start, toCentiseconds(s.lyrics[idx - 1].time ?? 0) + 100)
 		historyManager.pushDebounced(`updated line ${idx} via region`)
 	}
 
@@ -501,6 +522,8 @@ function updateregion(r: Region, side: "start" | "end" | undefined = undefined) 
 		}, 5000)
 		wavesurfer.play()
 	}
+
+	cleanAndSort()
 }
 
 function handleScroll(e: WheelEvent) {
@@ -625,21 +648,41 @@ function guessTempoLower() {
   will-change: transform, scroll-position;
 }
 
-:global(#waveform) {
-  flex: 0 0 140px;
-  background-color: #000000;
+:global {
+  #waveform {
+    flex: 0 0 140px;
+    /* background-color: #000000; */
+  }
+
+  #waveform ::part(scroll) {
+    scrollbar-width: auto;
+  }
+  #waveform ::part(region-content) {
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.836);
+    overflow-wrap: anywhere;
+  }
+  #waveform ::part(region) {
+    transform: translateZ(0);
+  }
+
+  #waveform ::part(region) {
+    /* this makes firefox's region opacity Consistent (but not correct) */
+    mix-blend-mode: multiply;
+  }
+
+  #waveform ::part(region-handle-right) {
+    /* border-right: 2px solid rgb(94, 94, 94); */
+
+    border-right: 0px;
+  }
+
+  #waveform ::part(handle-right-nextblank) {
+    border-right: 2px solid rgb(255, 0, 0);
+  }
+  #waveform ::part(region-handle-left) {
+    border-left: 2px solid rgb(94, 94, 94);
+  }
 }
-:global(#waveform ::part(scroll)) {
-  scrollbar-width: auto;
-}
-:global(#waveform ::part(region-content)) {
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.836);
-}
-/* 
-:global(#waveform ::part(region-handle-right)) {
-  display: none;
-  cursor: none;
-} */
 
 .loading {
   position: absolute;
@@ -662,6 +705,10 @@ function guessTempoLower() {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.5rem;
+
+  button {
+    padding: revert;
+  }
 
   .volume {
     display: flex;
