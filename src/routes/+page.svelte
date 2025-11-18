@@ -247,9 +247,49 @@ onMount(() => {
 	const cleanupfns = initDragDrop(
 		// files
 		(files) => {
+			const badExtensions = new Set([
+				// images
+				".jpg",
+				".jpeg",
+				".png",
+				".gif",
+				".bmp",
+				".webp",
+				".svg",
+				".ico",
+				".tiff",
+				".psd",
+				".heic",
+				// info stuff
+				".cue",
+				".m3u",
+				".m3u8",
+				".nfo",
+				".sfv",
+				// archive
+				".zip",
+				".rar",
+				".7z",
+				".tar",
+				".gz",
+				// hidden
+				".DS_Store",
+				".thumbs.db",
+			])
+
+			const lyricExtensions = new Set([".lrc", ".txt"])
+
+			console.log(`processing all files:`, files)
 			Array.from(files).forEach((file) => {
 				console.log("processing file", file.name)
-				if (file.name.endsWith(".lrc") || file.name.endsWith(".txt")) {
+				const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
+
+				if (badExtensions.has(ext)) {
+					console.log(`ignoring file ext ${ext}`)
+					return
+				}
+
+				if (lyricExtensions.has(ext)) {
 					lrcFile = file
 					s.filePaths.lyrics = file.name
 				} else {

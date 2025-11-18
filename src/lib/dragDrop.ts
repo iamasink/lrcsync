@@ -50,9 +50,10 @@ export function initDragDrop(
 
 		function onDrop(e: DragEvent) {
 			e.preventDefault()
+			e.stopPropagation()
 			setOverlay(false)
 			if (e.dataTransfer?.files) onFiles(e.dataTransfer.files)
-			if (onAfterDrop) onAfterDrop()
+			onAfterDrop()
 		}
 
 		window.addEventListener("dragenter", onDragEnter)
