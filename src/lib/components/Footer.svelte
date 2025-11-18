@@ -1,8 +1,12 @@
 <svelte:options runes={true}></svelte:options>
-
+<script module>
+declare const __GIT_HASH__: string
+declare const __GIT_BRANCH__: string
+</script>
 <script lang="ts">
-const commitHash = import.meta.env.VITE_GIT_HASH
-const branch = import.meta.env.VITE_GIT_BRANCH
+const commitHash = __GIT_HASH__ as string
+const branch = __GIT_BRANCH__ as string
+
 let commitBranchText = $state("")
 if (commitHash) {
 	commitBranchText += `commit: ${commitHash}`
@@ -16,7 +20,7 @@ if (commitHash) {
 <div class="footer">
 	<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
 	<p><a href="https://github.com/iamasink/lrcsync">GitHub</a> <span>{commitBranchText}</span></p>
-	{#if branch.includes("dev")}
+	{#if !(branch.includes("main") || branch.includes("master")) }
 		<p>This is a development branch. <a href="https://lrcsync.iamas.ink">Goto main</a></p>
 	{/if}
 	<p><a href="https://iamas.ink/support">support me <span class="nounderline">❣️</span></a></p>
