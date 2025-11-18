@@ -2,7 +2,7 @@
 import LyricsBox from "$lib/components/LyricsBox.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import type { LyricLine } from "$lib/parseLRC"
-import { exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
+import { cleanAndSort, exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
 import { preferences, s } from "$lib/state.svelte"
 import { save } from "@tauri-apps/plugin-dialog"
 import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs"
@@ -86,6 +86,7 @@ async function saveFile() {
 			URL.revokeObjectURL(url)
 		}
 	}
+	s.unsavedChanges = false
 }
 async function copy() {
 	const text = exportWithMetadata(s.lyrics)
@@ -109,8 +110,10 @@ async function copy() {
 	</div>
 
 	<pre class="lrcpreview">{exportWithMetadata(s.lyrics)}</pre>
+
 	<label><button
 			onclick={() => {
+				cleanAndSort()
 				s.metadata.re = "iamasink/lrcsync"
 				s.metadata.ve = "1"
 				s.metadata.by = $preferences.username ?? ""
@@ -118,7 +121,16 @@ async function copy() {
 		>
 			add metadata
 		</button></label>
-	<!-- <details> -->
+	<label>lrc by: <input type="text" bind:value={$preferences.username} placeholder="your name"></label>
+
+	<br />
+	<button
+		onclick={() => {
+			cleanAndSort()
+		}}
+	>
+		cleanup
+	</button>
 	<!-- <summary>edit metadata</summary> -->
 	<!-- <div class="content"> -->
 	<!-- <label><button bind:value={s.metadata.}></button></label> -->
@@ -134,10 +146,8 @@ async function copy() {
 		<label>Program/tool (re)<input bind:value={s.metadata.re}></label><br />
 		<label>Program version (ve)<input bind:value={s.metadata.ve}></label><br />
 	-->
-	<!-- <label>Comment marker (#)<input bind:value={s.metadata.c}> -->
 	<!-- </div> -->
 	<!-- </details> -->
-	<label>lrc by: <input type="text" bind:value={$preferences.username} placeholder="your name"></label>
 	<br />
 	<button onclick={saveFile}>save</button>
 	<button onclick={copy}>copy</button>
