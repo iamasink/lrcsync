@@ -4,8 +4,8 @@ declare const __GIT_HASH__: string
 declare const __GIT_BRANCH__: string
 </script>
 <script lang="ts">
-const commitHash = __GIT_HASH__ as string
-const branch = __GIT_BRANCH__ as string
+const commitHash = __GIT_HASH__ ?? import.meta.env.VITE_GIT_HASH as string
+const branch = __GIT_BRANCH__ ?? import.meta.env.VITE_GIT_BRANCH as string
 
 let commitBranchText = $state("")
 if (commitHash) {

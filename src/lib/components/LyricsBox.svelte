@@ -184,6 +184,7 @@ historyManager.push(`deleted line ${i}`)
 		</div>
 	{/each}
 </div>
+<!-- (❁´◡`❁) -->
 
 <style>
 	.lyricsbox {
