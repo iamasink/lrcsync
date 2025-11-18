@@ -106,23 +106,34 @@ function adjustSelectedLine(offset: number) {
 		return
 	}
 
-	const lyricsLines = s.lyrics
-
 	const targetLine = s.lyrics[s.currentAudioLine]
-	if (!targetLine) return
-	if (targetLine.time == -1) return
 
-	const newTime = Math.max(0, targetLine.time + offset * 1000)
+	if (!targetLine || targetLine.time === -1) return
 
-	const lineIndex = s.currentAudioLine
-	if (lineIndex < lyricsLines.length) {
-		targetLine.time = newTime
-
-		if (s.waveformRef) {
-			s.waveformRef.updateRegions()
-			s.waveformRef.seekToTime(newTime / 1000)
-			s.waveformRef.play()
+	let prevTime = 0
+	for (let i = s.currentAudioLine - 1; i >= 0; i--) {
+		if (s.lyrics[i].time !== -1) {
+			prevTime = s.lyrics[i].time
+			break
 		}
+	}
+
+	let nextTime = Infinity
+	for (let i = s.currentAudioLine + 1; i < s.lyrics.length; i++) {
+		if (s.lyrics[i].time !== -1) {
+			nextTime = s.lyrics[i].time
+			break
+		}
+	}
+
+	const newTime = Math.max(prevTime + 100, Math.min(nextTime, targetLine.time + (offset * 1000)))
+
+	targetLine.time = newTime
+
+	if (s.waveformRef) {
+		s.waveformRef.updateRegions()
+		s.waveformRef.seekToTime(newTime / 1000)
+		s.waveformRef.play()
 	}
 }
 
@@ -736,6 +747,8 @@ function getBreakTimeRemaining() {
   flex-direction: column;
   gap: 0.8rem;
   height: 100svh;
+  /* avoid the scrollbar */
+  padding-right: 1rem;
   overflow: hidden;
 
   @media only screen and (max-width: 600px) {
