@@ -258,8 +258,10 @@ onMount(() => {
 	// @ts-ignore
 	s.isTauri = !!(window.__TAURI_INTERNALS__)
 
+	const cleanupfns: (() => void)[] = []
+
 	console.log("hi world")
-	const cleanupfns = initDragDrop(
+	const dragDropCleanup = initDragDrop(
 		// files
 		(files) => {
 			const badExtensions = new Set([
@@ -319,28 +321,34 @@ onMount(() => {
 		doLoad,
 	)
 
-	window.addEventListener("keydown", handleKeydown)
-	window.addEventListener("keyup", handleKeyup)
-	window.addEventListener("blur", () => {
-		s.modkeysHeld.shift = false
-		s.modkeysHeld.ctrl = false
-		s.modkeysHeld.alt = false
-	})
-	window.addEventListener("beforeunload", (e) => {
-		console.log("beforeunload fired", s.unsavedChanges)
-		if (s.unsavedChanges) {
-			e.preventDefault()
-			e.returnValue = true
-		}
+	const listeners = [
+		["keydown", handleKeydown],
+		["keyup", handleKeyup],
+		["blur", () => {
+			s.modkeysHeld.shift = false
+			s.modkeysHeld.ctrl = false
+			s.modkeysHeld.alt = false
+		}],
+		["beforeunload", (e: BeforeUnloadEvent) => {
+			console.log("beforeunload fired", s.unsavedChanges)
+			if (s.unsavedChanges) {
+				e.preventDefault()
+				e.returnValue = true
+			}
+		}],
+	] as const
+
+	listeners.forEach(([event, handler]) => {
+		window.addEventListener(event, handler as EventListener)
+		cleanupfns.push(() => window.removeEventListener(event, handler as EventListener))
 	})
 
 	requestAnimationFrame(update)
 	requestAnimationFrame(countfps)
 
 	return () => {
-		cleanupfns
-		window.removeEventListener("keydown", handleKeydown)
-		window.removeEventListener("keyup", handleKeyup)
+		dragDropCleanup()
+		cleanupfns.forEach(fn => fn())
 	}
 })
 
