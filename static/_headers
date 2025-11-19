@@ -4,6 +4,9 @@ https://:project.pages.dev/*
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
 
+https://dev.*/*
+  X-Robots-Tag: noindex
+
 # Force the Content-Encoding Tag to be sent for the .br encoded dict files...
 /dict/*.dat.br
   Content-Encoding: br

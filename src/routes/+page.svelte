@@ -27,6 +27,7 @@ import Footer from "$lib/components/Footer.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
+import Whisper from "$lib/components/Whisper.svelte"
 import { convertFurigana } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
@@ -706,6 +707,7 @@ function getBreakTimeRemaining() {
 			}}
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
 		<br />
+		<Whisper file={audioSrc}></Whisper>
 		<hr />
 		<Footer></Footer>
 	</div>
