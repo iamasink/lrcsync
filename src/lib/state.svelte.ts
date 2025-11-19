@@ -30,7 +30,7 @@ interface State {
 }
 
 export const s: State = $state({
-	lyrics: [{ text: 'default line 1', time: -1 }],
+	lyrics: [],
 	convertedLyrics: [],
 	convertedLyricsLang: "ja",
 	currentAudioLine: -1,
@@ -49,7 +49,7 @@ export const s: State = $state({
 	history: [],
 	historyCurrent: -1,
 	historyPending: null,
-	unsavedChanges: true,
+	unsavedChanges: false,
 	waveformLoading: false
 })
 
