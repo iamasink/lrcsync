@@ -147,6 +147,7 @@ $effect(() => {
 		isReady = true
 		s.waveformLoading = false
 		updateRegions()
+		wavesurfer?.stop()
 		guessTempo().then(() => {
 			setTimeout(() => {
 				updateBpmMarkers()
@@ -346,8 +347,8 @@ export function updateRegions() {
 
 		// add part for lyrics that can be dragged on the right
 		if (regionHasEndTime(i)) {
-			console.log("awawa") // region.element?.querySelector(".region-handle-right")!.classList.add("nextblank")
-			 // region.element?.querySelector(".region-handle-right")!.part.add("handle-right-nextblank")
+			// console.log("awawa") // region.element?.querySelector(".region-handle-right")!.classList.add("nextblank")
+			// region.element?.querySelector(".region-handle-right")!.part.add("handle-right-nextblank")
 			;(region.element?.childNodes[1] as HTMLElement).part.add("handle-right-nextblank")
 		} else {
 			;(region.element?.childNodes[1] as HTMLElement).part.remove("handle-right-nextblank")
@@ -424,11 +425,14 @@ export function pause() {
 	wavesurfer?.pause()
 }
 
+// Jump to a specific time in the audio (in seconds)
 export function seekToTime(time: number) {
-	if (time == -1) return
-	if (wavesurfer) {
-		wavesurfer.setTime(time)
-	}
+	if (!wavesurfer) return
+
+	time = Math.max(0, time)
+	time = Math.min(wavesurfer?.getDuration(), time)
+
+	wavesurfer.setTime(time)
 }
 
 export function isPlaying() {
