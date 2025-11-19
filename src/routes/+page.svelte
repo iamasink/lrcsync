@@ -221,13 +221,6 @@ async function doLoad() {
 	// if (!audioFile) {
 	// 	console.error("couldn't load! no audio file!")
 	// 	return
-	if (audioFile) {
-		console.log("loading audio")
-		const { audioSrc: src } = await loadAudio(audioFile)
-		audioSrc = src
-		if (!s.waveformRef) return
-		s.waveformRef.loadFile(audioFile)
-	}
 	if (lrcFile) {
 		console.log("loading lrc")
 		const { lyrics: l, meta } = await loadLRC(lrcFile)
@@ -237,6 +230,15 @@ async function doLoad() {
 		// reset history
 		historyManager.clear()
 		historyManager.push(`Loaded ${$state.snapshot(s.filePaths.audio)}`)
+	}
+	if (audioFile) {
+		console.log("loading audio")
+		const { audioSrc: src } = await loadAudio(audioFile)
+		audioSrc = src
+		if (!s.waveformRef) return
+		s.waveformRef.loadFile(audioFile)
+
+		historyManager.push(`Loaded audio track`)
 	}
 	// if only a new audio is loaded, give the warning
 	if (audioFile && !lrcFile) {
