@@ -3,7 +3,7 @@
     "useTabs": true,
     "jsx.bracketPosition": "maintain",
     "semiColons": "asi",
-    "preferSingleLine": true
+    "preferSingleLine": false,
   },
   "json": {},
   "markdown": {},
