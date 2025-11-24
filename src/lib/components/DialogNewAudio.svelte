@@ -1,17 +1,17 @@
 <script lang="ts">
-import Dialog from "$lib/components/Dialog.svelte"
-import { s } from "$lib/state.svelte"
+import Dialog from "$lib/components/Dialog.svelte";
+import { s } from "$lib/state.svelte";
 
 interface Props {
-	open?: boolean
+	open?: boolean;
 }
 
-let { open = $bindable(false) }: Props = $props()
+let { open = $bindable(false) }: Props = $props();
 
 function clear() {
-	s.lyrics = []
-	s.filePaths.lyrics = undefined
-	open = false
+	s.lyrics = [];
+	s.filePaths.lyrics = undefined;
+	open = false;
 }
 </script>
 
@@ -26,7 +26,7 @@ function clear() {
 	{/if}
 	<div class="actions">
 		<button onclick={() => (open = false)}>
-			Close
+			Keep current
 		</button>
 		<button class="danger" onclick={() => clear()}>
 			Clear Lyrics
