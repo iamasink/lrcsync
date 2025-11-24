@@ -334,7 +334,8 @@ export function cleanAndSort() {
 	const lyrics = s.lyrics
 	const cleanedLyrics = cleanup(lyrics)
 	const sortedLyrics = sortLines(cleanedLyrics)
-	return sortedLyrics
+	s.lyrics = sortedLyrics
+	// return sortedLyrics
 }
 
 export function allHaveTimestamps(lines: LyricLine[]) {
