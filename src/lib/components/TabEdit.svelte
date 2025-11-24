@@ -143,7 +143,7 @@ function handleSyncButtonClick() {
 
 	// const time = roundTimestamp(s.waveformRef.getCurrentTime() * 1000)
 	const time = s.waveformRef.getCurrentTime() * 1000
-	const newtime = toCentiseconds(time - $preferences.syncDelayMs)
+	const newtime = toCentiseconds(time - getSyncDelay())
 
 	setLineTime(newtime, s.currentCaretLine)
 	const oldline = s.currentCaretLine
@@ -193,7 +193,7 @@ function handleSkipButtonClick() {
 
 function handleBlankButtonClick() {
 	const line = s.currentCaretLine
-	const time = s.audioTime - $preferences.syncDelayMs
+	const time = s.audioTime - getSyncDelay()
 
 	s.lyrics.splice(line, 0, { text: "", time })
 	gotoNextLine()
@@ -203,6 +203,10 @@ function handleBlankButtonClick() {
 	s.waveformRef?.updateRegions()
 
 	historyManager.push(`added blank line line ${line} (${formatTimestamp(time)})`)
+}
+
+function getSyncDelay() {
+	return s.isAudioPlaying ? $preferences.syncDelayMs : 0
 }
 </script>
 

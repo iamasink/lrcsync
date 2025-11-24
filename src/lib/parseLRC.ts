@@ -262,11 +262,13 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
 	let regex: RegExp
 
-	if (force) {
-		regex = /\[(?!(?:laugh|applause|cheer|clap|yeah|oh|huh|uh|ha|heh|la|lol|sigh|cough|grr|tsk|mmm|ah|eh|ooh|aah|hmm|shh|yo|hey|woo|whoa|hee|yawn|sniff|snicker|giggle|sob|cry|scream|shout|chant|sing|hum))[^\]]*?\]$/gi
-	} else {
-		regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/gi
-	}
+	// if (force) {
+	// unimplemented, probably no way to do this well.
+	// regex = /\[(?!(?:laugh|applause|cheer|clap|yeah|oh|huh|uh|ha|heh|la|lol|sigh|cough|grr|tsk|mmm|ah|eh|ooh|aah|hmm|shh|yo|hey|woo|whoa|hee|yawn|sniff|snicker|giggle|sob|cry|scream|shout|chant|sing|hum))[^\]]*?\]$/gi
+	// } else {
+	// TODO: false positives? don't do unnecessary cleanup? idk
+	regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/gi
+	// }
 
 	const result: LyricLine[] = []
 
