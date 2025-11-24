@@ -39,12 +39,14 @@ export const historyManager = {
 	},
 
 	undo() {
+		this.flush()
 		const targetIndex = Math.max(0, s.historyCurrent - 1)
 		console.log("undo() to index", targetIndex)
 		this.restoreStateAt(targetIndex)
 	},
 
 	redo() {
+		this.flush()
 		const targetIndex = Math.min(s.history.length - 1, s.historyCurrent + 1)
 		console.log("redo() to index", targetIndex)
 		this.restoreStateAt(targetIndex)
