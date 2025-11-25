@@ -39,13 +39,16 @@ const AUTOSCROLL_DEFAULT = true
 let autoScrollTimeout: number = $state(0)
 
 // BUG: region colours look different (opacity) on firefox, chromium.
-const isFirefox = /Firefox/.test(navigator.userAgent)
+// if gfx.webrender.layer-compositor = true (default in future?), this is unnecessary
+// const isFirefox = /Firefox/.test(navigator.userAgent)
+// const applyFirefoxFix = isFirefox
+const applyFirefoxFix = false
 
 function getAlpha(firefox: number, other?: number) {
 	if (other) {
-		return isFirefox ? firefox : other
+		return applyFirefoxFix ? firefox : other
 	} else {
-		return isFirefox ? firefox : firefox * 2
+		return applyFirefoxFix ? firefox : firefox * 2
 	}
 }
 
