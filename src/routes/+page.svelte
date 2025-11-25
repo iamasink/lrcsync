@@ -715,10 +715,6 @@ function getBreakTimeRemaining() {
 				showTopControls = !showTopControls
 			}}
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
-		<Button
-		onclick={() => {
-			$preferences.firefoxWorkaround = !$preferences.firefoxWorkaround
-		}}>fix: {$preferences.firefoxWorkaround}</Button>
 		<br />
 		<hr />
 		<Footer></Footer>
