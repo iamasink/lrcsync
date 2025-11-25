@@ -537,7 +537,7 @@ function getBreakTimeRemaining() {
 		</div>
 
 		<div class="belowwaveform">
-			<div class="left">
+			<div class="belowwaveform-left">
 				<CollapsibleText>
 					<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 					<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
@@ -715,6 +715,10 @@ function getBreakTimeRemaining() {
 				showTopControls = !showTopControls
 			}}
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
+		<Button
+		onclick={() => {
+			$preferences.firefoxWorkaround = !$preferences.firefoxWorkaround
+		}}>fix: {$preferences.firefoxWorkaround}</Button>
 		<br />
 		<hr />
 		<Footer></Footer>
@@ -786,6 +790,12 @@ function getBreakTimeRemaining() {
   > * {
     flex: 1;
   }
+  .belowwaveform-left {
+  flex: 2;
+  }
+  /* .left {
+	flex: 2;
+  } */
 
   .history {
     margin: 1rem;
