@@ -4,7 +4,8 @@
         "useTabs": true,
         "jsx.bracketPosition": "maintain",
         "semiColons": "asi",
-        "preferSingleLine": false
+        "preferSingleLine": false,
+        "module.sortImportDeclarations": "maintain"
     },
     "json": {
         "jsonTrailingCommaFiles": [],
