@@ -58,6 +58,10 @@ onMount(() => {
         background: purple;
         color: white;
       }
+	  .secondary {
+		background: var(--secondary);
+		color: white;
+	  }
       .danger {
         background: var(--danger);
         color: white;
