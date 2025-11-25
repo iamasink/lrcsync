@@ -52,6 +52,21 @@ body.light {
 	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
+.mono {
+	font-family: monospace;
+}
+
+.monoborder {
+	font-family: monospace;
+	border: #aaa 1px solid;
+	background-color: var(--bg);
+	border-radius: 0.5em;
+	padding-left: .2em;
+	padding-right: .2em;
+
+	display: inline-block;
+	user-select: all;
+}
 
 /*
   Josh's Custom CSS Reset
