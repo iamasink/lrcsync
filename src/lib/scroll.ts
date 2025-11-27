@@ -5,10 +5,16 @@ let currentScrollAnimation: number | null = null
 export function scrollLineIntoView(index: number, element?: HTMLElement) {
 	let targetElement = element || s.lineElements2[index]
 
-	if (!targetElement || !targetElement.parentElement) return
+	if (!targetElement || !targetElement.parentElement) {
+		// console.log("no")
+		return
+	}
 
 	const scrollContainer = targetElement.parentElement.parentElement
-	if (!scrollContainer) return
+	if (!scrollContainer) {
+		// console.log("no container")
+		return
+	}
 
 	if (currentScrollAnimation !== null) {
 		cancelAnimationFrame(currentScrollAnimation)

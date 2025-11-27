@@ -12,9 +12,10 @@ import {
 	formatLine,
 	formatTime,
 	getOffsetToNextLyric,
-	getOffsetToNextLyricAudio,
 	parseLRC,
 	sortLines,
+	getOffsetToNext,
+	getOffsetToNextTimed,
 } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
@@ -31,6 +32,7 @@ import { convertFurigana } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
+	import ProgressBar from "$lib/components/ProgressBar.svelte";
 let isPlaying = s.waveformRef?.isPlaying() ?? false
 
 let audioFile = $state<File | null>(null)
@@ -433,7 +435,7 @@ function handleClearButtonClick() {
 
 function getBreakTimeRemaining() {
 	const max = 30
-	const offset = getOffsetToNextLyricAudio()
+	const offset = getOffsetToNext(s.lyrics, s.currentAudioLine)
 
 	const lyric = s.lyrics[s.currentAudioLine + offset]
 	let time: number
@@ -446,6 +448,34 @@ function getBreakTimeRemaining() {
 	const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
 
 	return Math.min(max, result)
+}
+
+function getLyricPercentageRemaining() {
+	const max = 30
+	const offset = getOffsetToNextTimed(s.lyrics, s.currentAudioLine)
+
+	const lyric = s.lyrics[s.currentAudioLine]
+	const nextlyric = s.lyrics[s.currentAudioLine + offset]
+
+	if (!lyric || !nextlyric ) return 0
+
+	let time: number
+	if (nextlyric) {
+		time = nextlyric.time
+	} else {
+		time = 1
+	}
+
+	// const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
+	// const timeLeft = Math.min(max, result)
+	const start = lyric.time
+	const end = nextlyric.time
+	const current = s.audioTime
+
+	const maximum = end-start
+	const value = (current-start)/maximum
+
+	return (value)
 }
 </script>
 
@@ -547,6 +577,7 @@ function getBreakTimeRemaining() {
 						<span>
 							current lyric:
 						</span>
+						<ProgressBar value={getLyricPercentageRemaining()}></ProgressBar>
 					</div>
 					<div class="lyrictext">
 						{#if !breaktime}
@@ -938,6 +969,7 @@ input[type="file"] {
     align-self: center;
     /* move slightly up */
     transform: translateY(-0.5rem);
+	text-wrap: nowrap;
   }
 
   .lyrictext {

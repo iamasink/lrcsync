@@ -6,6 +6,16 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfer.xyz/))  
 
 ## todo
+ - [ ] undo should change selected lines etc
+
+- [ ] multi selection and manipulation
+  - [ ] (shift-select multiple lines then x,c affects all and stuff like that)
+- [ ] copy/paste
+  - [ ] lines texts
+  - [ ] line timing offsets
+
+- [ ] fix scrolling when syncing
+
 - [ ] better readme :)
 - [x] clean existing timestamps button
 - [ ] line should not end with punctuation warning

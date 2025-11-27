@@ -352,12 +352,27 @@ export function roundTimestamp(num: number) {
 }
 
 // Skip blank lines and return offset to next non-empty lyric
-function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit = 3): number {
+export function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit = 3): number {
 	let offset = 1
 	for (let i = 0; i < limit; i++) {
 		const lyric = lines[currentIndex + offset]
 		if (!lyric) return 1
 		if (lyric.text === "") {
+			offset++
+		} else {
+			return offset
+		}
+	}
+	return 1
+}
+
+// Skip untimed lines and return offset to next non-empty lyric
+export function getOffsetToNextTimed(lines: LyricLine[], currentIndex: number, limit = 3): number {
+	let offset = 1
+	for (let i = 0; i < limit; i++) {
+		const lyric = lines[currentIndex + offset]
+		if (!lyric) return 1
+		if (lyric.time == -1) {
 			offset++
 		} else {
 			return offset
@@ -379,13 +394,20 @@ function getOffsetToLast(lines: LyricLine[], currentIndex: number, limit = 3): n
 	return 1
 }
 
+// naming hell <3
+
+// offset to next lyric from caret
 export function getOffsetToNextLyric() {
 	return getOffsetToNext(s.lyrics, s.currentCaretLine)
 }
 
-export function getOffsetToNextLyricAudio() {
-	return getOffsetToNext(s.lyrics, s.currentAudioLine)
-}
+// offset to next 
+// export function getOffsetToNextBlankLyricAudio() {
+// 	return getOffsetToNext(s.lyrics, s.currentAudioLine)
+// }
+// export function getOffsetToNextLyricAudio() {
+// 	return getOffsetToNextTimed(s.lyrics, s.currentAudioLine)
+// }
 
 export function getOffsetToLastLyric() {
 	return getOffsetToLast(s.lyrics, s.currentCaretLine)
