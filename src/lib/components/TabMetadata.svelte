@@ -1,6 +1,7 @@
 <script lang="ts">
 import LyricsBox from "$lib/components/LyricsBox.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
+import { historyManager } from "$lib/history.svelte"
 import type { LyricLine } from "$lib/parseLRC"
 import { cleanAndSort, exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
 import { preferences, s } from "$lib/state.svelte"
@@ -127,6 +128,7 @@ async function copy() {
 	<button
 		onclick={() => {
 			cleanAndSort()
+			historyManager.push("cleanup")
 		}}
 	>
 		cleanup

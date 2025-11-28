@@ -79,6 +79,10 @@ $effect(() => {
 	updateBpmMarkers()
 })
 
+// $effect(() => {
+// 	wavesurfer?.setTime(s.audioTime)
+// })
+
 $effect(() => {
 	// run whenever file or waveformContainer changes
 	if (!waveformContainer) return

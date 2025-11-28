@@ -11,11 +11,11 @@ import {
 	exportLRC,
 	formatLine,
 	formatTime,
+	getOffsetToNext,
 	getOffsetToNextLyric,
+	getOffsetToNextTimed,
 	parseLRC,
 	sortLines,
-	getOffsetToNext,
-	getOffsetToNextTimed,
 } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
@@ -32,7 +32,8 @@ import { convertFurigana } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
-	import ProgressBar from "$lib/components/ProgressBar.svelte";
+import ProgressBar from "$lib/components/ProgressBar.svelte"
+import { clamp } from "$lib/utils"
 let isPlaying = s.waveformRef?.isPlaying() ?? false
 
 let audioFile = $state<File | null>(null)
@@ -51,7 +52,11 @@ let frameCount = 0
 let showFileoverlay = $state(false)
 let showTopControls = $state(true)
 
-function getCurrentLine(time = s.audioTime) {
+/**
+ * Gets the current lyric line based on the time.
+ * @returns {number} The index of the line at the specified time.
+ */
+function getCurrentLine(time = s.audioTime): number {
 	if (!s.lyrics || time < 0) {
 		return -1
 	}
@@ -83,17 +88,23 @@ function updateCurrentLine() {
 	let newIndex = getCurrentLine()
 
 	if (newIndex !== s.currentAudioLine) {
-		// console.log("s.currentCaretLine", s.currentCaretLine)
-		// console.log("s.currentAudioLine", s.currentAudioLine)
-
 		if (newIndex == -1) return
 		if (s.lyrics[newIndex].time == -1) return
+		console.log("s.currentCaretLine", s.currentCaretLine)
+		console.log("s.currentAudioLine", s.currentAudioLine)
 		console.log(`new line: ${newIndex} from ${s.currentAudioLine}`)
 
-		if (s.currentCaretLine === s.currentAudioLine) {
+		if (
+			(s.currentCaretLine === s.currentAudioLine)
+			// only if increasing because of reasons to do with history and syncing and its a mess
+			// im sorry <3
+			&& (newIndex >= s.currentCaretLine)
+		) {
 			s.currentCaretLine = newIndex
 			scrollLineIntoView(newIndex)
-		} else if (s.syncCaretWithAudio) {
+		}
+
+		if (s.syncCaretWithAudio) {
 			s.currentCaretLine = newIndex
 			scrollLineIntoView(newIndex)
 		}
@@ -102,7 +113,7 @@ function updateCurrentLine() {
 	}
 }
 
-function adjustSelectedLine(offset: number) {
+function adjustSelectedLine(offsetSec: number) {
 	if (s.currentAudioLine < 0 || s.currentAudioLine >= s.lyrics.length) {
 		console.warn("No valid line selected")
 		return
@@ -128,7 +139,13 @@ function adjustSelectedLine(offset: number) {
 		}
 	}
 
-	const newTime = Math.max(prevTime + 100, Math.min(nextTime, targetLine.time + (offset * 1000)))
+	const minLineTime = targetLine.text ? 100 : 10
+	// const newTime = Math.max(prevTime + minLineTime, Math.min(nextTime, targetLine.time + (offset * 1000)))
+	const newTime = clamp(
+		targetLine.time + (offsetSec * 1000),
+		prevTime + minLineTime,
+		nextTime,
+	)
 
 	targetLine.time = newTime
 
@@ -155,12 +172,13 @@ function adjustSelectedLine(offset: number) {
 // 	}, 500)
 // }
 
-function handleAdjustClick(offset: number, event: MouseEvent) {
-	const adjustment = offset
+function handleAdjustClick(offsetSec: number, event: MouseEvent) {
+	const adjustmentSec = offsetSec
+	console.log(adjustmentSec)
 	// total += Math.round(offset * 100)
-	adjustSelectedLine(adjustment)
+	adjustSelectedLine(adjustmentSec)
 
-	historyManager.pushDebounced(`adjusted line ${s.currentAudioLine}`, { offset })
+	historyManager.pushDebounced(`adjusted line ${s.currentAudioLine}`, { offset: offsetSec })
 }
 
 function togglePlayPause() {
@@ -457,7 +475,7 @@ function getLyricPercentageRemaining() {
 	const lyric = s.lyrics[s.currentAudioLine]
 	const nextlyric = s.lyrics[s.currentAudioLine + offset]
 
-	if (!lyric || !nextlyric ) return 0
+	if (!lyric || !nextlyric) return 0
 
 	let time: number
 	if (nextlyric) {
@@ -472,10 +490,10 @@ function getLyricPercentageRemaining() {
 	const end = nextlyric.time
 	const current = s.audioTime
 
-	const maximum = end-start
-	const value = (current-start)/maximum
+	const maximum = end - start
+	const value = (current - start) / maximum
 
-	return (value)
+	return value
 }
 </script>
 
@@ -569,6 +587,7 @@ function getLyricPercentageRemaining() {
 		<div class="belowwaveform">
 			<div class="belowwaveform-left">
 				<CollapsibleText>
+					<!-- <p>state: {JSON.stringify(s)}</p> -->
 					<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 					<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
 				</CollapsibleText>
@@ -581,9 +600,9 @@ function getLyricPercentageRemaining() {
 					</div>
 					<div class="lyrictext">
 						{#if !breaktime}
-							<span class:flash={flash}>{@html convertFurigana(currentText)}</span>
+							<span class:flash>{@html convertFurigana(currentText)}</span>
 							{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
-								<span class="converted" class:flash={flash}>{currentTextConverted}</span>
+								<span class="converted" class:flash>{currentTextConverted}</span>
 							{/if}
 						{:else}
 							<span class:break={breaktime} class:animate={s.isAudioPlaying}>
@@ -682,6 +701,7 @@ function getLyricPercentageRemaining() {
 						<button
 							onclick={() => {
 								s.lyrics = sortLines(s.lyrics)
+								historyManager.push("sorted lines")
 							}}
 							title="sort lines by timestamp"
 						>
@@ -818,11 +838,11 @@ function getLyricPercentageRemaining() {
     flex: 1;
   }
   .belowwaveform-left {
-  flex: 2;
+    flex: 2;
   }
   /* .left {
-	flex: 2;
-  } */
+  flex: 2;
+   } */
 
   .history {
     margin: 1rem;
@@ -969,7 +989,7 @@ input[type="file"] {
     align-self: center;
     /* move slightly up */
     transform: translateY(-0.5rem);
-	text-wrap: nowrap;
+    text-wrap: nowrap;
   }
 
   .lyrictext {

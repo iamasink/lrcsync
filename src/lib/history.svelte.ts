@@ -1,15 +1,17 @@
-import { persisted } from 'svelte-persisted-store'
-import type { LyricLine, Metadata } from '$lib/parseLRC'
-import { s } from './state.svelte'
+import { persisted } from "svelte-persisted-store"
+import type { LyricLine, Metadata } from "$lib/parseLRC"
+import { s } from "./state.svelte"
 
-export const persistedLyrics = persisted<LyricLine[]>('lyrics', [])
+export const persistedLyrics = persisted<LyricLine[]>("lyrics", [])
 
 export interface HistoryState {
-	index: number,
-	name: string,
-	time: number,
-	lyrics: LyricLine[],
+	index: number
+	name: string
+	time: number
+	lyrics: LyricLine[]
 	metadata: Metadata
+	audioPosition?: number
+	caretPosition?: number
 }
 
 let index = 1
@@ -27,15 +29,18 @@ interface DebouncedAction {
 
 let pending: DebouncedAction | null = null
 
-
 export const historyManager = {
 	restoreStateAt(entry: number) {
 		if (entry < 0 || entry >= s.history.length) return
 		const historyEntry = $state.snapshot(s.history[entry])
+		console.log("restorestateat", historyEntry)
 
-		s.lyrics = (historyEntry.lyrics)
-		s.metadata = (historyEntry.metadata)
+		s.lyrics = historyEntry.lyrics
+		s.metadata = historyEntry.metadata
 		s.historyCurrent = entry
+
+		// s.audioTime = historyEntry.audioPosition
+		if (historyEntry.caretPosition) s.currentCaretLine = historyEntry.caretPosition
 	},
 
 	undo() {
@@ -52,7 +57,6 @@ export const historyManager = {
 		this.restoreStateAt(targetIndex)
 	},
 
-
 	clear() {
 		s.history = []
 		s.historyCurrent = -1
@@ -67,39 +71,48 @@ export const historyManager = {
 		s.history.splice(from)
 	},
 
-	push(name: string) {
+	push(name: string, options?: { saveCaret?: boolean }) {
 		if (pending) {
 			this.flush()
-			setTimeout(() => this.saveState(name), 0)
-		} else {
+			// setTimeout(() => this.saveState(name), 0) // why/?
 			this.saveState(name)
+		} else {
+			this.saveState(name, options?.saveCaret)
 		}
 	},
 
-	saveState(name: string) {
+	saveState(name: string, saveCaret?: boolean) {
 		if (s.historyCurrent < s.history.length - 1) {
 			this.clearNewer()
 		}
 
 		const lyrics = $state.snapshot(s.lyrics)
 		const metadata = $state.snapshot(s.metadata)
+		const caretPosition = $state.snapshot(s.currentCaretLine)
+		const audioPosition = $state.snapshot(s.audioTime)
 
 		if (s.history[s.historyCurrent] && JSON.stringify(s.history[s.historyCurrent].lyrics) === JSON.stringify(lyrics)) {
 			console.log("! identical history, skipping")
 			return
 		}
 
-		s.history.push({
+		const entry: HistoryState = {
 			index: index++,
 			time: Date.now(),
 			lyrics,
 			metadata,
-			name
-		})
+			name,
+		}
+
+		if (saveCaret) {
+			entry.caretPosition = caretPosition
+			entry.audioPosition = audioPosition
+		}
+
+		s.history.push(entry)
 		s.historyCurrent = s.history.length - 1
 		console.log("history push", name, "current:", s.historyCurrent)
 	},
-
 
 	pushDebounced(name: string, data: { offset?: number; line?: number } = {}, delay = 2500) {
 		// flush if type changes
@@ -111,7 +124,7 @@ export const historyManager = {
 			pending = {
 				timeout: null,
 				name,
-				data: { totalOffset: 0, count: 0, line: data.line }
+				data: { totalOffset: 0, count: 0, line: data.line },
 			}
 			s.historyPending = { name: pending.name, time: Date.now() }
 		}
@@ -125,7 +138,6 @@ export const historyManager = {
 			this.flush()
 		}, delay)
 	},
-
 
 	flush() {
 		s.unsavedChanges = true
@@ -158,11 +170,11 @@ export const historyManager = {
 		console.log("history current", s.history[s.historyCurrent])
 	},
 
-	goto(index: number) {
-		s.historyCurrent = index
-		s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
-		s.metadata = $state.snapshot(s.history[s.historyCurrent].metadata)
-	},
+	// goto(index: number) {
+	// 	s.historyCurrent = index
+	// 	s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
+	// 	s.metadata = $state.snapshot(s.history[s.historyCurrent].metadata)
+	// },
 
 	getHistory() {
 		return s.history

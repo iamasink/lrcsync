@@ -159,8 +159,7 @@ function handleSyncButtonClick() {
 	// 		historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
 	// 	})
 	// }, 500)
-
-	historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`)
+	historyManager.push(`synced line ${oldline} (${formatTimestamp(newtime)})`, { saveCaret: true })
 }
 function handleBackButtonClick() {
 	s.syncCaretWithAudio = false

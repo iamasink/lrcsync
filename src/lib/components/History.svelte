@@ -20,7 +20,7 @@ $effect(() => {
 function handleClickLine(index: number, e: any) {
 	console.log("click!", index)
 
-	historyManager.goto(index)
+	historyManager.restoreStateAt(index)
 }
 
 function timeToString(time: number) {
@@ -62,6 +62,7 @@ function timeToString(time: number) {
 					{/if}
 					<span class="index">{s.history.length - 1 - revIndex}</span>
 					<span class="time">{timeToString(h.time)}</span>
+					<span>{h.caretPosition}</span>
 					<span class="name">"{h.name}"</span>
 					<!-- <span>{JSON.stringify(h.lyrics)}</span> -->
 				</Tooltip>
