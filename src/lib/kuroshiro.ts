@@ -2,7 +2,7 @@
 // import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
 import { Kuroshiro } from "kuroshiro-browser"
 import { s } from "./state.svelte"
-import { stripFurigana } from "./furigana"
+import { replaceReading } from "./furigana"
 
 let kuroshiro: any = null
 let analyser: any = null
@@ -23,11 +23,13 @@ export function initKuroshiro(): Promise<void> {
 
 export async function convert(text: string): Promise<string> {
 	await initKuroshiro()
+	const toconvert = replaceReading(text.normalize("NFC"))
+
 	const converted = await kuroshiro.convert(
-		stripFurigana(text),
+		toconvert,
 		{ to: "romaji", mode: "spaced" }
 	)
-	const cleaned = normalize(converted)
+	const cleaned = doreplacements(converted)
 
 	// only output converted if there are real changes
 	if (stripIgnorable(cleaned) === stripIgnorable(text)) {
@@ -41,7 +43,7 @@ export async function convert(text: string): Promise<string> {
 
 	return final
 }
-function normalize(input: string): string {
+function doreplacements(input: string): string {
 	let output = input
 
 	const replacements: [RegExp | string, string][] = [

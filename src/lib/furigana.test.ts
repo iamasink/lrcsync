@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { FURIGANA_REGEX, convertFurigana, stripFurigana } from "./furigana"
+import { FURIGANA_REGEX, addRuby, replaceReading } from "./furigana"
 
 describe("FURIGANA_REGEX", () => {
 	it("matches single-kanji with reading", () => {
@@ -65,33 +65,33 @@ describe("FURIGANA_REGEX", () => {
 
 describe("convertFurigana()", () => {
 	it("converts furigana properly", () => {
-		expect(convertFurigana("本気[マジ]"))
+		expect(addRuby("本気[マジ]"))
 			.toBe("<ruby>本気<rt>マジ</rt></ruby>")
 	})
 
 	it("converts multiple entries", () => {
-		expect(convertFurigana("本気[マジ]で狂[クル]"))
+		expect(addRuby("本気[マジ]で狂[クル]"))
 			.toBe("<ruby>本気<rt>マジ</rt></ruby>で<ruby>狂<rt>クル</rt></ruby>")
 	})
 
 	it("leaves plain text untouched", () => {
-		expect(convertFurigana("これはテストです"))
+		expect(addRuby("これはテストです"))
 			.toBe("これはテストです")
 	})
 })
 
 describe("stripFurigana()", () => {
 	it("keeps only the reading", () => {
-		expect(stripFurigana("本気[マジ]")).toBe("マジ")
+		expect(replaceReading("本気[マジ]")).toBe("マジ")
 	})
 
 	it("handles multiple occurrences", () => {
-		expect(stripFurigana("本気[マジ]で狂[クル]"))
+		expect(replaceReading("本気[マジ]で狂[クル]"))
 			.toBe("マジでクル")
 	})
 
 	it("does nothing to normal text", () => {
-		expect(stripFurigana("これはテストです"))
+		expect(replaceReading("これはテストです"))
 			.toBe("これはテストです")
 	})
 })
