@@ -92,8 +92,8 @@ export const historyManager = {
 		const audioPosition = $state.snapshot(s.audioTime)
 
 		if (s.history[s.historyCurrent] && JSON.stringify(s.history[s.historyCurrent].lyrics) === JSON.stringify(lyrics)) {
-			console.log("! identical history, skipping")
-			return
+			console.warn("! identical history")
+			// return
 		}
 
 		const entry: HistoryState = {
