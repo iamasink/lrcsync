@@ -28,7 +28,7 @@ import Footer from "$lib/components/Footer.svelte"
 import History from "$lib/components/History.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
-import { convertFurigana } from "$lib/furigana"
+import { addRuby } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
@@ -249,7 +249,7 @@ async function doLoad() {
 
 		// reset history
 		historyManager.clear()
-		historyManager.push(`Loaded ${$state.snapshot(s.filePaths.audio)}`)
+		historyManager.push(`Loaded LRC file: ${$state.snapshot(s.filePaths.audio)}`)
 	}
 	if (audioFile) {
 		console.log("loading audio")
@@ -258,6 +258,7 @@ async function doLoad() {
 		if (!s.waveformRef) return
 		s.waveformRef.loadFile(audioFile)
 
+		console.log("loaded audio")
 		historyManager.push(`Loaded audio track`)
 	}
 	// if only a new audio is loaded, give the warning
@@ -600,7 +601,7 @@ function getLyricPercentageRemaining() {
 					</div>
 					<div class="lyrictext">
 						{#if !breaktime}
-							<span class:flash>{@html convertFurigana(currentText)}</span>
+							<span class:flash>{@html addRuby(currentText)}</span>
 							{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
 								<span class="converted" class:flash>{currentTextConverted}</span>
 							{/if}
