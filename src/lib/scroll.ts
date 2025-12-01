@@ -1,38 +1,38 @@
 import { s } from "./state.svelte"
 
-let currentScrollAnimation: number | null = null
+const scrollAnimations = new Map<HTMLElement, number>()
 
-export function scrollLineIntoView(index: number, element?: HTMLElement) {
-	let targetElement = element || s.lineElements2[index]
-
-	if (!targetElement || !targetElement.parentElement) {
-		// console.log("no")
+export async function scrollLineIntoView(index: number, element?: HTMLElement) {
+	const targetElement = element || s.lineElements2[index]
+	if (!targetElement) {
+		console.log(`scrollLineIntoView: no element`)
 		return
 	}
 
-	const scrollContainer = targetElement.parentElement.parentElement
+	const scrollContainer = targetElement.parentElement?.parentElement as HTMLElement
 	if (!scrollContainer) {
-		// console.log("no container")
+		console.log("scrollLineIntoView: no container")
 		return
 	}
 
-	if (currentScrollAnimation !== null) {
-		cancelAnimationFrame(currentScrollAnimation)
-		currentScrollAnimation = null
+	// cancel existing animation for this container
+	const existingAnimation = scrollAnimations.get(scrollContainer)
+	if (existingAnimation !== undefined) {
+		cancelAnimationFrame(existingAnimation)
 	}
 
 	const containerRect = scrollContainer.getBoundingClientRect()
 	const elementRect = targetElement.getBoundingClientRect()
 
-	const targetScrollTop =
-		scrollContainer.scrollTop +
-		elementRect.top -
-		containerRect.top -
-		scrollContainer.clientHeight / 2 +
-		elementRect.height / 2
+	const targetScrollTop = scrollContainer.scrollTop
+		+ elementRect.top
+		- containerRect.top
+		- scrollContainer.clientHeight / 2
+		+ elementRect.height / 2
 
 	const startScrollTop = scrollContainer.scrollTop
 	const distance = targetScrollTop - startScrollTop
+
 	if (Math.abs(distance) < 1) return
 
 	const duration = Math.min(300, Math.max(100, Math.abs(distance)))
@@ -44,14 +44,16 @@ export function scrollLineIntoView(index: number, element?: HTMLElement) {
 		const elapsed = time - startTime
 		const progress = Math.min(1, elapsed / duration)
 
-		scrollContainer!.scrollTop = startScrollTop + distance * progress
+		scrollContainer.scrollTop = startScrollTop + distance * progress
 
 		if (progress < 1) {
-			currentScrollAnimation = requestAnimationFrame(animate)
+			const frameId = requestAnimationFrame(animate)
+			scrollAnimations.set(scrollContainer, frameId)
 		} else {
-			currentScrollAnimation = null
+			scrollAnimations.delete(scrollContainer)
 		}
 	}
 
-	currentScrollAnimation = requestAnimationFrame(animate)
+	const frameId = requestAnimationFrame(animate)
+	scrollAnimations.set(scrollContainer, frameId)
 }
