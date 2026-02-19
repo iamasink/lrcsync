@@ -54,11 +54,14 @@ let showTopControls = $state(true)
 
 /**
  * Gets the current lyric line based on the time.
- * @returns {number} The index of the line at the specified time.
+ * @param time time in ms
+ * @returns The index of the line at the specified time.
+ * @returns `null` if no lyrics/audio
+ * @returns `-1` if playback is before the first lyric line.
  */
-function getCurrentLine(time = s.audioTime): number {
+function getCurrentLine(time = s.audioTime): number|null|-1 {
 	if (!s.lyrics || time < 0) {
-		return -1
+		return null
 	}
 
 	// round to prevent weird things idk
@@ -86,9 +89,10 @@ function updateCurrentLine() {
 	lasttime = time
 
 	let newIndex = getCurrentLine()
+	if (newIndex == null) return
 
 	if (newIndex !== s.currentAudioLine) {
-		if (newIndex == -1) return
+		// if (newIndex == -1) return
 		if (s.lyrics[newIndex].time == -1) return
 		console.log("s.currentCaretLine", s.currentCaretLine)
 		console.log("s.currentAudioLine", s.currentAudioLine)
@@ -391,6 +395,14 @@ $effect(() => {
 		}, 200)
 	}
 })
+
+// $effect(() => {
+// 	initKuroshiro().then(() => {
+// 		getKuroshiro().then(k => {
+// 			(window as any).kuroshiro = k
+// 		})
+// 	})
+// })
 
 $effect(() => {
 	if (!audioFile) return

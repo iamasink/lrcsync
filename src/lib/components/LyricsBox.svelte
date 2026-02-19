@@ -3,7 +3,7 @@
 <script lang="ts">
 import Waveform from "$lib/components/Waveform.svelte";
 import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
-import { convertAll } from "$lib/kuroshiro";
+import { convertAll, initKuroshiro } from "$lib/kuroshiro";
 import { s } from "$lib/state.svelte"
 import { onMount } from "svelte";
 import type { UIEventHandler } from "svelte/elements";
@@ -23,6 +23,11 @@ import { historyManager } from "$lib/history.svelte";
 
 // 	console.log(await convert("私の名前は何ですか？"))
 // })
+
+$effect(() => {
+	// init on load
+	initKuroshiro()
+})
 
   $effect(() => {
     if (!s.lyrics.length) return;
@@ -54,7 +59,7 @@ import { historyManager } from "$lib/history.svelte";
 
 		if (s.syncCaretWithAudio && s.waveformRef) {
 			const time = s.lyrics[lineIndex].time
-			if (!time || time == -1) return
+			if (time === null || time === -1) return
 			const timeInSeconds = (Math.round((time) * 100) / 100) / 1000;
 			console.log("click2", time, timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
@@ -66,7 +71,7 @@ import { historyManager } from "$lib/history.svelte";
 
 		if ( s.waveformRef) {
 			const time = s.lyrics[lineIndex].time
-			if (!time || time == -1) return
+			if (time === null || time === -1) return
 			const timeInSeconds = time/ 1000;
 			console.log(timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
@@ -75,7 +80,7 @@ import { historyManager } from "$lib/history.svelte";
 
 	function getWarnings(lineIndex:number) {
 		const warnings = [];
-		const functions = [checkNextTime, checkEnd]
+		const functions = [checkNextTime, checkSameTime, checkEnd, checkOrder]
 
 		for (const func of functions) {
 			const result = func(lineIndex);
@@ -87,30 +92,58 @@ import { historyManager } from "$lib/history.svelte";
 
 	// check if the time between the start, and the next time is too big
 	function checkNextTime(lineIndex: number) {
-		const line = s.lyrics[lineIndex];
-		const nextLine = s.lyrics[lineIndex + 1];
+		const line = s.lyrics[lineIndex]
+		const nextLine = s.lyrics[lineIndex + 1]
 
-		if (!nextLine) return false;
+		if (!nextLine) return false
 		if (line.time == -1) return false
 
-		const gap = nextLine.time - line.time;
+		const gap = nextLine.time - line.time
 
 		if ( gap > 10 * 1000 && line.text != "") {
 			return "big gap!"
 		}
+	}
+	function checkSameTime(lineIndex:number) {
+		const line = s.lyrics[lineIndex]
+		const prevLine = s.lyrics[lineIndex - 1]
+
+		if (!prevLine) return false
+		if (line.time == -1) return false
+
+		const gap = prevLine.time - line.time
+		if (gap === 0) return "same time as last!"
 	}
 	function checkEnd(lineIndex:number) {
 		if (lineIndex+1==s.lyrics.length && s.lyrics[lineIndex].text !="") {
 			return "no end time!"
 		}
 	}
+	function checkOrder(lineIndex:number) {
+		const line = s.lyrics[lineIndex]
+		const nextLine = s.lyrics[lineIndex + 1]
+
+		if (!nextLine) return false
+		if (nextLine.time === -1) return false
+		if (line.time === -1) return false
+		if (lineIndex === 0) return false
+
+		if (nextLine.time < line.time) {
+			return "out of order!"
+		}
+	}
 
 
 function getLine(lineIndex: number) {
 	let text = s.convertedLyrics[lineIndex]
+	let line = s.lyrics[lineIndex]
 	let isInfo = false
 
-	if (lineIndex + 1 === s.lyrics.length && text === "") {
+	if (lineIndex  === 0 && text === "") {
+		text = "(start of audio file)"
+		isInfo = true
+	}
+	else if (lineIndex + 1 === s.lyrics.length && text === "" && line.time !== -1) {
 		text = "(end of lyrics)"
 		isInfo = true
 	}
@@ -131,7 +164,7 @@ historyManager.push(`deleted line ${i}`)
 
 <div class="lyricsbox" bind:this={element} {onscroll}>
 	{#each s.lyrics as line, i}
-			{@const lineinfo = getLine(i)}
+		{@const lineinfo = getLine(i)}
 
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
@@ -159,10 +192,12 @@ historyManager.push(`deleted line ${i}`)
 			<div class="text" class:info={lineinfo.isInfo} >
 				{lineinfo.text}
 			</div>
+			{#if !lineinfo.isInfo}
 			<div class="buttons">
 				<Tooltip message="Remove Time"><button onclick={() => handleRemovetime(i)}>✖️</button></Tooltip>
 				<Tooltip message="Delete"><button onclick={() => handleDelete(i)}>🗑️</button></Tooltip>
 			</div>
+			{/if}
 			{#if getWarnings(i).length>0}
 			<div class="warning-indicator"
 					onmouseenter={() => popupIndex = i}
@@ -179,7 +214,7 @@ historyManager.push(`deleted line ${i}`)
 							{/each}
 						</div>
 					{/if}
-				</div>
+			</div>
 			{/if}
 		</div>
 	{/each}

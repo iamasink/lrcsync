@@ -93,6 +93,10 @@ async function copy() {
 	const text = exportWithMetadata(s.lyrics)
 	navigator.clipboard.writeText(text)
 }
+async function copyRomanized() {
+	const text = s.convertedLyrics.join("\n")
+	navigator.clipboard.writeText(text)
+}
 </script>
 
 <div class="metadata-view">
@@ -153,6 +157,7 @@ async function copy() {
 	<br />
 	<button onclick={saveFile}>save</button>
 	<button onclick={copy}>copy</button>
+	<button onclick={copyRomanized}>copy romanized</button>
 </div>
 
 <style>

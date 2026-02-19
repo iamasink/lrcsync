@@ -123,40 +123,28 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 		}
 	}
 
+	if (lyrics[0].text != "" || lyrics[0].time != 0) {
+		lyrics.unshift({ text: "", time: 0 })
+	}
+
 	return { lyrics, meta }
 }
 
-export function exportLRC(lines: LyricLine[]) {
-
+export function exportLRC(lines: LyricLine[], forMetadata = false) {
 	return lines.map(({ time, text }) => {
-		// const timeInSeconds = time / 1000
+		if (forMetadata && time === 0 && text === "") return // skip beginning empty line
 
 		if (time === null || time === undefined || time === -1 || time < 0) {
 			return text
 		}
 
-		// const minutes = Math.floor(timeInSeconds / 60)
-		// const seconds = timeInSeconds % 60
-		// const wholeSeconds = Math.floor(seconds)
-		// const centiseconds = Math.round((seconds - wholeSeconds) * 100)
-
-		// const round = (n: number, mult: number = 100) => {
-		// 	return Math.round(n * mult) / mult
-		// }
-		// const formattedMinutes = round(minutes).toString().padStart(2, "0")
-		// const formattedSeconds = round(wholeSeconds).toString().padStart(2, "0")
-		// const formattedCentiseconds = round(centiseconds).toString().padStart(2, "0")
-
 		const timestamp = formatTimestamp(time)
 		return `${timestamp} ${text}`
-
-
-
-	}).join("\n")
+	}).filter(line => line !== undefined).join("\n")
 }
 
 export function exportWithMetadata(lines: LyricLine[]) {
-	const lyricstext = exportLRC(lines)
+	const lyricstext = exportLRC(lines, true)
 	const metadata = s.metadata ?? {}
 	let final = ""
 
