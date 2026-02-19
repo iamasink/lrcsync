@@ -22,5 +22,10 @@ export default defineConfig({
 	define: {
 		__GIT_HASH__: JSON.stringify(hash),
 		__GIT_BRANCH__: JSON.stringify(branch)
+	},
+	server: {
+		fs: {
+			allow: ["./packages", "./src", "./node_modules"]
+		}
 	}
-});
+})
