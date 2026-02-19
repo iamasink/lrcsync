@@ -221,7 +221,8 @@ export const toRawRomaji = function (str = "", system) {
         result = result.replace(/cc/gm, "tc");
     }
 
-    result = result.replace(reg_xtsu, "tsu");
+    // this was formerly "tsu", which is weird, fixed at later point
+    result = result.replace(reg_xtsu, "っ");
 
     // [PASSPORT|HEPBURN] 撥音の特殊表記 b、m、p
     if (system === ROMANIZATION_SYSTEM.PASSPORT || system === ROMANIZATION_SYSTEM.HEPBURN) {

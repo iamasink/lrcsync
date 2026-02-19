@@ -139,10 +139,13 @@ class Kuroshiro {
                         }
                         return toRawRomaji(preToken, options.romajiSystem);
                     };
+                    const map = tokens.map(romajiConv);
+
                     if (options.mode === "normal") {
-                        return tokens.map(romajiConv).join("");
+                        return map.join("");
                     }
-                    return tokens.map(romajiConv).join(" ");
+                    // fullwidth space for later processing
+                    return map.join("　");
                 case "hiragana":
                     for (let hi = 0; hi < tokens.length; hi++) {
                         if (hasKanji(tokens[hi].surface_form)) {
