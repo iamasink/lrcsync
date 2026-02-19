@@ -1,16 +1,22 @@
 
 // import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
-import { Kuroshiro } from "kuroshiro-browser"
+import { Kuroshiro, KuroshiroAnalyzerKuromoji } from "kuroshiro-browser"
 import { s } from "./state.svelte"
 import { replaceReading } from "./furigana"
 
-let kuroshiro: any = null
-let analyser: any = null
+let kuroshiro: Kuroshiro
 let ready: Promise<void> | null = null
 
-export function initKuroshiro(): Promise<void> {
-	if (ready) return ready
+let analyzer: KuroshiroAnalyzerKuromoji
 
+
+
+export function initKuroshiro(): Promise<void> {
+	if (ready) {
+		return ready
+	}
+
+	console.log("readying kuroshiro")
 	ready = (async () => {
 		const IS_PROD = (import.meta.env.MODE == 'production')
 		console.log("is prod?", IS_PROD)
@@ -21,9 +27,27 @@ export function initKuroshiro(): Promise<void> {
 	return ready
 }
 
+export async function getKuroshiro() {
+	initKuroshiro()
+	return kuroshiro
+}
+
+
+
 export async function convert(text: string): Promise<string> {
 	await initKuroshiro()
-	const toconvert = replaceReading(text.normalize("NFC"))
+
+	if (!analyzer) {
+		analyzer = new KuroshiroAnalyzerKuromoji()
+		await analyzer.init()
+	}
+	console.log(text, " -> \n", await analyzer.parse(text))
+
+
+	const toconvert =
+		replaceReading(
+			text.normalize("NFC")
+		)
 
 	const converted = await kuroshiro.convert(
 		toconvert,
@@ -46,8 +70,23 @@ export async function convert(text: string): Promise<string> {
 function doreplacements(input: string): string {
 	let output = input
 
+	output = output.replaceAll(/([aeiou])　?っ　?([bcdfghjklmnpqrstvwxyz])/gi, "$1$2$2")
+	output = output.replaceAll(/a　?ー/gi, "ā　")
+	output = output.replaceAll(/i　?ー/gi, "ī　")
+	output = output.replaceAll(/u　?ー/gi, "ū　")
+	output = output.replaceAll(/e　?ー/gi, "ē　")
+	output = output.replaceAll(/o　?ー/gi, "ō　")
+	output = output.replaceAll(/(\w)　([n])　/g, "$1　$2")
+	output = output.replaceAll(/　?っ/gi, "'")
+	output = output.replaceAll(/　?〜　?/gi, "~")
+	output = output.replaceAll(/　?~　?/gi, "~")
+	output = output.replaceAll(/　,　/gi, ",　")
+
+	const punctuation = "!?！？"
+
 	const replacements: [RegExp | string, string][] = [
-		[/ (\p{P})/gu, "$1"],  // no space before punctuation
+		[/　([!?！？])　/gu, "$1　"],  // no space before punctuation
+		[/　([!?！？])/gu, "$1"],  // no space before punctuation
 		// [/(\p{P}) /gu, "$1"],  // no space after punctuation
 		["　", " "],           // fullwidth space to normal
 		["    ", " "],       // collapse multiple spaces
