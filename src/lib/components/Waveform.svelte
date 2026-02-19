@@ -219,9 +219,11 @@ $effect(() => {
 	if (isReady) {
 		console.log("waveform ready! :)")
 		// reset time, etc. because bad things might have happened.
-		s.audioTime = 0
-		s.currentCaretLine = 0
-		s.currentAudioLine = 0
+		resetWaveform()
+
+		window.setTimeout(() => {
+			resetWaveform()
+		}, 150)
 	}
 })
 
@@ -449,6 +451,12 @@ export function seekToTime(time: number) {
 	time = Math.min(wavesurfer?.getDuration(), time)
 
 	wavesurfer.setTime(time)
+}
+
+export function resetWaveform() {
+	if (!wavesurfer) return
+	wavesurfer.setTime(0)
+	wavesurfer.stop()
 }
 
 export function isPlaying() {
