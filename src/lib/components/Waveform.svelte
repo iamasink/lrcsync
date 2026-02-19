@@ -215,6 +215,15 @@ $effect(() => {
 	if (!wavesurfer) return
 	wavesurfer.setVolume(volume2)
 })
+$effect(() => {
+	if (isReady) {
+		console.log("waveform ready! :)")
+		// reset time, etc. because bad things might have happened.
+		s.audioTime = 0
+		s.currentCaretLine = 0
+		s.currentAudioLine = 0
+	}
+})
 
 export async function loadFile(loadfile: File) {
 	if (!loadfile) return
@@ -567,6 +576,7 @@ function handleGuessButton(e: MouseEvent) {
 
 async function guessTempo(min = bpmMin, max = bpmMax): Promise<{ bpm: number; offset: number } | null> {
 	if (!wavesurfer) return null
+	console.log("guessing bpm, offset...")
 	const mediael = wavesurfer.getMediaElement() as any
 	console.log(mediael)
 	bpmLoading = true

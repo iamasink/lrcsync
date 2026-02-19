@@ -21,6 +21,7 @@ export async function scrollLineIntoView(index: number, element?: HTMLElement) {
 		cancelAnimationFrame(existingAnimation)
 	}
 
+	// this might be slow?
 	const containerRect = scrollContainer.getBoundingClientRect()
 	const elementRect = targetElement.getBoundingClientRect()
 
