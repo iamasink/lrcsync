@@ -68,37 +68,24 @@ export async function convert(text: string): Promise<string> {
 function doreplacements(input: string): string {
 	let output = input
 
-	output = output.replaceAll(/([aeiou])　?っ　?([bcdfghjklmnpqrstvwxyz])/gi, "$1$2$2")
-	output = output.replaceAll(/a　?ー/gi, "ā　")
-	output = output.replaceAll(/i　?ー/gi, "ī　")
-	output = output.replaceAll(/u　?ー/gi, "ū　")
-	output = output.replaceAll(/e　?ー/gi, "ē　")
-	output = output.replaceAll(/o　?ー/gi, "ō　")
-	output = output.replaceAll(/(\w)　([n])　/g, "$1　$2")
-	output = output.replaceAll(/　?っ/gi, "'")
-	output = output.replaceAll(/　?〜　?/gi, "~")
-	output = output.replaceAll(/　?~　?/gi, "~")
-	output = output.replaceAll(/　,　/gi, ",　")
+	output = output.replaceAll(/([aeiou])　?っ　?([bcdfghjklmnpqrstvwxyz])/gi, "$1$2$2") // fix tsu
+	output = output.replaceAll(/a　?ー/gi, "ā　")  // add macrons (maybe bad in some cases?)
+	output = output.replaceAll(/i　?ー/gi, "ī　")  // 
+	output = output.replaceAll(/u　?ー/gi, "ū　")  // 
+	output = output.replaceAll(/e　?ー/gi, "ē　")  // 
+	output = output.replaceAll(/o　?ー/gi, "ō　")  // 
+	output = output.replaceAll(/(\w)　([n])　/g, "$1$2　") // remove excess space with n
+	output = output.replaceAll(/　?っ/gi, "'") // ending tsu to '
+	output = output.replaceAll(/　?〜　?/gi, "~") // cleaner ~
+	output = output.replaceAll(/　?~　?/gi, "~") // remove ~ spaces
+	output = output.replaceAll(/　,　/gi, ",　") // remove comma space
+	output = output.replaceAll(/　([!?！？])　/gu, "$1　")  // no space before punctuation
+	output = output.replaceAll(/　([!?！？])/gu, "$1")  // 
+	output = output.replaceAll("　", " ")  // fullwidth space to normal
+	output = output.replaceAll("    ", " ")  // collapse multiple spaces
+	output = output.replaceAll("   ", " ")
+	output = output.replaceAll("  ", " ")  
 
-	const punctuation = "!?！？"
-
-	const replacements: [RegExp | string, string][] = [
-		[/　([!?！？])　/gu, "$1　"],  // no space before punctuation
-		[/　([!?！？])/gu, "$1"],  // no space before punctuation
-		// [/(\p{P}) /gu, "$1"],  // no space after punctuation
-		["　", " "],           // fullwidth space to normal
-		["    ", " "],       // collapse multiple spaces
-		["   ", " "],       // collapse multiple spaces
-		["  ", " "],       // collapse multiple spaces
-	]
-
-	for (const [pattern, replacement] of replacements) {
-		if (pattern instanceof RegExp) {
-			output = output.replace(pattern, replacement)
-		} else {
-			output = output.replaceAll(pattern, replacement)
-		}
-	}
 
 	return output
 }
@@ -116,6 +103,7 @@ function stripIgnorable(input: string): string {
 
 export async function convertAll(lines: string[]): Promise<string[]> {
 	if (s.convertedLyricsLang != "ja") return lines
+	if (!lines) return lines
 	// console.log("converting..")
 	await initKuroshiro()
 	return Promise.all(lines.map(line => convert(line)))
