@@ -1,13 +1,11 @@
 
 // import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
-import { Kuroshiro, KuroshiroAnalyzerKuromoji } from "kuroshiro-browser"
+import { Kuroshiro } from "kuroshiro-browser"
 import { s } from "./state.svelte"
 import { replaceReading } from "./furigana"
 
 let kuroshiro: Kuroshiro
 let ready: Promise<void> | null = null
-
-let analyzer: KuroshiroAnalyzerKuromoji
 
 
 
@@ -37,11 +35,11 @@ export async function getKuroshiro() {
 export async function convert(text: string): Promise<string> {
 	await initKuroshiro()
 
-	if (!analyzer) {
-		analyzer = new KuroshiroAnalyzerKuromoji()
-		await analyzer.init()
-	}
-	console.log(text, " -> \n", await analyzer.parse(text))
+	// if (!analyzer) {
+	// 	analyzer = new KuroshiroAnalyzerKuromoji()
+	// 	await analyzer.init()
+	// }
+	// console.log(text, " -> \n", await analyzer.parse(text))
 
 
 	const toconvert =
