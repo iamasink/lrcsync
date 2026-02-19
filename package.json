@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "npm run build:kuroshiro && vite",
-		"build": "VITE_GIT_HASH=$(git rev-parse HEAD) VITE_GIT_BRANCH=$(git symbolic-ref --short HEAD) vite build",
+		"build": "npm run build:kuroshiro && VITE_GIT_HASH=$(git rev-parse HEAD) VITE_GIT_BRANCH=$(git symbolic-ref --short HEAD) vite build",
 		"build:kuroshiro": "cd packages/kuroshiro-browser && npm run build-lib",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
