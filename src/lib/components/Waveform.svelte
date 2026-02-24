@@ -492,6 +492,8 @@ export function getDuration() {
 }
 
 export function togglePlayPause() {
+	if (!wavesurfer) return
+	if (!isReady) return
 	if (!isPlaying()) {
 		play()
 		// console.log("play")
