@@ -59,7 +59,7 @@ let showTopControls = $state(true)
  * @returns `null` if no lyrics/audio
  * @returns `-1` if playback is before the first lyric line.
  */
-function getCurrentLine(time = s.audioTime): number|null|-1 {
+function getCurrentLine(time = s.audioTime): number | null | -1 {
 	if (!s.lyrics || time < 0) {
 		return null
 	}
@@ -523,7 +523,7 @@ function getLyricPercentageRemaining() {
 		</div>
 	</div>
 </noscript>
-<ScreensizeWarning />
+<!-- <ScreensizeWarning /> -->
 <DialogNewAudio bind:open={isDialogNewAudioOpen} />
 
 <div class="app">
@@ -599,11 +599,6 @@ function getLyricPercentageRemaining() {
 
 		<div class="belowwaveform">
 			<div class="belowwaveform-left">
-				<CollapsibleText>
-					<!-- <p>state: {JSON.stringify(s)}</p> -->
-					<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
-					<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
-				</CollapsibleText>
 				<div class="currentlyric">
 					<div class="left">
 						<span>
@@ -613,8 +608,9 @@ function getLyricPercentageRemaining() {
 					</div>
 					<div class="lyrictext">
 						{#if !breaktime}
-							<span class:flash>{@html addRuby(currentText)}</span>
-							{#if currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
+							{@const hasConvertedText = currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
+							<span class:flash class:nonconverted={hasConvertedText}>{@html addRuby(currentText)}</span>
+							{#if hasConvertedText}
 								<span class="converted" class:flash>{currentTextConverted}</span>
 							{/if}
 						{:else}
@@ -688,7 +684,7 @@ function getLyricPercentageRemaining() {
 							shortcut={{ key: "x" }}
 							ignoremods={true}
 						>
-							-{stepbuttonvalue}s
+							-{stepbuttonvalue.toFixed(2)}s
 						</KeybindButton>
 
 						<KeybindButton
@@ -698,7 +694,7 @@ function getLyricPercentageRemaining() {
 							shortcut={{ key: "c" }}
 							ignoremods={true}
 						>
-							+{stepbuttonvalue}s
+							+{stepbuttonvalue.toFixed(2)}s
 						</KeybindButton>
 
 						<!--  -->
@@ -779,6 +775,11 @@ function getLyricPercentageRemaining() {
 				showTopControls = !showTopControls
 			}}
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
+		<CollapsibleText>
+			<!-- <p>state: {JSON.stringify(s)}</p> -->
+			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
+			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
+		</CollapsibleText>
 		<br />
 		<hr />
 		<Footer></Footer>
@@ -799,7 +800,8 @@ function getLyricPercentageRemaining() {
     padding: 0.35rem 0.6rem;
     border-radius: 6px;
     border: 1px solid var(--border);
-    background: var(--text);
+    color: var(--bg-dark);
+    background: var(--button-bg);
     cursor: pointer;
     font-weight: 600;
 
@@ -829,6 +831,7 @@ function getLyricPercentageRemaining() {
 
   @media only screen and (max-width: 600px) {
     gap: 0px;
+    height: 100%;
   }
 }
 .topcontrols {
@@ -1010,6 +1013,16 @@ input[type="file"] {
     font-size: x-large;
     display: flex;
     flex-direction: column;
+    max-width: 70vw;
+
+    .converted,
+    .nonconverted {
+      /* only if there is a lyric with conversion shown */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
   }
 }
 </style>
