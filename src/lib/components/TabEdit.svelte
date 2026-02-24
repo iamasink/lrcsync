@@ -299,7 +299,7 @@ function getSyncDelay() {
       flex: 1;
       resize: none;
       background-color: var(--bg-light);
-      color: #ffffff;
+      color: var(--text);
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
       line-height: 1.6;
       font-size: 14px;

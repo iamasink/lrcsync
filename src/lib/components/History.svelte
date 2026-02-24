@@ -54,7 +54,7 @@ function timeToString(time: number) {
 				}}
 				class:current={s.history.length - 1 - revIndex === s.historyCurrent}
 			>
-				<Tooltip message={JSON.stringify(h.lyrics)} allownewline>
+				<Tooltip message={h.name} allownewline>
 					{#if s.history.length - 1 - revIndex === s.historyCurrent}
 						<span>→</span>
 					{:else}
@@ -92,6 +92,7 @@ function timeToString(time: number) {
       align-items: center;
       user-select: none;
 	  border-bottom: 1px solid var(--border-muted-muted);
+	  overflow-y: hidden;
 
       &:hover {
         background-color: rgba(255, 255, 255, 0.1);
