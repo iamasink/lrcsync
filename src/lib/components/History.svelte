@@ -29,13 +29,13 @@ function timeToString(time: number) {
 </script>
 
 <div class="history">
-	<p class="header">History:</p>
+	<p class="header">History ({s.historyCurrent}/{s.history.length}, {s.historyPending?.name}):</p>
 	<div class="history-list">
-		{s.historyCurrent}
+		<!-- {s.historyCurrent} -->
 		{#if s.historyPending}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div class="history-line">
+			<div class="history-line pending">
 				<Tooltip message={""}>
 					<span class="index">p</span>
 					<span class="time">{timeToString(s.historyPending.time)}</span>
@@ -84,14 +84,22 @@ function timeToString(time: number) {
     .history-line {
       display: flex;
       column-gap: 0.5rem;
-      height: 22.4px; /* 14px * 1.6 line-height = 22.4px */
+      min-height: 22.4px; /* 14px * 1.6 line-height = 22.4px */
+	  overflow-wrap: anywhere;
+	  line-height: 15px;
+	  overflow-x: scroll;
       /* padding: 0 4px; */
       align-items: center;
       user-select: none;
+	  border-bottom: 1px solid var(--border-muted-muted);
 
       &:hover {
         background-color: rgba(255, 255, 255, 0.1);
       }
+
+	  &.pending {
+		opacity: 80%;
+	  }
     }
   }
 

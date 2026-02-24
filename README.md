@@ -18,7 +18,9 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 - [ ] better readme :)
 - [x] clean existing timestamps button
-- [ ] line should not end with punctuation warning
+
+- [ ] more warnings/fixes
+  - [ ] line should not end with punctuation (,.) warning?
 
 - [x] on drag audio in, and there is already lyrics, prompt to clear current lyrics and metadata
   - [ ] improve this
@@ -69,7 +71,6 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 
  - [ ] fix cleanup
- - [ ] fix beat ticks showing over text
 
 
 
