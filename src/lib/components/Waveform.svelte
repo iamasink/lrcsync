@@ -144,6 +144,10 @@ $effect(() => {
 	window.addEventListener("resize", resizeHandler)
 
 	wavesurfer.on("ready", () => {
+		// should only run when a new audio is added? or the wavesurfer entirely resets idk
+		console.log("wavesurfer ready")
+		// since this doesn't seem to ever get re-ran by accident, we'll reset the ready state here. 
+		isReady = false
 		audioDuration = wavesurfer?.getDuration() ?? 0
 
 		wavesurfer?.setVolume(perceptualToAmplitude(volume / 100))
@@ -151,17 +155,28 @@ $effect(() => {
 	})
 
 	spectrogram.on("ready", () => {
-		isReady = true
+		console.log("spectrogram ready")
 		s.waveformLoading = false
 		updateRegions()
+		// we dont want to reset etc here, spectrogram ready seems to run if the window size changes
+		if (isReady) {
+			return 
+		}
+		isReady = true
+
 		wavesurfer?.stop()
+
+		onWaveformsReady()
+
 		guessTempo().then(() => {
+			// i dont remember why theres a timeout here
 			setTimeout(() => {
 				updateBpmMarkers()
 			}, 1000)
 		})
 	})
 
+	// scrolling via minimap
 	minimap.on("drag", (x) => {
 		wavesurfer?.setScroll(x)
 	})
@@ -215,17 +230,19 @@ $effect(() => {
 	if (!wavesurfer) return
 	wavesurfer.setVolume(volume2)
 })
-$effect(() => {
-	if (isReady) {
-		console.log("waveform ready! :)")
+
+
+/** Runs once, when all waveforms (wavesurfer) are ready */
+function onWaveformsReady() {
+			console.log("waveform almost ready")
 		// reset time, etc. because bad things might have happened.
 		resetWaveform()
 
 		window.setTimeout(() => {
 			resetWaveform()
+			console.log("waveform ready! :)")
 		}, 150)
-	}
-})
+}
 
 export async function loadFile(loadfile: File) {
 	if (!loadfile) return
@@ -443,7 +460,9 @@ export function pause() {
 	wavesurfer?.pause()
 }
 
-// Jump to a specific time in the audio (in seconds)
+/** Jump to a specific time in the audio
+ * @param time in seconds
+ */
 export function seekToTime(time: number) {
 	if (!wavesurfer) return
 
@@ -453,6 +472,7 @@ export function seekToTime(time: number) {
 	wavesurfer.setTime(time)
 }
 
+/** reset wavesurfer to 0 */
 export function resetWaveform() {
 	if (!wavesurfer) return
 	wavesurfer.setTime(0)
