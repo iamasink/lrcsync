@@ -248,76 +248,64 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 }
 
 export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
-	let regex: RegExp
-
-	// if (force) {
-	// unimplemented, probably no way to do this well.
-	// regex = /\[(?!(?:laugh|applause|cheer|clap|yeah|oh|huh|uh|ha|heh|la|lol|sigh|cough|grr|tsk|mmm|ah|eh|ooh|aah|hmm|shh|yo|hey|woo|whoa|hee|yawn|sniff|snicker|giggle|sob|cry|scream|shout|chant|sing|hum))[^\]]*?\]$/gi
-	// } else {
-	// TODO: false positives? don't do unnecessary cleanup? idk
-	regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/gi
-	// }
-
-	const result: LyricLine[] = []
-
-	for (const line of lines) {
-		const match = line.text.match(regex)
-		if (match) {
-			result.push({ time: -1, text: "" })
-		} else {
-			result.push(line)
-		}
-	}
-
-	// now cleanup any double lines
-	const cleaned: LyricLine[] = []
-
-	for (const [index, line] of result.entries()) {
-		if (line.text == "" && line.time == -1) {
-			const last = cleaned.at(-1)
+	// cleanup any double empty lines
+	for (const [index, line] of lines.entries()) {
+		if (line.text === "" && line.time === -1) {
+			const last = lines.at(-1)
 			if (last && last.time == -1 && last.text == "") {
 				continue
 			}
 		}
-		cleaned.push(line)
+		lines.push(line)
 	}
 
-	// now swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank
-	for (let i = 0; i < cleaned.length - 1; i++) {
+	// now swap order of blanks so timed comes first: 
+	// [-1] blank, [timed] blank -> [timed] blank, [-1] blank
+	for (let i = 0; i < lines.length - 1; i++) {
 		if (
-			cleaned[i].time === -1 &&
-			cleaned[i].text === "" &&
-			cleaned[i + 1].time !== -1 &&
-			cleaned[i + 1].text === ""
+			lines[i].time === -1 &&
+			lines[i].text === "" &&
+			lines[i + 1].time !== -1 &&
+			lines[i + 1].text === ""
 		) {
 			// swap
-			const temp = cleaned[i]
-			cleaned[i] = cleaned[i + 1]
-			cleaned[i + 1] = temp
+			const temp = lines[i]
+			lines[i] = lines[i + 1]
+			lines[i + 1] = temp
 		}
 	}
-
-	// // now cleanup text
-	// for (let i = 0; i < cleaned.length - 1; i++) {
-	// 	const text = cleaned[i].text
-	// 	text
-	// 		.replaceAll("‘", "'")
-	// 		.replaceAll("’", "'")
-	// 		.replaceAll("“", "\"")
-	// 		.replaceAll("”", "\"")
-	// 		.replaceAll("‚", ",")
-	// 		.replaceAll("‛", "'")
-	// 		.replaceAll("‵", "'")
-	// 		.replaceAll("‶", "\"")
-	// 		.replaceAll("‷", "\"")
-	// 		.replaceAll("′", "'")
 
 
 	// cleaned[i].text = text
 	// }
 
 	// console.log(cleaned)
-	return cleaned
+	return lines
+}
+
+export function stripBadStuff(lines: LyricLine[]) {
+	let regex: RegExp
+
+	regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/i
+
+	return lines.map(line => {
+		if (regex.test(line.text)) return { time: -1, text: "" }
+
+		return {
+			...line,
+			text: line.text
+				.replaceAll("‘", "'")
+				.replaceAll("’", "'")
+				.replaceAll("“", "\"")
+				.replaceAll("”", "\"")
+				.replaceAll("‚", ",")
+				.replaceAll("‛", "'")
+				.replaceAll("‵", "'")
+				.replaceAll("‶", "\"")
+				.replaceAll("‷", "\"")
+				.replaceAll("′", "'")
+		}
+	})
 }
 
 export function cleanAndSort() {
@@ -334,12 +322,11 @@ export function allHaveTimestamps(lines: LyricLine[]) {
 	)
 }
 
-
-export function roundTimestamp(num: number) {
+export function roundTimestamp(num: number): number {
 	return Math.round((num + Number.EPSILON) * 100) / 100
 }
 
-// Skip blank lines and return offset to next non-empty lyric
+/** Returns the offset to next non-empty lyric. */
 export function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit = 3): number {
 	let offset = 1
 	for (let i = 0; i < limit; i++) {
@@ -354,7 +341,7 @@ export function getOffsetToNext(lines: LyricLine[], currentIndex: number, limit 
 	return 1
 }
 
-// Skip untimed lines and return offset to next non-empty lyric
+/** Returns the offset to next non-empty, timed lyric. */
 export function getOffsetToNextTimed(lines: LyricLine[], currentIndex: number, limit = 3): number {
 	let offset = 1
 	for (let i = 0; i < limit; i++) {
@@ -368,6 +355,7 @@ export function getOffsetToNextTimed(lines: LyricLine[], currentIndex: number, l
 	}
 	return 1
 }
+/** Returns the offset to last non-empty, timed lyric. */
 function getOffsetToLast(lines: LyricLine[], currentIndex: number, limit = 3): number {
 	let offset = -1
 	for (let i = 0; i < limit; i++) {
@@ -384,19 +372,11 @@ function getOffsetToLast(lines: LyricLine[], currentIndex: number, limit = 3): n
 
 // naming hell <3
 
-// offset to next lyric from caret
+/** Returns offset to next lyric from current caret line */
 export function getOffsetToNextLyric() {
 	return getOffsetToNext(s.lyrics, s.currentCaretLine)
 }
-
-// offset to next 
-// export function getOffsetToNextBlankLyricAudio() {
-// 	return getOffsetToNext(s.lyrics, s.currentAudioLine)
-// }
-// export function getOffsetToNextLyricAudio() {
-// 	return getOffsetToNextTimed(s.lyrics, s.currentAudioLine)
-// }
-
+/** Returns offset to last lyric from current caret line */
 export function getOffsetToLastLyric() {
 	return getOffsetToLast(s.lyrics, s.currentCaretLine)
 }
