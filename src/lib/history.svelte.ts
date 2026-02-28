@@ -91,9 +91,16 @@ export const historyManager = {
 		const caretPosition = $state.snapshot(s.currentCaretLine)
 		const audioPosition = $state.snapshot(s.audioTime)
 
-		if (s.history[s.historyCurrent] && JSON.stringify(s.history[s.historyCurrent].lyrics) === JSON.stringify(lyrics)) {
-			console.warn("! identical history")
-			// return
+
+		function lyricsAreEqual(a: LyricLine[], b: LyricLine[]): boolean {
+			if (a.length !== b.length) return false
+			return a.every((line, i) => line.time === b[i].time && line.text === b[i].text)
+		}
+
+		const currentLyrics = s.history[s.historyCurrent]?.lyrics
+		if (currentLyrics !== undefined && lyricsAreEqual(currentLyrics, lyrics)) {
+			console.warn(`skipped history saveState: lyrics unchanged: '${name}'`)
+			return
 		}
 
 		const entry: HistoryState = {
