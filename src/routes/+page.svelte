@@ -16,32 +16,26 @@ import {
 	parseLRC,
 	sortLines,
 } from "$lib/parseLRC"
-import type { LyricLine } from "$lib/parseLRC"
 import { onMount, setContext } from "svelte"
 
 import Button from "$lib/components/Button.svelte"
-import DialogLoading from "$lib/components/DialogLoading.svelte"
 import DialogNewAudio from "$lib/components/DialogNewAudio.svelte"
-import ScreensizeWarning from "$lib/components/DialogScreensizeWarning.svelte"
 import Footer from "$lib/components/Footer.svelte"
 import History from "$lib/components/History.svelte"
-import KeybindButton from "$lib/components/KeybindButton.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
 import { addRuby } from "$lib/furigana"
 import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
-import ProgressBar from "$lib/components/ProgressBar.svelte"
-import { clamp } from "$lib/utils"
-let isPlaying = s.waveformRef?.isPlaying() ?? false
+import CurrentLyrics from "./_components/CurrentLyrics.svelte"
+import DragOverlay from "./_components/DragOverlay.svelte"
+import TopControls from "./_components/TopControls.svelte"
+import ButtonControls from "./_components/ButtonControls.svelte"
 
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
 let audioSrc = $state("")
-let lyricsText = $derived(exportLRC(s.lyrics))
 
-let textAreaElement: HTMLTextAreaElement
-let overlayElement: HTMLDivElement
 let isDialogNewAudioOpen: boolean = $state(false)
 
 let fps = $state(0)
@@ -116,49 +110,6 @@ function updateCurrentLine() {
 	}
 }
 
-function adjustSelectedLine(offsetSec: number) {
-	if (s.currentAudioLine < 0 || s.currentAudioLine >= s.lyrics.length) {
-		console.warn("No valid line selected")
-		return
-	}
-
-	const targetLine = s.lyrics[s.currentAudioLine]
-
-	if (!targetLine || targetLine.time === -1) return
-
-	let prevTime = 0
-	for (let i = s.currentAudioLine - 1; i >= 0; i--) {
-		if (s.lyrics[i].time !== -1) {
-			prevTime = s.lyrics[i].time
-			break
-		}
-	}
-
-	let nextTime = Infinity
-	for (let i = s.currentAudioLine + 1; i < s.lyrics.length; i++) {
-		if (s.lyrics[i].time !== -1) {
-			nextTime = s.lyrics[i].time
-			break
-		}
-	}
-
-	const minLineTime = targetLine.text ? 100 : 10
-	// const newTime = Math.max(prevTime + minLineTime, Math.min(nextTime, targetLine.time + (offset * 1000)))
-	const newTime = clamp(
-		targetLine.time + (offsetSec * 1000),
-		prevTime + minLineTime,
-		nextTime,
-	)
-
-	targetLine.time = newTime
-
-	if (s.waveformRef) {
-		s.waveformRef.updateRegions()
-		s.waveformRef.seekToTime(newTime / 1000)
-		s.waveformRef.play()
-	}
-}
-
 // let adjustTimeout: number = 0
 // let total = 0
 // function handleAdjustClick(offset: number, event: MouseEvent) {
@@ -174,21 +125,6 @@ function adjustSelectedLine(offsetSec: number) {
 // 		})
 // 	}, 500)
 // }
-
-function handleAdjustClick(offsetSec: number, event: MouseEvent) {
-	const adjustmentSec = offsetSec
-	console.log(adjustmentSec)
-	// total += Math.round(offset * 100)
-	adjustSelectedLine(adjustmentSec)
-
-	historyManager.pushDebounced(`adjusted line ${s.currentAudioLine}`, { offset: offsetSec })
-}
-
-function togglePlayPause() {
-	if (s.waveformRef) {
-		s.waveformRef.togglePlayPause()
-	}
-}
 
 function handleKeydown(event: KeyboardEvent) {
 	const state = true
@@ -377,23 +313,6 @@ onMount(() => {
 })
 
 let multiplier = $derived(1 * (s.modkeysHeld.shift ? 5 : 1) * (s.modkeysHeld.ctrl ? 10 : 1))
-let stepbuttonvalue = $derived(0.01 * multiplier)
-let fastforwardbuttonvalue = $derived(1 * multiplier)
-
-let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
-let currentTextConverted = $derived(s.convertedLyrics[s.currentAudioLine] ?? "")
-let flash = $state(false)
-let breaktime = $derived(currentText == "")
-$effect(() => {
-	// update whenever audioline changes too!
-	s.lyrics[s.currentAudioLine]
-	if (currentText) {
-		flash = true
-		const t = setTimeout(() => {
-			flash = false
-		}, 200)
-	}
-})
 
 // $effect(() => {
 // 	initKuroshiro().then(() => {
@@ -414,99 +333,6 @@ $effect(() => {
 	// Stop old waveform
 	s.waveformRef?.pause()
 })
-
-function handleNextButtonClick() {
-	// try to move forward until a valid line is found
-	let i = s.currentAudioLine + 1
-	while (i < s.lyrics.length && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
-		i++
-	}
-
-	if (i < s.lyrics.length) {
-		const time = s.lyrics[i].time
-		s.waveformRef?.seekToTime(time / 1000)
-		scrollLineIntoView(i)
-		s.waveformRef?.updateSelectedRegions()
-		s.currentAudioLine = i
-	}
-}
-
-function handlePrevButtonClick() {
-	// try to move backward until a valid line is found
-	let i = s.currentAudioLine - 1
-	while (i >= 0 && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
-		i--
-	}
-
-	if (i >= 0) {
-		const time = s.lyrics[i].time + 0.01
-		s.waveformRef?.seekToTime(time / 1000)
-		scrollLineIntoView(i)
-		s.waveformRef?.updateSelectedRegions()
-		s.currentAudioLine = i
-	}
-}
-
-let clearButtonConfirm = $state(false)
-let clearButtonTimeout: number | undefined
-function handleClearButtonClick() {
-	if (!clearButtonConfirm) {
-		clearButtonConfirm = true
-		clearButtonTimeout = window.setTimeout(() => {
-			clearButtonConfirm = false
-		}, 5000)
-	} else {
-		if (clearButtonTimeout) clearTimeout(clearButtonTimeout)
-		s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
-		historyManager.push("cleared all timestamps")
-		clearButtonConfirm = false
-	}
-}
-
-function getBreakTimeRemaining() {
-	const max = 30
-	const offset = getOffsetToNext(s.lyrics, s.currentAudioLine)
-
-	const lyric = s.lyrics[s.currentAudioLine + offset]
-	let time: number
-	if (lyric) {
-		time = lyric.time
-	} else {
-		time = 1
-	}
-
-	const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
-
-	return Math.min(max, result)
-}
-
-function getLyricPercentageRemaining() {
-	const max = 30
-	const offset = getOffsetToNextTimed(s.lyrics, s.currentAudioLine)
-
-	const lyric = s.lyrics[s.currentAudioLine]
-	const nextlyric = s.lyrics[s.currentAudioLine + offset]
-
-	if (!lyric || !nextlyric) return 0
-
-	let time: number
-	if (nextlyric) {
-		time = nextlyric.time
-	} else {
-		time = 1
-	}
-
-	// const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
-	// const timeLeft = Math.min(max, result)
-	const start = lyric.time
-	const end = nextlyric.time
-	const current = s.audioTime
-
-	const maximum = end - start
-	const value = (current - start) / maximum
-
-	return value
-}
 </script>
 
 <svelte:head>
@@ -527,49 +353,11 @@ function getLyricPercentageRemaining() {
 
 <div class="app">
 	<div class="container">
-		{#if showFileoverlay}
-			<div class="drag-overlay">
-				<div class="middle">
-					<p>
-						Drop files anywhere
-					</p>
-					<p class="hint">You can also drop both .lrc and audio at the same time :)</p>
-				</div>
-				<div style="top: 5%; left: 5%">Drop files anywhere</div>
-				<!--
-					<div style="bottom: 5%; left: 5%">Drop files anywhere</div>
-					<div style="top: 5%; right: 5%">Drop files anywhere</div>
-					<div style="bottom: 5%; right: 5%">Drop files anywhere</div>
-				-->
-			</div>
-		{/if}
+		<DragOverlay bind:open={showFileoverlay}></DragOverlay>
 
 		{#if showTopControls}
 			<div class="topcontrols">
-				<p>Audio</p>
-				<!-- {#if !audioFile} -->
-				<input
-					id="fileinputaudio"
-					type="file"
-					accept="audio/*"
-					onchange={(e: Event) => {
-						const t = e.target as HTMLInputElement
-						if (t?.files?.[0]) audioFile = t.files[0]
-					}}
-				/>
-				<!-- {/if} -->
-				<!-- {#if !lrcFile} -->
-				<p>.lrc</p>
-				<input
-					id="fileinputlyric"
-					type="file"
-					accept=".lrc,.txt"
-					onchange={(e: Event) => {
-						const t = e.target as HTMLInputElement
-						if (t?.files?.[0]) lrcFile = t.files[0]
-					}}
-				/>
-				<!-- {/if} -->
+				<TopControls bind:lrcFile bind:audioFile></TopControls>
 				<button onclick={doLoad}>Load</button>
 				<Button
 					title="hide this"
@@ -598,143 +386,8 @@ function getLyricPercentageRemaining() {
 
 		<div class="belowwaveform">
 			<div class="belowwaveform-left">
-				<div class="currentlyric">
-					<div class="left">
-						<span>
-							current lyric:
-						</span>
-						<ProgressBar value={getLyricPercentageRemaining()}></ProgressBar>
-					</div>
-					<div class="lyrictext">
-						{#if !breaktime}
-							{@const hasConvertedText = currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
-							<span class:flash class:nonconverted={hasConvertedText}>{@html addRuby(currentText)}</span>
-							{#if hasConvertedText}
-								<span class="converted" class:flash>{currentTextConverted}</span>
-							{/if}
-						{:else}
-							<span class:break={breaktime} class:animate={s.isAudioPlaying}>
-								<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
-								{#each { length: getBreakTimeRemaining() }, index}
-									{#if index > 6 && Math.random() < (1 / 20)}
-										<span class="emoji" style="--i: {index+1}">🎷🐈</span>
-									{:else}
-										{#if index % 2}
-											<span class="emoji" style="--i: {index+1}">🎵</span>
-										{:else}
-											<span class="emoji" style="--i: {index+1}">🎶</span>
-										{/if}
-									{/if}
-								{/each}
-							</span>
-						{/if}
-					</div>
-				</div>
-
-				<div class="controls">
-					<div>
-						<KeybindButton onclick={togglePlayPause} shortcut={{ key: "Space" }}>
-							{s.isAudioPlaying ? "Pause" : "Play"}
-						</KeybindButton>
-						<KeybindButton
-							onclick={() => {
-								if (s.lyrics[s.currentCaretLine].time != -1) s.waveformRef?.seekToTime(s.lyrics[s.currentCaretLine].time / 1000)
-							}}
-							shortcut={{ key: "w" }}
-							title="Move the audio to the caret"
-						>
-							Play @ caret
-						</KeybindButton>
-						<KeybindButton
-							onclick={() => s.waveformRef?.seekToTime(s.lyrics[s.currentAudioLine].time / 1000)}
-							shortcut={{ key: "r" }}
-							title="Move the audio to the start of current line"
-						>
-							Replay line
-						</KeybindButton>
-						<KeybindButton
-							onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
-							title={`Go back ${fastforwardbuttonvalue}s`}
-							shortcut={{ key: "left" }}
-							ignoremods={true}
-						>
-							-{fastforwardbuttonvalue}s
-						</KeybindButton>
-
-						<KeybindButton
-							onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
-							title={`Fastforward ${fastforwardbuttonvalue}s`}
-							shortcut={{ key: "right" }}
-							ignoremods={true}
-						>
-							+{fastforwardbuttonvalue}s
-						</KeybindButton>
-
-						<KeybindButton title={"Move the audio to the start of next line"} onclick={handleNextButtonClick} shortcut={{ key: "down" }}
-						>next line</KeybindButton>
-						<KeybindButton title={"Move the audio to the start of previous line"} onclick={handlePrevButtonClick} shortcut={{ key: "up" }}
-						>prev line</KeybindButton>
-					</div>
-					<div>
-						<KeybindButton
-							onclick={(e) => handleAdjustClick(-stepbuttonvalue, e)}
-							disabled={s.currentCaretLine < 0}
-							title={`Move currently playing line earlier by -${stepbuttonvalue}s`}
-							shortcut={{ key: "x" }}
-							ignoremods={true}
-						>
-							-{stepbuttonvalue.toFixed(2)}s
-						</KeybindButton>
-
-						<KeybindButton
-							onclick={(e) => handleAdjustClick(stepbuttonvalue, e)}
-							disabled={s.currentCaretLine < 0}
-							title={`Move currently playing line later by +${stepbuttonvalue}s`}
-							shortcut={{ key: "c" }}
-							ignoremods={true}
-						>
-							+{stepbuttonvalue.toFixed(2)}s
-						</KeybindButton>
-
-						<!--  -->
-
-						<KeybindButton onclick={(e) => historyManager.undo()} title="Undo" shortcut={{ key: "z", ctrl: true }}>
-							Undo
-						</KeybindButton>
-						<KeybindButton onclick={(e) => historyManager.redo()} title="Redo" shortcut={{ key: "z", ctrl: true, shift: true }}>
-							Redo
-						</KeybindButton>
-					</div>
-					<div>
-						<Button
-							onclick={() => {
-								s.lyrics = sortLines(s.lyrics)
-								historyManager.push("sorted lines")
-							}}
-							title="sort lines by timestamp"
-						>
-							Sort
-						</Button>
-						<Button
-							onclick={() => {
-								s.lyrics = cleanup(s.lyrics)
-								historyManager.push("cleanup")
-							}}
-							title="cleanup"
-						>
-							Cleanup
-						</Button>
-						<Button
-							onclick={() => {
-								handleClearButtonClick()
-							}}
-							title="Clear all existing timestamps"
-						>
-							{clearButtonConfirm ? "Really?" : "Clear"}
-						</Button>
-						<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} disabled/>lock caret</label>
-					</div>
-				</div>
+				<CurrentLyrics></CurrentLyrics>
+				<ButtonControls></ButtonControls>
 			</div>
 			<div class="history">
 				<History></History>
@@ -867,34 +520,6 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-input[type="file"] {
-  font-size: 0.9rem;
-}
-
-.drag-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.884);
-  font-size: 4rem;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  pointer-events: all;
-  display: flex;
-
-  div {
-    position: fixed;
-
-    .hint {
-      color: var(--text);
-      font-weight: lighter;
-      font-size: 3rem;
-    }
-  }
-}
 
 .tabarea {
   display: flex;
@@ -938,85 +563,6 @@ input[type="file"] {
   opacity: 0.8;
   p {
     width: 6rem;
-  }
-}
-
-.flash {
-  animation: flash-bg 0.5s;
-}
-
-@keyframes flash-bg {
-  0% {
-    background-color: rgb(76, 76, 206);
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-
-.break {
-  background-color: #ffffff;
-  .emoji {
-    display: inline-block;
-  }
-}
-.break.animate {
-  .emoji {
-    /* margin: 0 0rem; */
-    animation: bounce 0.6s infinite alternate ease-in-out;
-    transition: opacity 0.3s ease;
-    animation-delay: calc(-0.2s * var(--i));
-  }
-
-  /* .emoji:nth-child(2) {
-    animation-delay: -0.2s;
-  }
-  .emoji:nth-child(3) {
-    animation-delay: -0.4s;
-  }
-    .emoji:nth-child(4) {
-    animation-delay: -0.6s;
-  } */
-}
-@keyframes bounce {
-  from {
-    transform: translateY(5px);
-  }
-  to {
-    transform: translateY(-7px);
-  }
-}
-
-.currentlyric {
-  max-height: 4rem;
-  height: 4rem;
-  font-size: large;
-  display: flex;
-  margin-bottom: 1rem;
-
-  .left {
-    color: var(--text-muted);
-    align-self: center;
-    /* move slightly up */
-    transform: translateY(-0.5rem);
-    text-wrap: nowrap;
-  }
-
-  .lyrictext {
-    margin-left: 1rem;
-    font-size: x-large;
-    display: flex;
-    flex-direction: column;
-    max-width: 70vw;
-
-    .converted,
-    .nonconverted {
-      /* only if there is a lyric with conversion shown */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
   }
 }
 </style>
