@@ -707,7 +707,7 @@ function getLyricPercentageRemaining() {
 						</KeybindButton>
 					</div>
 					<div>
-						<button
+						<Button
 							onclick={() => {
 								s.lyrics = sortLines(s.lyrics)
 								historyManager.push("sorted lines")
@@ -715,8 +715,8 @@ function getLyricPercentageRemaining() {
 							title="sort lines by timestamp"
 						>
 							Sort
-						</button>
-						<button
+						</Button>
+						<Button
 							onclick={() => {
 								s.lyrics = cleanup(s.lyrics)
 								historyManager.push("cleanup")
@@ -724,17 +724,16 @@ function getLyricPercentageRemaining() {
 							title="cleanup"
 						>
 							Cleanup
-						</button>
-						<button
+						</Button>
+						<Button
 							onclick={() => {
 								handleClearButtonClick()
 							}}
 							title="Clear all existing timestamps"
-							class:danger={clearButtonConfirm}
 						>
 							{clearButtonConfirm ? "Really?" : "Clear"}
-						</button>
-						<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} />lock caret</label>
+						</Button>
+						<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} disabled/>lock caret</label>
 					</div>
 				</div>
 			</div>

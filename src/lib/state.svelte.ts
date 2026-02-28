@@ -39,7 +39,7 @@ export const s: State = $state({
 	isAudioPlaying: false,
 	activeTab: "edit",
 	modkeysHeld: { shift: false, ctrl: false, alt: false },
-	syncCaretWithAudio: true,
+	syncCaretWithAudio: false,
 	waveformRef: undefined,
 	lineElements: [],
 	lineElements2: [],
