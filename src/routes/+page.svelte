@@ -1,7 +1,6 @@
 <script lang="ts">
 import CollapsibleText from "$lib/components/CollapsibleText.svelte"
 import EditView from "$lib/components/TabEdit.svelte"
-import SyncView from "$lib/components/TabSync.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
 import { initDragDrop } from "$lib/dragDrop"
 import { loadAudio, loadLRC } from "$lib/loadFiles"
@@ -750,10 +749,6 @@ function getLyricPercentageRemaining() {
 			</div>
 
 			<div class="tabcontent">
-				<!--
-					{#if s.activeTab === "sync"}
-					<SyncView />
-				-->
 				{#if s.activeTab === "edit"}
 					<EditView />
 				{:else if s.activeTab === "metadata"}
