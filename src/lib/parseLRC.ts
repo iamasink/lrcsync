@@ -372,7 +372,7 @@ function getOffsetToLast(lines: LyricLine[], currentIndex: number, limit = 3): n
 	let offset = -1
 	for (let i = 0; i < limit; i++) {
 		const lyric = lines[currentIndex + offset]
-		if (!lyric) return 1
+		if (!lyric) return 0
 		if (lyric.text === "") {
 			offset--
 		} else {
