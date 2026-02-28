@@ -41,6 +41,9 @@ function handleBlur() {
 
 	// because we update the actual lyrics without pushing to history, its possible
 	// that this change is considered part of another..
+	// ^ idk what i was talking about, but i do think it is an issue
+
+	// push without debounce, so it is applied (we just blurred, so it'll be a new history entry if its edited again etc.)
 	historyManager.push("input edited")
 }
 
@@ -50,7 +53,7 @@ function handleInput() {
 	if (textUpdateTimeout) {
 		window.clearTimeout(textUpdateTimeout)
 	} else {
-		console.log("no timeout:)", textUpdateTimeout)
+		// console.log("no timeout:)", textUpdateTimeout)
 		historyManager.pushDebounced("input edited", {}, 10000)
 	}
 
