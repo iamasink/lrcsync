@@ -87,9 +87,6 @@ function updateCurrentLine() {
 	if (newIndex !== s.currentAudioLine) {
 		// if (newIndex == -1) return
 		if (s.lyrics[newIndex].time == -1) return
-		console.log("s.currentCaretLine", s.currentCaretLine)
-		console.log("s.currentAudioLine", s.currentAudioLine)
-		console.log(`new line: ${newIndex} from ${s.currentAudioLine}`)
 
 		if (
 			(s.currentCaretLine === s.currentAudioLine)
@@ -109,22 +106,6 @@ function updateCurrentLine() {
 		s.currentAudioLine = newIndex
 	}
 }
-
-// let adjustTimeout: number = 0
-// let total = 0
-// function handleAdjustClick(offset: number, event: MouseEvent) {
-// 	const adjustment = offset
-// 	total += Math.round(offset * 100)
-// 	adjustSelectedLine(adjustment)
-
-// 	if (adjustTimeout) clearTimeout(adjustTimeout)
-// 	adjustTimeout = window.setTimeout(() => {
-// 		requestAnimationFrame(() => {
-// 			historyManager.push(`adjusted line ${s.currentAudioLine} by ${total / 100}`)
-// 			total = 0
-// 		})
-// 	}, 500)
-// }
 
 function handleKeydown(event: KeyboardEvent) {
 	const state = true
@@ -177,9 +158,6 @@ function countfps(now: number) {
 }
 
 async function doLoad() {
-	// if (!audioFile) {
-	// 	console.error("couldn't load! no audio file!")
-	// 	return
 	if (lrcFile) {
 		console.log("loading lrc")
 		const { lyrics: l, meta } = await loadLRC(lrcFile)
@@ -313,14 +291,6 @@ onMount(() => {
 })
 
 let multiplier = $derived(1 * (s.modkeysHeld.shift ? 5 : 1) * (s.modkeysHeld.ctrl ? 10 : 1))
-
-// $effect(() => {
-// 	initKuroshiro().then(() => {
-// 		getKuroshiro().then(k => {
-// 			(window as any).kuroshiro = k
-// 		})
-// 	})
-// })
 
 $effect(() => {
 	if (!audioFile) return
@@ -487,11 +457,6 @@ $effect(() => {
   flex-wrap: wrap;
   align-items: center;
   border: 1px solid var(--border-muted);
-}
-.controls {
-  /* gap: 0.5rem; */
-
-  /* div {} */
 }
 
 .belowwaveform {

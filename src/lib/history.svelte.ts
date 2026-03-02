@@ -15,7 +15,6 @@ export interface HistoryState {
 }
 
 let index = 1
-// let current = -1
 
 interface DebouncedAction {
 	timeout: number | null
@@ -25,6 +24,14 @@ interface DebouncedAction {
 		count: number
 		line?: number
 	}
+}
+
+interface PushOptions {
+	/** Save/restore caret position on undo/redo. */
+	saveCaret?: boolean
+
+	/** Force a push even if lyrics data did not change. */
+	force?: boolean
 }
 
 let pending: DebouncedAction | null = null
@@ -71,17 +78,20 @@ export const historyManager = {
 		s.history.splice(from)
 	},
 
-	push(name: string, options?: { saveCaret?: boolean }) {
+
+
+	push(name: string, options?: PushOptions,) {
 		if (pending) {
 			this.flush()
-			// setTimeout(() => this.saveState(name), 0) // why/?
-			this.saveState(name)
+			// i dont remember why we don't savecaret here.
+			this.saveState(name, { ...options, saveCaret: false })
+
 		} else {
-			this.saveState(name, options?.saveCaret)
+			this.saveState(name, options)
 		}
 	},
 
-	saveState(name: string, saveCaret?: boolean) {
+	saveState(name: string, options?: PushOptions) {
 		if (s.historyCurrent < s.history.length - 1) {
 			this.clearNewer()
 		}
@@ -97,10 +107,12 @@ export const historyManager = {
 			return a.every((line, i) => line.time === b[i].time && line.text === b[i].text)
 		}
 
-		const currentLyrics = s.history[s.historyCurrent]?.lyrics
-		if (currentLyrics !== undefined && lyricsAreEqual(currentLyrics, lyrics)) {
-			console.warn(`skipped history saveState: lyrics unchanged: '${name}'`)
-			return
+		if (!options?.force) {
+			const currentLyrics = s.history[s.historyCurrent]?.lyrics
+			if (currentLyrics !== undefined && lyricsAreEqual(currentLyrics, lyrics)) {
+				console.warn(`skipped history saveState: lyrics unchanged: '${name}'`)
+				return
+			}
 		}
 
 		const entry: HistoryState = {
@@ -111,7 +123,7 @@ export const historyManager = {
 			name,
 		}
 
-		if (saveCaret) {
+		if (options?.saveCaret) {
 			entry.caretPosition = caretPosition
 			entry.audioPosition = audioPosition
 		}
@@ -152,7 +164,9 @@ export const historyManager = {
 
 		const { name, data } = pending
 		let desc = name
+		// TODO: better system for this
 		if (name.startsWith("adjust")) {
+			// if there was ultimately no change, we can just clear the pointless pending changes.
 			if (data.totalOffset === 0) {
 				this.clearPending()
 				return
@@ -176,12 +190,6 @@ export const historyManager = {
 	check() {
 		console.log("history current", s.history[s.historyCurrent])
 	},
-
-	// goto(index: number) {
-	// 	s.historyCurrent = index
-	// 	s.lyrics = $state.snapshot(s.history[s.historyCurrent].lyrics)
-	// 	s.metadata = $state.snapshot(s.history[s.historyCurrent].metadata)
-	// },
 
 	getHistory() {
 		return s.history
