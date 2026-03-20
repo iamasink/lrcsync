@@ -3,7 +3,6 @@ import ProgressBar from "$lib/components/ProgressBar.svelte"
 import { addRuby } from "$lib/furigana"
 import { getOffsetToNext, getOffsetToNextTimed } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
-import { onMount } from "svelte"
 
 let currentText = $derived(s.lyrics[s.currentAudioLine]?.text ?? "")
 let currentTextConverted = $derived(s.convertedLyrics[s.currentAudioLine] ?? "")
@@ -50,7 +49,11 @@ function getBreakTimeRemaining() {
 		time = 1
 	}
 
-	const result = 1 + Math.floor(time / 1000 - s.audioTime / 1000)
+	// if we want this to use bpm later, do we want the beats to match on beat (probably?) or be similar to how seconds worked
+	// counting exact time??? idk. for now ill just not touchj it
+	// const timeinseconds = (getBeatAtTim
+
+	const result = 1 + Math.floor(time / 1000 - s.audioTimeMs / 1000)
 
 	return Math.min(max, result)
 }
@@ -75,7 +78,7 @@ function getLyricPercentageRemaining() {
 	// const timeLeft = Math.min(max, result)
 	const start = lyric.time
 	const end = nextlyric.time
-	const current = s.audioTime
+	const current = s.audioTimeMs
 
 	const maximum = end - start
 	const value = (current - start) / maximum
@@ -103,7 +106,6 @@ function getLyricPercentageRemaining() {
 			{/if}
 		{:else}
 			<span class:break={breaktime} class:animate={s.isAudioPlaying}>
-				<!-- TODO: make a function and skip empty lines, also fix weird symbols like ’ -->
 				{#each { length: getBreakTimeRemaining() }, index}
 					{#if index > 6 && Math.random() < (1 / 20)}
 						<span class="emoji" style="--i: {index+1}">🎷🐈</span>

@@ -99,7 +99,7 @@ export const historyManager = {
 		const lyrics = $state.snapshot(s.lyrics)
 		const metadata = $state.snapshot(s.metadata)
 		const caretPosition = $state.snapshot(s.currentCaretLine)
-		const audioPosition = $state.snapshot(s.audioTime)
+		const audioPosition = $state.snapshot(s.audioTimeMs)
 
 
 		function lyricsAreEqual(a: LyricLine[], b: LyricLine[]): boolean {

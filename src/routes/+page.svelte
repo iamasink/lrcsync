@@ -31,6 +31,9 @@ import CurrentLyrics from "./_components/CurrentLyrics.svelte"
 import DragOverlay from "./_components/DragOverlay.svelte"
 import TopControls from "./_components/TopControls.svelte"
 import ButtonControls from "./_components/ButtonControls.svelte"
+import { getBeatAtTime } from "$lib/bpm"
+import Tooltip from "$lib/components/Tooltip.svelte"
+	import BPMMenu from "./_components/BPMMenu.svelte";
 
 let audioFile = $state<File | null>(null)
 let lrcFile = $state<File | null>(null)
@@ -44,6 +47,7 @@ let frameCount = 0
 
 let showFileoverlay = $state(false)
 let showTopControls = $state(true)
+let showBPMMenu = $state(false)
 
 /**
  * Gets the current lyric line based on the time.
@@ -52,7 +56,7 @@ let showTopControls = $state(true)
  * @returns `null` if no lyrics/audio
  * @returns `-1` if playback is before the first lyric line.
  */
-function getCurrentLine(time = s.audioTime): number | null | -1 {
+function getCurrentLine(time = s.audioTimeMs): number | null | -1 {
 	if (!s.lyrics || time < 0) {
 		return null
 	}
@@ -77,7 +81,7 @@ function getCurrentLine(time = s.audioTime): number | null | -1 {
 
 let lasttime = -1
 function updateCurrentLine() {
-	const time = s.audioTime
+	const time = s.audioTimeMs
 	if (time == lasttime) return
 	lasttime = time
 
@@ -298,7 +302,7 @@ $effect(() => {
 	// Reset playback state
 	s.currentAudioLine = 0
 	s.currentCaretLine = 0
-	s.audioTime = 0
+	s.audioTimeMs = 0
 
 	// Stop old waveform
 	s.waveformRef?.pause()
@@ -320,6 +324,7 @@ $effect(() => {
 </noscript>
 <!-- <ScreensizeWarning /> -->
 <DialogNewAudio bind:open={isDialogNewAudioOpen} />
+<BPMMenu bind:open={showBPMMenu}/>
 
 <div class="app">
 	<div class="container">
@@ -347,11 +352,36 @@ $effect(() => {
 		<!-- {/if} -->
 
 		<div class="info">
-			<p>audio line: {s.currentAudioLine}</p>
-			<p>caret line: {s.currentAudioLine}</p>
-			<p>{(s.audioTime / 1000).toFixed(2)}s</p>
-			<p>{formatTime(s.audioTime)}</p>
-			<p>FPS: {fps}</p>
+			<Tooltip message="position of audio in the lyrics">
+				<p>audio line: {s.currentAudioLine}</p>
+			</Tooltip>
+			<Tooltip message="position of the caret in the lyrics">
+				<p>caret line: {s.currentAudioLine}</p>
+			</Tooltip>
+			<Tooltip message="time in seconds">
+				<p>{(s.audioTimeMs / 1000).toFixed(2)}s</p>
+			</Tooltip>
+			<Tooltip message="time">
+				<p>{formatTime(s.audioTimeMs)}</p>
+			</Tooltip>
+			<Tooltip message="frames per second">
+				<p>FPS: {fps}</p>
+			</Tooltip>
+			<!-- TODO -->
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<Tooltip message="beats per minute (TODO: click to set)">
+				<!-- <Button type="button" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</Button> -->
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<p onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</p>
+			</Tooltip>
+			<Tooltip message="current beat">
+				<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
+			</Tooltip>
+			<div class="metronome">
+				{#each Array(4) as _, i}
+					<div class="beat" class:active={Math.floor(getBeatAtTime(s.audioTimeMs)) % 4 === i}></div>
+				{/each}
+			</div>
 		</div>
 
 		<div class="belowwaveform">
@@ -528,6 +558,26 @@ button:disabled {
   opacity: 0.8;
   p {
     width: 6rem;
+  }
+}
+
+.metronome {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .beat {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--border-muted);
+    transition: all 0s 0s ease;
+
+    &.active {
+      background-color: var(--highlight);
+      transition: all 0s 0s ease;
+      transform: scale(1.3);
+    }
   }
 }
 </style>

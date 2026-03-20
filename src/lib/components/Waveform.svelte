@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { guessTempo } from "$lib/bpm";
 import { historyManager } from "$lib/history.svelte"
 import { cleanAndSort, type LyricLine, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
@@ -26,12 +27,8 @@ let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
 
 let isBpmEnabled = $state(false)
-let audioBPM = $state(0)
-let audioBPMOffsetMs = $state(0)
 let bpmLoading = $state(false)
 
-let bpmMin = $state(100)
-let bpmMax = $state(200)
 
 const AUTOCENTER_DEFAULT = true
 const AUTOSCROLL_DEFAULT = true
@@ -168,7 +165,7 @@ $effect(() => {
 
 		onWaveformsReady()
 
-		guessTempo().then(() => {
+		guessTempo(100,200).then(() => {
 			// i dont remember why theres a timeout here
 			setTimeout(() => {
 				updateBpmMarkers()
@@ -182,10 +179,10 @@ $effect(() => {
 	})
 
 	wavesurfer.on("timeupdate", (newtime) => {
-		s.audioTime = newtime * 1000
+		s.audioTimeMs = newtime * 1000
 	})
 	wavesurfer.on("seeking", (newtime) => {
-		s.audioTime = newtime * 1000
+		s.audioTimeMs = newtime * 1000
 	})
 
 	regions.on("region-updated", (r) => {
@@ -258,6 +255,10 @@ export async function loadFile(loadfile: File) {
 	}
 }
 
+export function getWavesurfer() {
+	return wavesurfer
+}
+
 // is the next line a blank line (giving this region an end time)?
 function regionHasEndTime(index: number) {
 	const lyric = s.lyrics[index]
@@ -295,14 +296,16 @@ export function updateBpmMarkers() {
 
 	const duration = wavesurfer.getDuration()
 	if (!duration || duration <= 0) return
+	if (!s.audioBPM) return
+	if (!s.audioBPMOffsetMs) return
 
-	const beatInterval = 60 / audioBPM // seconds per beat
+	const beatInterval = 60 / s.audioBPM // seconds per beat
 
 	const existingRegions = regions.getRegions()
 	const usedBpmRegions = new Set<string>()
 
 	if (isBpmEnabled) {
-		for (let time = audioBPMOffsetMs / 1000; time < duration; time += beatInterval) {
+		for (let time = s.audioBPMOffsetMs / 1000; time < duration; time += beatInterval) {
 			if (time < 0) continue
 
 			const regionId = `bpm-tick-${Math.round(time * 1000)}`
@@ -597,42 +600,6 @@ function handleScroll(e: WheelEvent) {
 
 	e.preventDefault()
 }
-
-function handleGuessButton(e: MouseEvent) {
-	bpmMin = 100
-	bpmMax = 200
-	guessTempo()
-}
-
-async function guessTempo(min = bpmMin, max = bpmMax): Promise<{ bpm: number; offset: number } | null> {
-	if (!wavesurfer) return null
-	console.log("guessing bpm, offset...")
-	const mediael = wavesurfer.getMediaElement() as any
-	console.log(mediael)
-	bpmLoading = true
-	const buffer = mediael.buffer
-	try {
-		const { bpm, offset } = await guess(buffer, { minTempo: min, maxTempo: max })
-		const offsetms = offset * 1000
-		console.log(`guessed bpm ${bpm} and offset ${offsetms}ms`)
-		audioBPM = bpm
-		audioBPMOffsetMs = offsetms
-		return { bpm, offset: offsetms }
-	} catch (err) {
-		console.error(err)
-		return null
-	} finally {
-		bpmLoading = false
-	}
-}
-function guessTempoHigher() {
-	bpmMin = audioBPM
-	guessTempo(bpmMin + 0.1, bpmMax + 20)
-}
-function guessTempoLower() {
-	bpmMax = audioBPM
-	guessTempo(bpmMin - 20, bpmMax - 0.5)
-}
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -669,19 +636,20 @@ function guessTempoLower() {
 				<input type="checkbox" bind:checked={isBpmEnabled} />
 			</label>
 			{#if isBpmEnabled}
-				<button onclick={handleGuessButton}>{bpmLoading ? "Guessing..." : "Guess"}</button>
-				{#if audioBPM}
+			<p>click bpm (below) to edit</p>
+				<!-- <button onclick={handleGuessButton}>{bpmLoading ? "Guessing..." : "Guess"}</button>
+				{#if s.audioBPM}
 					<button onclick={guessTempoHigher}>Higher</button>
 					<button onclick={guessTempoLower}>Lower</button>
 				{/if}
 				<label>
 					BPM:
-					<input type="number" bind:value={audioBPM} min="1" max="300" onblur={updateBpmMarkers} />
+					<input type="number" bind:value={s.audioBPM} min="1" max="300" onblur={updateBpmMarkers} />
 				</label>
 				<label>
 					Offset:
-					<input type="number" bind:value={audioBPMOffsetMs} min="0" onblur={updateBpmMarkers} />
-				</label>
+					<input type="number" bind:value={s.audioBPMOffsetMs} step="10" onblur={updateBpmMarkers} />
+				</label> -->
 			{/if}
 		</div>
 		<div class="nextlyric">

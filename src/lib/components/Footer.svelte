@@ -21,7 +21,7 @@ if (commitHash) {
 	<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
 	<p><a href="https://github.com/iamasink/lrcsync">GitHub</a> <span>{commitBranchText}</span></p>
 	{#if !(branch.includes("main") || branch.includes("master")) }
-		<p>This is a development branch. <a href="https://lrcsync.iamas.ink">Goto main</a></p>
+		<p>This is a development branch. <a href="https://lrcsync.iamas.ink">Go to main site</a></p>
 	{/if}
 	<p><a href="https://iamas.ink/support">support me <span class="nounderline">❣️</span></a></p>
 </div>

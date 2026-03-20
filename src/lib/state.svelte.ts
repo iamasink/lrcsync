@@ -11,7 +11,7 @@ interface State {
 	convertedLyricsLang: "ja" | "en" | "none" | null
 	currentAudioLine: number
 	currentCaretLine: number
-	audioTime: number
+	audioTimeMs: number
 	isAudioPlaying: boolean
 	activeTab: "edit" | "metadata"
 	modkeysHeld: { shift: boolean, ctrl: boolean, alt: boolean }
@@ -27,6 +27,9 @@ interface State {
 	historyPending: { name: string, time: number } | null,
 	unsavedChanges: boolean
 	waveformLoading: boolean
+	audioBPM: number | null,
+	audioBPMOffsetMs: number,
+	useBPM: boolean,
 }
 
 export const s: State = $state({
@@ -35,7 +38,7 @@ export const s: State = $state({
 	convertedLyricsLang: "ja",
 	currentAudioLine: -1,
 	currentCaretLine: -1,
-	audioTime: 0,
+	audioTimeMs: 0,
 	isAudioPlaying: false,
 	activeTab: "edit",
 	modkeysHeld: { shift: false, ctrl: false, alt: false },
@@ -50,7 +53,10 @@ export const s: State = $state({
 	historyCurrent: -1,
 	historyPending: null,
 	unsavedChanges: false,
-	waveformLoading: false
+	waveformLoading: false,
+	audioBPM: null,
+	audioBPMOffsetMs: 0,
+	useBPM: false,
 })
 
 interface Preferences {

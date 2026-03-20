@@ -139,7 +139,7 @@ function togglePlayPause() {
 			Replay line
 		</KeybindButton>
 		<KeybindButton
-			onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) - fastforwardbuttonvalue)}
+			onclick={() => s.waveformRef?.seekToTime((s.audioTimeMs / 1000) - fastforwardbuttonvalue)}
 			title={`Go back ${fastforwardbuttonvalue}s`}
 			shortcut={{ key: "left" }}
 			ignoremods={true}
@@ -148,7 +148,7 @@ function togglePlayPause() {
 		</KeybindButton>
 
 		<KeybindButton
-			onclick={() => s.waveformRef?.seekToTime((s.audioTime / 1000) + fastforwardbuttonvalue)}
+			onclick={() => s.waveformRef?.seekToTime((s.audioTimeMs / 1000) + fastforwardbuttonvalue)}
 			title={`Fastforward ${fastforwardbuttonvalue}s`}
 			shortcut={{ key: "right" }}
 			ignoremods={true}

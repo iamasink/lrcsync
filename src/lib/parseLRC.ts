@@ -248,39 +248,35 @@ export function sortLines(lines: LyricLine[]): LyricLine[] {
 }
 
 export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
+	const cleaned: LyricLine[] = []
+
 	// cleanup any double empty lines
-	for (const [index, line] of lines.entries()) {
+	for (const line of lines) {
 		if (line.text === "" && line.time === -1) {
-			const last = lines.at(-1)
-			if (last && last.time == -1 && last.text == "") {
+			const last = cleaned.at(-1)
+			if (last && last.time === -1 && last.text === "") {
 				continue
 			}
 		}
-		lines.push(line)
+		cleaned.push(line)
 	}
 
 	// now swap order of blanks so timed comes first: 
 	// [-1] blank, [timed] blank -> [timed] blank, [-1] blank
-	for (let i = 0; i < lines.length - 1; i++) {
+	for (let i = 0; i < cleaned.length - 1; i++) {
 		if (
-			lines[i].time === -1 &&
-			lines[i].text === "" &&
-			lines[i + 1].time !== -1 &&
-			lines[i + 1].text === ""
+			cleaned[i].time === -1 &&
+			cleaned[i].text === "" &&
+			cleaned[i + 1].time !== -1 &&
+			cleaned[i + 1].text === ""
 		) {
-			// swap
-			const temp = lines[i]
-			lines[i] = lines[i + 1]
-			lines[i + 1] = temp
+			const temp = cleaned[i]
+			cleaned[i] = cleaned[i + 1]
+			cleaned[i + 1] = temp
 		}
 	}
 
-
-	// cleaned[i].text = text
-	// }
-
-	// console.log(cleaned)
-	return lines
+	return cleaned
 }
 
 export function stripBadStuff(lines: LyricLine[]) {
