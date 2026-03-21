@@ -16,7 +16,7 @@ if (commitHash) {
 		commitBranchText += ` on ${branch}`
 	}
   if (buildDate) {
-    commitBranchText += ` build at ${buildDate}`
+    commitBranchText += `, built at ${buildDate}`
   }
 
 	commitBranchText += "."
