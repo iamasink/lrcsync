@@ -4,15 +4,41 @@ import { execSync } from 'child_process';
 import { defineConfig } from 'vite';
 
 function getGitInfo() {
-	try {
-		const hash = execSync('git rev-parse HEAD').toString().trim();
-		const branch = execSync('git symbolic-ref --short HEAD').toString().trim()
-		const buildDate = new Date().toISOString();
+	let hash, branch
+	let buildDate = new Date().toISOString()
 
-		return { hash, branch, buildDate: buildDate };
-	} catch {
-		return { hash: undefined, branch: undefined, buildDate: undefined };
+	try {
+		hash = execSync('git rev-parse HEAD').toString().trim()
+		console.log('Git hash:', hash)
+	} catch (err) {
+		console.warn('Failed to get Git hash:', err)
 	}
+
+	try {
+		const b = execSync('git rev-parse --abbrev-ref HEAD').toString().trim()
+		if (b !== 'HEAD') {
+			branch = b
+			console.log('Git branch:', branch)
+		} else {
+			console.log('Detached HEAD, branch unknown')
+		}
+	} catch (err) {
+		console.warn('Failed to get Git branch:', err)
+	}
+
+	if (!branch && process.env.CF_PAGES_BRANCH) {
+		branch = process.env.CF_PAGES_BRANCH
+		console.log('Branch from CF_PAGES_BRANCH env:', branch)
+	}
+
+	try {
+		buildDate = execSync('git log -1 --format=%cI').toString().trim()
+		console.log('Git commit date:', buildDate)
+	} catch (err) {
+		console.warn('Failed to get Git commit date, using:', buildDate)
+	}
+
+	return { hash, branch, buildDate }
 }
 
 const { hash, branch, buildDate } = getGitInfo();
