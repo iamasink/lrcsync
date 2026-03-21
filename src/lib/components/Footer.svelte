@@ -15,20 +15,12 @@ if (commitHash) {
 	if (branch) {
 		commitBranchText += ` on ${branch}`
 	}
-
-  commitBranchText += `, built at ${buildDate} `
-  commitBranchText += `hash `
-  commitBranchText += __GIT_HASH__ + ", "
-  commitBranchText += import.meta.env.VITE_GIT_HASH + ", "
-  commitBranchText += `branch `
-  commitBranchText += __GIT_BRANCH__ + ", "
-  commitBranchText += import.meta.env.VITE_GIT_BRANCH + ", "
-  commitBranchText += `date `
-  commitBranchText += __BUILD_DATE__ + ", "
-  commitBranchText += import.meta.env.VITE_BUILD_DATE + ", "
+  if (buildDate) {
+    commitBranchText += ` build at ${buildDate}`
+  }
 
 	commitBranchText += "."
-  
+
 }
 </script>
 

@@ -33,12 +33,13 @@ function getGitInfo() {
 	}
 
 	if (!buildDate) {
-		try {
-			buildDate = execSync('git log -1 --format=%cI').toString().trim()
-			console.log('using git commit date:', buildDate)
-		} catch (err) {
-			console.warn('Failed to get Git commit date, using:', buildDate)
-		}
+		console.warn("no builddate")
+		// try {
+		// 	buildDate = execSync('git log -1 --format=%cI').toString().trim()
+		// 	console.log('using git commit date:', buildDate)
+		// } catch (err) {
+		// 	console.warn('Failed to get Git commit date, using:', buildDate)
+		// }
 	}
 
 	return { hash, branch, buildDate }
