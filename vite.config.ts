@@ -6,6 +6,7 @@ import { defineConfig } from 'vite';
 function getGitInfo() {
 	let hash, branch
 	let buildDate = new Date().toISOString()
+	console.log("build date: ", buildDate)
 
 	try {
 		hash = execSync('git rev-parse HEAD').toString().trim()
@@ -31,11 +32,13 @@ function getGitInfo() {
 		console.log('Branch from CF_PAGES_BRANCH env:', branch)
 	}
 
-	try {
-		buildDate = execSync('git log -1 --format=%cI').toString().trim()
-		console.log('Git commit date:', buildDate)
-	} catch (err) {
-		console.warn('Failed to get Git commit date, using:', buildDate)
+	if (!buildDate) {
+		try {
+			buildDate = execSync('git log -1 --format=%cI').toString().trim()
+			console.log('using git commit date:', buildDate)
+		} catch (err) {
+			console.warn('Failed to get Git commit date, using:', buildDate)
+		}
 	}
 
 	return { hash, branch, buildDate }
