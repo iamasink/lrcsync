@@ -2,25 +2,40 @@
 <script module>
 declare const __GIT_HASH__: string
 declare const __GIT_BRANCH__: string
+declare const __BUILD_DATE__: string
 </script>
 <script lang="ts">
 const commitHash = __GIT_HASH__ ?? import.meta.env.VITE_GIT_HASH as string
 const branch = __GIT_BRANCH__ ?? import.meta.env.VITE_GIT_BRANCH as string
+const buildDate = __BUILD_DATE__ ?? import.meta.env.VITE_BUILD_DATE as string
 
 let commitBranchText = $state("")
 if (commitHash) {
-	commitBranchText += `commit: ${commitHash}`
+	commitBranchText += `commit: ${commitHash.slice(0,7)}`
 	if (branch) {
 		commitBranchText += ` on ${branch}`
 	}
+
+  commitBranchText += `, built at ${buildDate} `
+  commitBranchText += `hash `
+  commitBranchText += __GIT_HASH__ + ", "
+  commitBranchText += import.meta.env.VITE_GIT_HASH + ", "
+  commitBranchText += `branch `
+  commitBranchText += __GIT_BRANCH__ + ", "
+  commitBranchText += import.meta.env.VITE_GIT_BRANCH + ", "
+  commitBranchText += `date `
+  commitBranchText += __BUILD_DATE__ + ", "
+  commitBranchText += import.meta.env.VITE_BUILD_DATE + ", "
+
 	commitBranchText += "."
+  
 }
 </script>
 
 <div class="footer">
 	<p>lrcsync - made with <span class="kity"><span>🎷</span><span>🐈</span></span> by <a href="https://iamas.ink">sink</a>.</p>
 	<p><a href="https://github.com/iamasink/lrcsync">GitHub</a> <span>{commitBranchText}</span></p>
-	{#if !(branch.includes("main") || branch.includes("master")) }
+	{#if !(branch === "main" || branch === "master") }
 		<p>This is a development branch. <a href="https://lrcsync.iamas.ink">Go to main site</a></p>
 	{/if}
 	<p><a href="https://iamas.ink/support">support me <span class="nounderline">❣️</span></a></p>
