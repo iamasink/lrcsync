@@ -49,7 +49,7 @@ function onblur() {
 
 <Dialog bind:open onOutsideClick={true}>
 	<h2>BPM: {s.audioBPM}</h2>
-	<label>use bpm <input type="checkbox" bind:value={s.useBPM} /></label>
+	<label>use bpm <input type="checkbox" bind:checked={s.useBPM} /></label>
 	<label>BPM Guess Range
 		<label>Min
 			<input type="number" bind:value={bpmMin} min="10" max="500" />
