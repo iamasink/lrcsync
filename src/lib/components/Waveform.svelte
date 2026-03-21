@@ -169,6 +169,8 @@ $effect(() => {
 			// i dont remember why theres a timeout here
 			setTimeout(() => {
 				updateBpmMarkers()
+				s.useBPM = true
+				bpmLoading = false
 			}, 1000)
 		})
 	})

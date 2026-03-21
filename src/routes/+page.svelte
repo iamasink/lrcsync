@@ -369,11 +369,13 @@ $effect(() => {
 			</Tooltip>
 			<!-- TODO -->
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-			<Tooltip message="beats per minute (TODO: click to set)">
+			<Tooltip message="beats per minute">
 				<!-- <Button type="button" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</Button> -->
+				 <!-- TODO: FIX this p, make button and remove svelte-ignores -->
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<p style="background-color: var(--bg-light);" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</p>
+				<p style="background-color: var(--bg-light);" onclick={() => (showBPMMenu = true)}>BPM: {s.useBPM?s.audioBPM:"off"}</p>
 			</Tooltip>
+			{#if s.useBPM}
 			<Tooltip message="current beat">
 				<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
 			</Tooltip>
@@ -382,6 +384,7 @@ $effect(() => {
 					<div class="beat" class:active={Math.floor(getBeatAtTime(s.audioTimeMs)) % 4 === i}></div>
 				{/each}
 			</div>
+			{/if}
 		</div>
 
 		<div class="belowwaveform">
