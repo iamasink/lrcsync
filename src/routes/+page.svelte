@@ -372,7 +372,7 @@ $effect(() => {
 			<Tooltip message="beats per minute (TODO: click to set)">
 				<!-- <Button type="button" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</Button> -->
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<p onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</p>
+				<p style="background-color: var(--bg-light);" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</p>
 			</Tooltip>
 			<Tooltip message="current beat">
 				<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
