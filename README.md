@@ -13,11 +13,13 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] copy/paste
   - [ ] lines texts
   - [ ] line timing offsets
+- [ ] improved text box (left side)
+  - [ ] remove bad initial [00:00.00] 
+  - [ ] custom copy/paste without times ? (or put on right?)
 
 - [ ] fix scrolling when syncing
 
 - [ ] better readme :)
-- [x] clean existing timestamps button
 
 - [ ] more warnings/fixes
   - [ ] line should not end with punctuation (,.) warning?
@@ -26,11 +28,10 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
   - [ ] improve this
 
 - [ ] toggle autocentre button 
-- [ ] fix weird line index stuff when before first lyric
 
-- [ ] support multiple timestamps?  ( eg "[00:01.10][00:10.00] lyric")
+- [x] support multiple timestamps?  ( eg "[00:01.10][00:10.00] lyric")
 - [ ] support karaoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
-- [ ] support comments?
+- [x] support comments?
 
 - [ ] save cookies for 
   - [x] settings, 
