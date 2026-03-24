@@ -10,6 +10,10 @@ import type { UIEventHandler } from "svelte/elements";
 import Tooltip from "./Tooltip.svelte";
 import { historyManager } from "$lib/history.svelte";
 
+let selectedLines = $state<Record<number, boolean>>({})
+let lastSelected: number | null = $state(null)
+
+
 
 // onMount(async () => {
 // 	// @ts-ignore
@@ -64,6 +68,34 @@ $effect(() => {
 			console.log("click2", time, timeInSeconds)
 			s.waveformRef.seekToTime(timeInSeconds);
 		}
+
+		// console.log("lineclick",lineIndex)
+		// if (s.modkeysHeld.shift) {
+		// 	if (lastSelected !== null) {
+		// 		const [from, to] = [lastSelected, lineIndex].sort((a, b) => a - b)
+		// 		for (let i = from; i <= to; i++) {
+		// 			selectedLines[i] = true
+		// 		}
+		// 	}
+		// } else if (s.modkeysHeld.ctrl) {
+		// 	console.log("ctrl", selectedLines)
+		// 	selectedLines[lineIndex] = !selectedLines[lineIndex]
+		// } else {
+		// 	s.currentCaretLine = lineIndex;
+		// 	// clear 
+		// 	selectedLines = {}
+	
+		// 	if (s.syncCaretWithAudio && s.waveformRef) {
+		// 		const time = s.lyrics[lineIndex].time
+		// 		if (time === null || time === -1) return
+		// 		const timeInSeconds = (Math.round((time) * 100) / 100) / 1000;
+		// 		console.log("click2", time, timeInSeconds)
+		// 		s.waveformRef.seekToTime(timeInSeconds);
+		// 	}
+
+		// }
+		// lastSelected = lineIndex
+
 	}
 	function handleLineDblClick(lineIndex: number) {
 		console.log("lineclick",lineIndex)
@@ -152,12 +184,13 @@ function getLine(lineIndex: number) {
 }
 
 function handleRemovetime(i:number) {
-s.lyrics[i].time=-1
-historyManager.push(`removed time for line ${i}`)
+	s.lyrics[i].time=-1
+	historyManager.push(`removed time for line ${i}`)
 }
 function handleDelete(i:number) {
-s.lyrics.splice(i,1)
-historyManager.push(`deleted line ${i}`)
+
+	s.lyrics.splice(i,1)
+	historyManager.push(`deleted line ${i}`)
 }
 
 </script>
@@ -173,6 +206,7 @@ historyManager.push(`deleted line ${i}`)
 			bind:this={lineElements[i]}
 			class:current={i === s.currentAudioLine}
 			class:caret={i === s.currentCaretLine}
+			class:selected={selectedLines[i]}
 			onclick={() => handleLineClick(i)}
 			ondblclick={() => handleLineDblClick(i)}
 			role="button"
@@ -316,11 +350,9 @@ historyManager.push(`deleted line ${i}`)
 			.timestamp {
 				color: oklch(from var(--colour-caret) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
 			}
-
 			.text {
 				color: var(--colour-caret)
 			}
-			
 		}
 
 		.current.caret {
@@ -336,9 +368,21 @@ historyManager.push(`deleted line ${i}`)
 			.text {
 				color: var(--colour-currentcaret);
 			}
+		}
 
+		.selected {
+			background-color: rgb(207, 208, 255) !important;
+			border: 2px solid #4a90e2;
 
-			
+			.index {
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--offset-l-index)) calc(c + var(--offset-c-index)) h);
+			}
+			.timestamp {
+				color: oklch(from var(--colour-currentcaret) calc(l + var(--offset-l-timestamp)) calc(c + var(--offset-c-timestamp)) h);
+			}
+			.text {
+				color: var(--colour-currentcaret);
+			}
 		}
 	}
 
