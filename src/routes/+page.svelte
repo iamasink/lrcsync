@@ -425,7 +425,7 @@ $effect(() => {
 				showTopControls = !showTopControls
 			}}
 		>{showTopControls ? "hide" : "show"} load menu (at top)</Button>
-		<CollapsibleText>
+		<CollapsibleText title="debug info">
 			<!-- <p>state: {JSON.stringify(s)}</p> -->
 			<p>asdjasd: {JSON.stringify(s.lineElements)}</p>
 			<p>lyric data: {JSON.stringify(s.lyrics, null, 2)}</p>
