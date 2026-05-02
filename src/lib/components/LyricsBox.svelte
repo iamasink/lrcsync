@@ -172,10 +172,9 @@ function getLine(lineIndex: number) {
 	let isInfo = false
 
 	if (lineIndex  === 0 && text === "") {
-		text = "(start of audio file)"
+		text = "(beginning)"
 		isInfo = true
-	}
-	else if (lineIndex + 1 === s.lyrics.length && text === "" && line.time !== -1) {
+	} else if (lineIndex + 1 === s.lyrics.length && text === "" && line.time !== -1) {
 		text = "(end of lyrics)"
 		isInfo = true
 	}

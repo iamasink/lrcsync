@@ -6,7 +6,14 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfer.xyz/))  
 
 ## todo
- - [ ] undo should change selected lines etc
+### bugfix
+- [ ] undo should change selected lines etc
+- [ ] fix scrolling when syncing
+- [ ] annoying paste bug
+- [ ] history box changing size
+
+
+### features
 
 - [ ] multi selection and manipulation
   - [ ] (shift-select multiple lines then x,c affects all and stuff like that)
@@ -16,8 +23,8 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] improved text box (left side)
   - [ ] remove bad initial [00:00.00] 
   - [ ] custom copy/paste without times ? (or put on right?)
+- [ ] bility to offset all lyrics by x ms 
 
-- [ ] fix scrolling when syncing
 
 - [ ] better readme :)
 
@@ -48,7 +55,6 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
  - [ ] warnings check
  - [x] break countdown
- - [ ] etc
  - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
 
 - [ ] fix loading jank
@@ -70,8 +76,6 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
   - [ ] nearest beat snap?
   - [ ] +/- 1/2 1/4 beat?
 
-
- - [ ] fix cleanup
 
 
 

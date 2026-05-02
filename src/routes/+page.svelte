@@ -90,7 +90,7 @@ function updateCurrentLine() {
 
 	if (newIndex !== s.currentAudioLine) {
 		// if (newIndex == -1) return
-		if (s.lyrics[newIndex].time == -1) return
+		if (s.lyrics[newIndex]?.time == -1) return
 
 		if (
 			(s.currentCaretLine === s.currentAudioLine)
@@ -504,11 +504,6 @@ $effect(() => {
   /* .left {
   flex: 2;
    } */
-
-  .history {
-    margin: 1rem;
-    border: var(--border-muted) solid 1px;
-  }
 }
 
 button:hover:not(:disabled) {
