@@ -75,6 +75,8 @@ function timeToString(time: number) {
 .history {
   overflow-y: auto;
   max-height: 10rem;
+  border: var(--border-muted) solid 1px;
+  min-height: 10rem;
 
   .history-list {
     list-style: none;
