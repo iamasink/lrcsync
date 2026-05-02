@@ -63,9 +63,11 @@ async function saveFile() {
 		const text = exportWithMetadata(s.lyrics)
 		// @ts-ignore
 		if (window.showSaveFilePicker) {
+			console.log(s.filePaths)
+			console.log("suggested name", getLrcName() 	)
 			// @ts-ignore
 			const handle = await window.showSaveFilePicker({
-				suggestedName: s.filePaths.lyrics,
+				suggestedName: getLrcName(),
 				types: [{ description: "LRC Files", accept: { "text/plain": [".lrc", ".txt"] } }],
 			})
 
