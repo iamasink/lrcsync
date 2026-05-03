@@ -177,6 +177,9 @@ function getLine(lineIndex: number) {
 	} else if (lineIndex + 1 === s.lyrics.length && text === "" && line.time !== -1) {
 		text = "(end of lyrics)"
 		isInfo = true
+	} else if (text === "" && line.time !== -1) {
+		text = "(🎶🎶🎶)"
+		isInfo = true
 	}
 
 	return { text, isInfo }
