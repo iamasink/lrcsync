@@ -12,6 +12,7 @@ import {
 	parseLRC,
 	roundTimestamp,
 	sortLines,
+	stripBadStuff,
 	toCentiseconds,
 } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
@@ -19,6 +20,7 @@ import { scrollLineIntoView } from "$lib/scroll"
 import { preferences, s } from "$lib/state.svelte"
 import { onMount } from "svelte"
 import KeybindButton from "./KeybindButton.svelte"
+import Button from "./Button.svelte";
 
 let textAreaElement: HTMLTextAreaElement
 let textUpdateTimeout: number | null = null
@@ -48,7 +50,7 @@ function handleBlur() {
 }
 
 function handleInput() {
-	s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
 
 	if (textUpdateTimeout) {
 		window.clearTimeout(textUpdateTimeout)
@@ -207,6 +209,21 @@ function handleBlankButtonClick() {
 	historyManager.push(`added blank line line ${line} (${formatTimestamp(time)})`)
 }
 
+async function handlePasteClean() {
+	const text = await navigator.clipboard.readText()
+	if (!text) {
+		console.warn("no text to paste!")
+		return
+	}
+
+	const parsed = parseLRC(text)
+	const cleanLines = stripBadStuff(parsed.lyrics)
+	s.lyrics = cleanLines
+	s.metadata = parsed.meta
+
+	historyManager.push(`pasted new lyrics from clipboard ${text.split("\n").length} lines`)
+}
+
 function getSyncDelay() {
 	return s.isAudioPlaying ? $preferences.syncDelayMs : 0
 }
@@ -225,6 +242,7 @@ function getSyncDelay() {
 			<div>
 				<KeybindButton title="move the caret down" onclick={handleSkipButtonClick} shortcut={{ key: "d" }}>skip line</KeybindButton>
 				<KeybindButton title="insert an empty timed line (break)" onclick={handleBlankButtonClick} shortcut={{ key: "b" }}>insert blank</KeybindButton>
+				<Button title="paste and clean" onclick={handlePasteClean}>paste</Button>
 			</div>
 		</div>
 		<div class="controls">
@@ -297,6 +315,9 @@ function getSyncDelay() {
     flex-direction: row;
     overflow-y: hidden;
     flex: 1;
+
+	overscroll-behavior: contain;
+
 
     textarea {
       flex: 1;
