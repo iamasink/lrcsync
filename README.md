@@ -7,10 +7,9 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 ## todo
 ### bugfix
-- [ ] undo should change selected lines etc
+- [ ] undo should change selected lines etc (does but inconsistent )
 - [ ] fix scrolling when syncing
 - [ ] annoying paste bug
-- [ ] history box changing size
 
 
 ### features
