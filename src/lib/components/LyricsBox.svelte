@@ -3,7 +3,7 @@
 <script lang="ts">
 import Waveform from "$lib/components/Waveform.svelte";
 import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
-import { convertAll, initKuroshiro } from "$lib/kuroshiro";
+import { convertAllWithKuroshiro, initKuroshiro } from "$lib/kuroshiro";
 import { s } from "$lib/state.svelte"
 import { onMount } from "svelte";
 import type { UIEventHandler } from "svelte/elements";
@@ -39,7 +39,7 @@ $effect(() => {
     for (const line of s.lyrics) line.text;
 
     (async () => {
-      s.convertedLyrics = await convertAll(s.lyrics.map(l => l.text));
+      s.convertedLyrics = await convertAllWithKuroshiro(s.lyrics.map(l => l.text));
     })();
   });
 

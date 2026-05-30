@@ -149,7 +149,7 @@ function getLyricPercentageRemaining() {
     .nonconverted {
       /* only if there is a lyric with conversion shown */
       white-space: nowrap;
-      overflow: hidden;
+	  overflow: clip;
       text-overflow: ellipsis;
       max-width: 100%;
     }

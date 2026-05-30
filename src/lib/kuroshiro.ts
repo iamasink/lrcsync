@@ -32,7 +32,7 @@ export async function getKuroshiro() {
 
 
 
-export async function convert(text: string): Promise<string> {
+export async function convertWithKuroshiro(text: string): Promise<string> {
 	await initKuroshiro()
 
 	// if (!analyzer) {
@@ -42,10 +42,12 @@ export async function convert(text: string): Promise<string> {
 	// console.log(text, " -> \n", await analyzer.parse(text))
 
 
-	const toconvert =
+	const withreading =
 		replaceReading(
 			text.normalize("NFC")
 		)
+
+	const toconvert = doprereplacements(withreading)
 
 	const converted = await kuroshiro.convert(
 		toconvert,
@@ -65,20 +67,34 @@ export async function convert(text: string): Promise<string> {
 
 	return final
 }
+
+
+function doprereplacements(input: string): string {
+	let output = input
+	// TODO: modify kuroshiro to not mess everything up in the first place
+	// TODO: keep both small and fullwidth spaces and probably replace both with fullwidth
+
+	return output
+}
+
 function doreplacements(input: string): string {
 	let output = input
+	// mostly just cleaning kuroshiro's jank output with spaced mode
 
 	output = output.replaceAll(/([aeiou])　?っ　?([bcdfghjklmnpqrstvwxyz])/gi, "$1$2$2") // fix tsu
+
 	output = output.replaceAll(/a　?ー/gi, "ā　")  // add macrons (maybe bad in some cases?)
-	output = output.replaceAll(/i　?ー/gi, "ī　")  // 
-	output = output.replaceAll(/u　?ー/gi, "ū　")  // 
-	output = output.replaceAll(/e　?ー/gi, "ē　")  // 
-	output = output.replaceAll(/o　?ー/gi, "ō　")  // 
+	output = output.replaceAll(/i　?ー/gi, "ī　")  //
+	output = output.replaceAll(/u　?ー/gi, "ū　")  //
+	output = output.replaceAll(/e　?ー/gi, "ē　")  //
+	output = output.replaceAll(/o　?ー/gi, "ō　")  //
+
 	output = output.replaceAll(/(\w)　([n])　/g, "$1$2　") // remove excess space with n
-	output = output.replaceAll(/　?っ/gi, "'") // ending tsu to '
+
+	output = output.replaceAll(/　?っ/gi, "'") // ending small tsu to ' (like あっ to a')
 	output = output.replaceAll(/　?〜　?/gi, "~") // cleaner ~
 	output = output.replaceAll(/　?~　?/gi, "~") // remove ~ spaces
-	output = output.replaceAll(/　,　/gi, ",　") // remove comma space
+	output = output.replaceAll(/　, ?　/gi, ", 　") // remove comma space??????????????????
 	output = output.replaceAll(/　([!?！？])　/gu, "$1　")  // no space before punctuation
 	output = output.replaceAll(/　([!?！？])/gu, "$1")  // 
 	output = output.replaceAll("　", " ")  // fullwidth space to normal
@@ -101,10 +117,10 @@ function stripIgnorable(input: string): string {
 }
 
 
-export async function convertAll(lines: string[]): Promise<string[]> {
+export async function convertAllWithKuroshiro(lines: string[]): Promise<string[]> {
 	if (s.convertedLyricsLang != "ja") return lines
 	if (!lines) return lines
 	// console.log("converting..")
 	await initKuroshiro()
-	return Promise.all(lines.map(line => convert(line)))
+	return Promise.all(lines.map(line => convertWithKuroshiro(line)))
 }
