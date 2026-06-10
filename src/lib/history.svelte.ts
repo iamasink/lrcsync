@@ -36,6 +36,11 @@ interface PushOptions {
 
 let pending: DebouncedAction | null = null
 
+function lyricsAreEqual(a: LyricLine[], b: LyricLine[]): boolean {
+	if (a.length !== b.length) return false
+	return a.every((line, i) => line.time === b[i].time && line.text === b[i].text)
+}
+
 export const historyManager = {
 	restoreStateAt(entry: number) {
 		if (entry < 0 || entry >= s.history.length) return
@@ -102,10 +107,7 @@ export const historyManager = {
 		const audioPosition = $state.snapshot(s.audioTimeMs)
 
 
-		function lyricsAreEqual(a: LyricLine[], b: LyricLine[]): boolean {
-			if (a.length !== b.length) return false
-			return a.every((line, i) => line.time === b[i].time && line.text === b[i].text)
-		}
+
 
 		if (!options?.force) {
 			const currentLyrics = s.history[s.historyCurrent]?.lyrics
@@ -114,6 +116,8 @@ export const historyManager = {
 				return
 			}
 		}
+
+		s.unsavedChanges = true
 
 		const entry: HistoryState = {
 			index: index++,
@@ -159,7 +163,7 @@ export const historyManager = {
 	},
 
 	flush() {
-		s.unsavedChanges = true
+		// s.unsavedChanges = true
 		if (!pending) return
 
 		const { name, data } = pending
