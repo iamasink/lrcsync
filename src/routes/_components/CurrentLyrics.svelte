@@ -50,7 +50,7 @@ function getBreakTimeRemaining() {
 	}
 
 	// if we want this to use bpm later, do we want the beats to match on beat (probably?) or be similar to how seconds worked
-	// counting exact time??? idk. for now ill just not touchj it
+	// counting exact remaining time??? idk. for now ill just not touchj it
 	// const timeinseconds = (getBeatAtTim
 
 	const result = 1 + Math.floor(time / 1000 - s.audioTimeMs / 1000)
