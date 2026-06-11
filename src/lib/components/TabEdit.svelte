@@ -36,6 +36,7 @@ let lineElements = $state(new Array())
 // let preferences.syncDelayMs = $state(0)
 
 function handleBlur() {
+	console.log("blur")
 	if (!textAreaElement) return
 	if (textUpdateTimeout) window.clearTimeout(textUpdateTimeout)
 
@@ -50,6 +51,7 @@ function handleBlur() {
 }
 
 function handleInput() {
+	console.log("input")
 		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
 
 	if (textUpdateTimeout) {
@@ -171,6 +173,7 @@ function handleBackButtonClick() {
 	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
+	const oldLine = s.currentCaretLine
 	let newline
 	newline = s.currentCaretLine + getOffsetToLastLyric()
 	if (newline < 0) newline = 0
@@ -178,7 +181,7 @@ function handleBackButtonClick() {
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
 
-	s.waveformRef.updateSelectedRegions()
+	s.waveformRef.updateSelectedRegions([oldLine,newline])
 }
 
 function handleSkipButtonClick() {
@@ -186,13 +189,14 @@ function handleSkipButtonClick() {
 	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
+	const oldLine = s.currentCaretLine
 	let newline
 	newline = s.currentCaretLine + getOffsetToNextLyric()
 	if (newline < 0) newline = 0
 	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
-	s.waveformRef.updateSelectedRegions()
+	s.waveformRef.updateSelectedRegions([oldLine,newline])
 }
 
 function handleBlankButtonClick() {

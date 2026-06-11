@@ -1,9 +1,7 @@
 import type { LyricLine, Metadata } from "$lib/parseLRC"
-import { persisted, type Persisted } from "svelte-persisted-store"
+import { type Persisted, persisted } from "svelte-persisted-store"
 import type Waveform from "./components/Waveform.svelte"
 import type { HistoryState } from "./history.svelte"
-
-
 
 interface State {
 	lyrics: LyricLine[]
@@ -19,17 +17,20 @@ interface State {
 	waveformRef: Waveform | undefined
 	lineElements: HTMLDivElement[]
 	lineElements2: HTMLDivElement[]
-	metadata: Metadata,
-	isTauri: boolean,
-	filePaths: { lyrics?: string, audio?: string }
-	history: HistoryState[],
-	historyCurrent: number,
-	historyPending: { name: string, time: number } | null,
+	metadata: Metadata
+	isTauri: boolean
+	filePaths: { lyrics?: string; audio?: string }
+	// will only have if the file system api works and the user gave permission
+	fileHandles: { lyrics?: FileSystemFileHandle; audio?: FileSystemFileHandle }
+	// musicDirHandle: FileSystemDirectoryHandle | null
+	history: HistoryState[]
+	historyCurrent: number
+	historyPending: { name: string; time: number } | null
 	unsavedChanges: boolean
 	waveformLoading: boolean
-	audioBPM: number | null,
-	audioBPMOffsetMs: number,
-	useBPM: boolean,
+	audioBPM: number | null
+	audioBPMOffsetMs: number
+	useBPM: boolean
 }
 
 export const s: State = $state({
@@ -49,6 +50,8 @@ export const s: State = $state({
 	metadata: { re: "iamasink/lrcsync", ve: "1" },
 	isTauri: false,
 	filePaths: {},
+	fileHandles: {},
+	musicDirHandle: null,
 	history: [],
 	historyCurrent: -1,
 	historyPending: null,
@@ -71,7 +74,6 @@ export const preferences: Persisted<Preferences> = persisted('preferences', {
 	username: "",
 })
 
-
 interface Saved {
 	lyrics: LyricLine[]
 	audioName: string
@@ -81,5 +83,5 @@ interface Saved {
 export const saved: Persisted<Saved> = persisted('saved', {
 	lyrics: [],
 	audioName: "",
-	lrcName: ""
+	lrcName: "",
 })

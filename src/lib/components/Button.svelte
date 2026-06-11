@@ -8,6 +8,7 @@ type shortcut = { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; 
 interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	disabled?: boolean
 	title?: string
+	allownewline?: boolean
 	onclick: MouseEventHandler<HTMLButtonElement>
 	tooltipPosition?: position
 	children: any
@@ -19,7 +20,7 @@ let { disabled = false, title = "", shortcut, onclick = $bindable(), ignoremods 
 let btn: HTMLButtonElement
 </script>
 
-<Tooltip message={title} position={tooltipPosition}>
+<Tooltip message={title} position={tooltipPosition} allownewline>
 	<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
 		<span class="label">{@render children?.()}</span>
 	</button>

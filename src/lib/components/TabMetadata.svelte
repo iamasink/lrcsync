@@ -1,96 +1,31 @@
 <script lang="ts">
-import LyricsBox from "$lib/components/LyricsBox.svelte"
-import Waveform from "$lib/components/Waveform.svelte"
+import { forgetMusicDir, getBaseName, getDescendantPath, getLrcDescendantPath, getLrcName, getMusicDir, getParentDir, saveFile, setMusicDir } from "$lib/fileSystem"
 import { historyManager } from "$lib/history.svelte"
-import type { LyricLine } from "$lib/parseLRC"
-import { cleanAndSort, exportWithMetadata, formatLine, formatTime } from "$lib/parseLRC"
+import { cleanAndSort, exportWithMetadata } from "$lib/parseLRC"
 import { preferences, s } from "$lib/state.svelte"
-import { save } from "@tauri-apps/plugin-dialog"
-import { BaseDirectory, writeTextFile } from "@tauri-apps/plugin-fs"
-import { getContext } from "svelte"
-
-function getLrcName() {
-	let filename
-
-	if (s.filePaths.lyrics) {
-		// because we might've imported a .txt or something
-		const index = s.filePaths.lyrics.lastIndexOf(".")
-		if (index > 0) filename = getBaseName(s.filePaths.lyrics).slice(0, index) + ".lrc"
-	} else if (s.filePaths.audio) {
-		const index = s.filePaths.audio.lastIndexOf(".")
-		if (index > 0) filename = getBaseName(s.filePaths.audio).slice(0, index) + ".lrc"
-	}
-
-	return filename ? filename : ""
-}
-
-function getParentDir(filePath: string): string {
-	if (!filePath) return ""
-	const parts = filePath.split(/[\\/]/)
-	parts.pop()
-	return parts.join("/") || ""
-}
-function getBaseName(filePath: string): string {
-	if (!filePath) return ""
-	const parts = filePath.split(/[\\/]/)
-	return parts.pop() || ""
-}
+import { onMount } from "svelte"
+	import Button from "./Button.svelte";
 
 let parentDir: string = $derived(getParentDir(s.filePaths.lyrics || s.filePaths.audio || ""))
 let audioName: string = $derived(getBaseName(s.filePaths.audio ?? ""))
 let lrcName: string = $derived(getLrcName())
 
+let musicDirHandle: FileSystemDirectoryHandle | null = $state(null)
+// set on mount
+onMount(async () => {
+	if (!s.isTauri) {
+		// parentDir = getParentDir(s.filePaths.lyrics || s.filePaths.audio || "")
+		musicDirHandle = null
+		// s.musicDirHandle = null
+		musicDirHandle = await getMusicDir()
+		console.log("mount musicdirhandle = ", musicDirHandle)
+	}
+})
+
 // if (s.isTauri) {
 // 	parentDir = getParentDir(s.filePaths.lyrics || s.filePaths.audio || "")
 // }
 
-async function saveFile() {
-	console.log("saving lyrics")
-	const text = exportWithMetadata(s.lyrics)
-	if (s.isTauri) {
-		try {
-			// save dialog, default to original path
-			const filePath = await save({ defaultPath: s.filePaths.lyrics || "unknown.lrc", filters: [{ name: "LRC Files", extensions: ["lrc", "txt"] }] })
-
-			if (!filePath) return // cancelled?
-
-			await writeTextFile(filePath, text)
-			console.log("File saved to", filePath)
-		} catch (err) {
-			console.error("error saving file", err)
-		}
-	} else {
-		const text = exportWithMetadata(s.lyrics)
-		// @ts-ignore
-		if (window.showSaveFilePicker) {
-			console.log(s.filePaths)
-			console.log("suggested name", getLrcName() 	)
-			// @ts-ignore
-			const handle = await window.showSaveFilePicker({
-				suggestedName: getLrcName(),
-				types: [{ description: "LRC Files", accept: { "text/plain": [".lrc", ".txt"] } }],
-			})
-
-			const writable = await handle.createWritable()
-			await writable.write(text)
-			await writable.close()
-		} else {
-			const blob = new Blob([text], { type: "text/plain" })
-
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement("a")
-			a.href = url
-			let filename = getLrcName()
-			if (!filename) filename = "unknown.lrc"
-
-			a.download = filename
-			a.click()
-
-			URL.revokeObjectURL(url)
-		}
-	}
-	s.unsavedChanges = false
-}
 async function copy() {
 	const text = exportWithMetadata(s.lyrics)
 	navigator.clipboard.writeText(text)
@@ -99,6 +34,25 @@ async function copyRomanized() {
 	const text = s.convertedLyrics.join("\n")
 	navigator.clipboard.writeText(text)
 }
+
+async function handleSaveButton() {
+	const result = await saveFile()
+	if (result) {
+		alert("saved as " + result)
+	}
+}
+async function handleSaveAndClearButton() {
+	const result = await saveFile()
+	if (result) {
+		alert("saved as " + result)
+		s.lyrics = []
+		s.filePaths.lyrics = undefined
+		s.fileHandles.lyrics = undefined
+		s.fileHandles.audio = undefined
+		s.filePaths.audio = undefined
+	}
+}
+
 </script>
 
 <div class="metadata-view">
@@ -157,9 +111,40 @@ async function copyRomanized() {
 	<!-- </div> -->
 	<!-- </details> -->
 	<br />
-	<button onclick={saveFile}>save</button>
+	<button onclick={handleSaveButton}>save</button>
+	<button onclick={handleSaveAndClearButton}>save and clear</button>
 	<button onclick={copy}>copy</button>
 	<button onclick={copyRomanized}>copy romanized</button>
+	<br />
+	<Button title="you can give permission for your whole music directory to make editing files easier
+	this will allow automatically saving sidecar .lrc files next to dragged in music"
+		onclick={async () => {
+			musicDirHandle = await setMusicDir()
+		}}
+	>
+		setup music directory. currently <b>{musicDirHandle ? musicDirHandle.name : "not set"}</b>
+	</Button>
+	<button onclick={async()=>{forgetMusicDir(); musicDirHandle = null; alert("you can remove permission from browser settings")}}>remove directory</button>
+	<br />
+	<div>
+		<p>current music directory: {musicDirHandle?.name || "not set"}</p>
+		<p>current audio file: {s.filePaths.audio || "not set"}</p>
+		<p>current lrc file: {s.filePaths.lyrics || "not set"}</p>
+		{#if musicDirHandle}
+			{#if s.fileHandles.audio}
+				{#await getDescendantPath(musicDirHandle, s.fileHandles.audio) then path}
+					<p>current audio file full path: {path ? path.join("/") : "not set"}</p>
+				{/await}
+			{/if}
+			{#if s.fileHandles.lyrics}
+				{#await getLrcDescendantPath(musicDirHandle, s.fileHandles.lyrics) then path}
+					<p>current lrc file full path: {path ? path.join("/") : "not set"}</p>
+				{/await}
+			{/if}
+		{/if}
+		<p>current audio handle: {s.fileHandles.audio ? s.fileHandles.audio.name : "not set"}</p>
+		<p>current lrc handle: {s.fileHandles.lyrics ? s.fileHandles.lyrics.name : "not set"}</p>
+	</div>
 </div>
 
 <style>

@@ -2,8 +2,10 @@ import { getCurrentWebview } from "@tauri-apps/api/webview"
 import { readFile } from '@tauri-apps/plugin-fs'
 import { s } from "./state.svelte"
 
+export type FileWithHandle = File & { handle?: FileSystemFileHandle }
+
 export function initDragDrop(
-	onFiles: (files: FileList | File[]) => void,
+	onFiles: (files: FileWithHandle[]) => void,
 	setOverlay: (show: boolean) => void,
 	onAfterDrop: () => void,
 ) {
@@ -48,11 +50,57 @@ export function initDragDrop(
 			if (!e.relatedTarget) setOverlay(false)
 		}
 
-		function onDrop(e: DragEvent) {
+		async function onDrop(e: DragEvent) {
 			e.preventDefault()
 			e.stopPropagation()
 			setOverlay(false)
-			if (e.dataTransfer?.files) onFiles(e.dataTransfer.files)
+			console.log("dropped", e.dataTransfer)
+			if (!e.dataTransfer) {
+				console.warn("No dataTransfer in drop event")
+				return
+			}
+
+			// try with new api first
+			// if function exists
+			// @ts-ignore
+			if (DataTransferItem.prototype.getAsFileSystemHandle) {
+				console.log("we have getAsFileSystemHandle, trying to use it")
+				const handlesPromises = [...e.dataTransfer.items]
+					// only "file", alternative is "string" for dragged text
+					.filter((x) => x.kind === "file")
+					// @ts-ignore
+					.map((x) => x.getAsFileSystemHandle())
+				const handles: FileSystemFileHandle[] = await Promise.all(handlesPromises)
+				console.log("dropped handles", handles)
+				const files: FileWithHandle[] = []
+				for (const handle of handles) {
+					if (handle.kind === "file") {
+						const file: FileWithHandle = await handle.getFile()
+						file.handle = handle
+						files.push(file)
+					} else if (handle.kind === "directory") {
+						console.error("dropping directories isnt supported")
+						alert("dropping folders isnt supported")
+						return
+					}
+				}
+				if (!files.length) {
+					console.warn("file system access api didnt give us anything")
+				} else {
+					onFiles(files)
+					onAfterDrop()
+					return
+				}
+			}
+
+
+			console.log("getAsFileSystemHandle not available, falling back to files list")
+			const files = [...e.dataTransfer.files]
+			if (files.length) {
+				onFiles(files)
+			} else {
+				console.warn("No files in dataTransfer.files either")
+			}
 			onAfterDrop()
 		}
 

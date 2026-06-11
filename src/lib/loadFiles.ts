@@ -1,4 +1,5 @@
 import { parseLRC, type Metadata } from "$lib/parseLRC"
+import { s } from "./state.svelte"
 
 
 export async function loadAudio(
@@ -18,6 +19,7 @@ export async function loadLRC(
 ) {
 	let lyrics: { time: number; text: string }[] = []
 	let meta: Metadata = {}
+	s.convertedLyrics = []
 
 	if (lrcFile) {
 		const lyrictext = await lrcFile.text()

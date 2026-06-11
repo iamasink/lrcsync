@@ -6,11 +6,15 @@ open [lrcsync.iamas.ink](https://lrcsync.iamas.ink)
 advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfer.xyz/))  
 
 ## todo
+
 ### bugfix
+
 - [ ] undo should change selected lines etc (does but inconsistent )
 - [ ] fix scrolling when syncing
 - [ ] annoying paste bug
-
+- [ ] fix/improve the new audio message
+  - [ ] make it so the new audio/lyrics are not immediately set as the main ones??
+  - [ ] or maybe just the lyrics so they can be saved but then idk?? this is complicated, is it even worth it???
 
 ### features
 
@@ -52,36 +56,28 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
   - [ ] test
 
 - [ ] improve handling of blank lines (no lyric, no time). generally should be ignored, but kept.
- - [ ] warnings check
- - [x] break countdown
- - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank 
+  - [ ] warnings check
+  - [x] break countdown
+  - [x] swap order of blanks so timed comes first: [-1] blank, [timed] blank -> [timed] blank, [-1] blank
 
 - [ ] fix loading jank
 - [ ] speed up loading and stuff
 
-
 - [ ] lrclib integration?
   - [ ] check if theres valid lyrics, compare them?
-
 
 - [ ] custom romanization & different scripts
   - [ ] user can add romanized version and itll map to current lyrics?
   - [ ] loading multiple lrc files (.Romanized.lrc or something?)
   - [ ] furigana etc?
 
-
-
 - [ ] bpm sync stuff
   - [ ] nearest beat snap?
   - [ ] +/- 1/2 1/4 beat?
 
-
-
-
 - [ ] improve mobile
 
-
-
 # attribution
+
 favicon/icon uses twemoji
 https://github.com/jdecked/twemoji

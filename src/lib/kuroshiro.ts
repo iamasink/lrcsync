@@ -1,8 +1,9 @@
-
-// import { Kuroshiro, KuroshiroAnalyzerKuromoji, Kuromoji } from "kuroshiro-browser"
 import { Kuroshiro } from "kuroshiro-browser"
 import { s } from "./state.svelte"
 import { replaceReading } from "./furigana"
+
+
+export const KUROSHIRO_ENABLED = true
 
 let kuroshiro: Kuroshiro
 let ready: Promise<void> | null = null
@@ -10,9 +11,8 @@ let ready: Promise<void> | null = null
 
 
 export function initKuroshiro(): Promise<void> {
-	if (ready) {
-		return ready
-	}
+	if (!KUROSHIRO_ENABLED) return Promise.resolve()
+	if (ready) { return ready }
 
 	console.log("readying kuroshiro")
 	ready = (async () => {
@@ -26,36 +26,20 @@ export function initKuroshiro(): Promise<void> {
 }
 
 export async function getKuroshiro() {
+	if (!KUROSHIRO_ENABLED) return null
 	initKuroshiro()
 	return kuroshiro
 }
 
-
-
 export async function convertWithKuroshiro(text: string): Promise<string> {
+	if (!KUROSHIRO_ENABLED) return text
 	await initKuroshiro()
 
-	// if (!analyzer) {
-	// 	analyzer = new KuroshiroAnalyzerKuromoji()
-	// 	await analyzer.init()
-	// }
-	// console.log(text, " -> \n", await analyzer.parse(text))
-
-
-	const withreading =
-		replaceReading(
-			text.normalize("NFC")
-		)
-
+	const withreading = replaceReading(text.normalize("NFC"))
 	const toconvert = doprereplacements(withreading)
-
-	const converted = await kuroshiro.convert(
-		toconvert,
-		{ to: "romaji", mode: "spaced" }
-	)
+	const converted = await kuroshiro.convert(toconvert, { to: "romaji", mode: "spaced" })
 	const cleaned = doreplacements(converted)
 
-	// only output converted if there are real changes
 	if (stripIgnorable(cleaned) === stripIgnorable(text)) {
 		return text
 	}
@@ -100,7 +84,7 @@ function doreplacements(input: string): string {
 	output = output.replaceAll("　", " ")  // fullwidth space to normal
 	output = output.replaceAll("    ", " ")  // collapse multiple spaces
 	output = output.replaceAll("   ", " ")
-	output = output.replaceAll("  ", " ")  
+	output = output.replaceAll("  ", " ")
 
 
 	return output
@@ -118,6 +102,7 @@ function stripIgnorable(input: string): string {
 
 
 export async function convertAllWithKuroshiro(lines: string[]): Promise<string[]> {
+	if (!KUROSHIRO_ENABLED) return lines
 	if (s.convertedLyricsLang != "ja") return lines
 	if (!lines) return lines
 	// console.log("converting..")

@@ -1,17 +1,20 @@
 <script lang="ts">
-import Dialog from "$lib/components/Dialog.svelte";
-import { s } from "$lib/state.svelte";
+import Dialog from "$lib/components/Dialog.svelte"
+import { s } from "$lib/state.svelte"
 
 interface Props {
-	open?: boolean;
+	open?: boolean
 }
 
-let { open = $bindable(false) }: Props = $props();
+let { open = $bindable(false) }: Props = $props()
 
 function clear() {
-	s.lyrics = [];
-	s.filePaths.lyrics = undefined;
-	open = false;
+	s.lyrics = []
+	s.filePaths.lyrics = undefined
+	s.fileHandles.lyrics = undefined
+	s.fileHandles.audio = undefined
+	s.filePaths.audio = undefined
+	open = false
 }
 </script>
 

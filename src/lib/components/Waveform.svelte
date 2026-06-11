@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { guessTempo } from "$lib/bpm";
+import { guessTempo } from "$lib/bpm"
 import { historyManager } from "$lib/history.svelte"
 import { cleanAndSort, type LyricLine, roundTimestamp, sortLines, toCentiseconds } from "$lib/parseLRC"
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { preferences, s } from "$lib/state.svelte"
-import { onDestroy, onMount } from "svelte"
-import type { WheelEventHandler } from "svelte/elements"
 import WaveSurfer from "wavesurfer.js"
 import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js"
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js"
@@ -13,7 +11,8 @@ import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js"
 import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/plugins/spectrogram.esm.js"
 import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
 import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
-import { guess } from "web-audio-beat-detector"
+
+let abortController: AbortController | null = null
 
 let file: File | null = $state(null)
 let waveformContainer: HTMLDivElement
@@ -26,9 +25,8 @@ let audioDuration = $state(1)
 let visibleRegionIds: Set<string> = $state(new Set())
 let isReady = $state(false)
 
-let isBpmEnabled = $state(false)
+let isBpmEnabled = $state(true)
 let bpmLoading = $state(false)
-
 
 const AUTOCENTER_DEFAULT = true
 const AUTOSCROLL_DEFAULT = true
@@ -60,19 +58,25 @@ let volume: number = $state($preferences.volume)
 let volume2: number = $derived(perceptualToAmplitude(volume / 100))
 
 let regionCache: Record<string, Region> = {}
+let bpmRegionCache: Record<string, Region> = {}
 
 let lastObjectUrl: string | null = null
 let resizeHandler: (() => void) | null = null
 
 $effect(() => {
-	s.lyrics
+	// s.lyrics
 	if (!isReady) return
 
 	updateRegions()
 })
 
+// $effect(() => {
+// 	updateRegions()
+// })
+
 $effect(() => {
 	if (!isReady || !wavesurfer) return
+	isBpmEnabled
 	updateBpmMarkers()
 })
 
@@ -86,13 +90,7 @@ $effect(() => {
 
 	// if there's no file, destroy any existing instance
 	if (!file) {
-		if (wavesurfer) {
-			wavesurfer.stop()
-			wavesurfer.destroy()
-			wavesurfer = null
-		}
-		regionCache = {}
-		isReady = false
+		destroyWavesurfer()
 		s.waveformLoading = false
 		if (lastObjectUrl) {
 			URL.revokeObjectURL(lastObjectUrl)
@@ -106,14 +104,7 @@ $effect(() => {
 		return
 	}
 
-	// destroy previous instance
-	if (wavesurfer) {
-		wavesurfer.stop()
-		wavesurfer.destroy()
-		wavesurfer = null
-	}
-	regionCache = {}
-	isReady = false
+	destroyWavesurfer()
 	s.waveformLoading = true
 	visibleRegionIds = new Set()
 
@@ -122,6 +113,8 @@ $effect(() => {
 	const minimap = Minimap.create({ overlayColor: "#f9f9f9" })
 	const spectrogram = Spectrogram.create({ labels: true, height: 200, useWebWorker: true })
 
+
+	abortController = new AbortController()
 	wavesurfer = WaveSurfer.create({
 		container: waveformContainer,
 		waveColor: "#4F4A85",
@@ -133,6 +126,7 @@ $effect(() => {
 		autoCenter: AUTOCENTER_DEFAULT,
 		autoScroll: AUTOSCROLL_DEFAULT,
 		backend: "WebAudio",
+		fetchParams: { signal: abortController.signal}
 	})
 
 	// ensure even width
@@ -143,12 +137,23 @@ $effect(() => {
 	wavesurfer.on("ready", () => {
 		// should only run when a new audio is added? or the wavesurfer entirely resets idk
 		console.log("wavesurfer ready")
-		// since this doesn't seem to ever get re-ran by accident, we'll reset the ready state here. 
-		isReady = false
+		// since this doesn't seem to ever get re-ran by accident, we'll reset the ready state here.
+		// update: we'll set ready here so the user can start playing sooner as the spectrogram takes longer to load
+		isReady = true
 		audioDuration = wavesurfer?.getDuration() ?? 0
 
 		wavesurfer?.setVolume(perceptualToAmplitude(volume / 100))
 		ensureEvenWidth(waveformContainer)
+
+		guessTempo(100, 200).then(() => {
+			if (!wavesurfer || !isReady) return
+			// i dont remember why theres a timeout here
+			setTimeout(() => {
+				updateBpmMarkers()
+				s.useBPM = true
+				bpmLoading = false
+			}, 1000)
+		})
 	})
 
 	spectrogram.on("ready", () => {
@@ -157,22 +162,13 @@ $effect(() => {
 		updateRegions()
 		// we dont want to reset etc here, spectrogram ready seems to run if the window size changes
 		if (isReady) {
-			return 
+			return
 		}
-		isReady = true
+		// isReady = true
 
 		wavesurfer?.stop()
 
 		onWaveformsReady()
-
-		guessTempo(100,200).then(() => {
-			// i dont remember why theres a timeout here
-			setTimeout(() => {
-				updateBpmMarkers()
-				s.useBPM = true
-				bpmLoading = false
-			}, 1000)
-		})
 	})
 
 	// scrolling via minimap
@@ -188,6 +184,7 @@ $effect(() => {
 	})
 
 	regions.on("region-updated", (r) => {
+		console.log("event region-updated for ", r)
 		if (!r.id.startsWith("bpm-tick")) {
 			updateregion(r)
 			wavesurfer?.setTime(r.start)
@@ -202,17 +199,14 @@ $effect(() => {
 	// you must be patient.
 	// (allow other stuff to load before the big hang from loading waveforms)
 	// there must be a better way to handle it, but this works for now<3
+	let ws = wavesurfer
 	setTimeout(() => {
-		wavesurfer?.load(lastObjectUrl!)
+		ws?.load(lastObjectUrl!)
 	}, 100)
 
 	// cleanup
 	return () => {
-		if (wavesurfer) {
-			wavesurfer.stop()
-			wavesurfer.destroy()
-			wavesurfer = null
-		}
+		destroyWavesurfer()
 		if (lastObjectUrl) {
 			URL.revokeObjectURL(lastObjectUrl)
 			lastObjectUrl = null
@@ -221,8 +215,6 @@ $effect(() => {
 			window.removeEventListener("resize", resizeHandler)
 			resizeHandler = null
 		}
-		regionCache = {}
-		isReady = false
 	}
 })
 $effect(() => {
@@ -230,17 +222,34 @@ $effect(() => {
 	wavesurfer.setVolume(volume2)
 })
 
-
 /** Runs once, when all waveforms (wavesurfer) are ready */
 function onWaveformsReady() {
-			console.log("waveform almost ready")
-		// reset time, etc. because bad things might have happened.
-		resetWaveform()
+	console.log("waveform almost ready")
+	// reset time, etc. because bad things might have happened.
+	resetWaveform()
 
-		window.setTimeout(() => {
-			resetWaveform()
-			console.log("waveform ready! :)")
-		}, 150)
+	window.setTimeout(() => {
+		resetWaveform()
+		console.log("waveform ready! :)")
+	}, 150)
+}
+
+function destroyWavesurfer() {
+	if (autoScrollTimeout) {
+		clearTimeout(autoScrollTimeout)
+		autoScrollTimeout = 0
+	}
+	if (wavesurfer) {
+		wavesurfer.stop()
+		wavesurfer.destroy()
+		wavesurfer = null
+	}
+	regionCache = {}
+	bpmRegionCache = {}
+	isReady = false
+
+	abortController?.abort("destroying wavesurfer")
+	abortController = null
 }
 
 export async function loadFile(loadfile: File) {
@@ -303,7 +312,6 @@ export function updateBpmMarkers() {
 
 	const beatInterval = 60 / s.audioBPM // seconds per beat
 
-	const existingRegions = regions.getRegions()
 	const usedBpmRegions = new Set<string>()
 
 	if (isBpmEnabled) {
@@ -313,22 +321,33 @@ export function updateBpmMarkers() {
 			const regionId = `bpm-tick-${Math.round(time * 1000)}`
 			usedBpmRegions.add(regionId)
 
-			const existingRegion = existingRegions.find(r => r.id === regionId)
-
-			if (!existingRegion) {
-				regions.addRegion({ id: regionId, start: time, content: "", color: regionColours.beatTick, drag: false, resize: false })
+			if (!bpmRegionCache[regionId]) {
+				bpmRegionCache[regionId] = regions.addRegion({
+					id: regionId,
+					start: time,
+					content: "",
+					color: regionColours.beatTick,
+					drag: false,
+					resize: false,
+				})
 			}
 		}
 	}
 
-	for (const region of existingRegions) {
-		if (region.id.startsWith("bpm-tick") && !usedBpmRegions.has(region.id)) {
+	for (const [id, region] of Object.entries(bpmRegionCache)) {
+		if (!usedBpmRegions.has(id)) {
 			region.remove()
+			delete bpmRegionCache[id]
 		}
 	}
 }
 
+export function updateSelectedRegions(regionIndices: number[]) {
+	updateRegions()
+}
+
 export function updateRegions() {
+	console.log("updating all regions")
 	const { lyrics, convertedLyrics, currentAudioLine, currentCaretLine } = s
 	if (!regions || !wavesurfer) return
 
@@ -345,7 +364,6 @@ export function updateRegions() {
 		const resizeEnd = regionHasEndTime(i)
 
 		let color: string
-
 		if (currentCaretLine === i) {
 			color = regionColours.caret
 		} else if (currentAudioLine === i) {
@@ -354,41 +372,29 @@ export function updateRegions() {
 			color = regionColours.default
 		}
 
-		let region = regionCache[regionId]
+		const options = {
+			id: regionId,
+			start: regionStart,
+			end: regionEnd,
+			content: convertedLyrics[i],
+			color,
+			drag: false,
+			resize: true,
+			resizeStart: true,
+			resizeEnd,
+		}
 
+		let region = regionCache[regionId]
 		if (region) {
-			// console.log("updating region for lyric", `lyric-${i}`, { start: regionStart, end: regionEnd, content: convertedLyrics[i], color, resizeEnd })
-			region.setOptions({
-				id: regionId,
-				start: regionStart,
-				end: regionEnd,
-				content: convertedLyrics[i],
-				color,
-				drag: false,
-				resize: true,
-				resizeStart: true,
-				resizeEnd,
-			})
+			region.setOptions(options)
 		} else {
-			// console.log("creating new region for lyric", `lyric-${i}`)
-			region = regions.addRegion({
-				id: regionId,
-				start: regionStart,
-				end: regionEnd,
-				content: convertedLyrics[i],
-				color,
-				drag: false,
-				resize: true,
-				resizeStart: true,
-				resizeEnd,
-			})
+			console.log(`add region ${regionId}`)
+			region = regions.addRegion(options)
 			regionCache[regionId] = region
 		}
 
 		// add part for lyrics that can be dragged on the right
 		if (regionHasEndTime(i)) {
-			// console.log("awawa") // region.element?.querySelector(".region-handle-right")!.classList.add("nextblank")
-			// region.element?.querySelector(".region-handle-right")!.part.add("handle-right-nextblank")
 			;(region.element?.childNodes[1] as HTMLElement).part.add("handle-right-nextblank")
 		} else {
 			;(region.element?.childNodes[1] as HTMLElement).part.remove("handle-right-nextblank")
@@ -405,38 +411,30 @@ export function updateRegions() {
 	}
 }
 
-let prevAudioLine: number | null = null
-let prevCaretLine: number | null = null
+// export function updateRegions() {
+// 	console.warn("updating all regions")
+// 	const { lyrics } = s
+// 	if (!regions || !wavesurfer) return
 
-export function updateSelectedRegions() {
-	// console.log("update regions")
-	// const linesToUpdate = new Set<number>()
+// 	const validIndices: number[] = []
+// 	const usedRegionIds = new Set<string>()
 
-	// if (prevAudioLine !== null) linesToUpdate.add(prevAudioLine)
-	// if (prevCaretLine !== null) linesToUpdate.add(prevCaretLine)
+// 	for (let i = 0; i < lyrics.length; i++) {
+// 		const lyric = lyrics[i]
+// 		if (lyric.time === -1 || lyric.text === "") continue
+// 		validIndices.push(i)
+// 		usedRegionIds.add(`lyric-${i}`)
+// 	}
 
-	// if (s.currentAudioLine !== null) linesToUpdate.add(s.currentAudioLine)
-	// if (s.currentCaretLine !== null) linesToUpdate.add(s.currentCaretLine)
+// 	updateSelectedRegions(validIndices)
 
-	// const allRegions = regions.getRegions()
-
-	// linesToUpdate.forEach((index) => {
-	// 	const regionId = `lyric-${index}`
-	// 	console.log("updating region", regionId)
-	// 	const region = allRegions.find(r => r.id === regionId)
-	// 	if (!region) return
-
-	// 	let color = "rgba(0, 255, 0, 0.1)"
-	// 	if (s.currentAudioLine === index) color = "rgba(255, 255, 255, 0.1)"
-	// 	if (s.currentCaretLine === index) color = "rgba(74, 144, 226, 0.1)"
-
-	// 	region.setOptions({ color: color })
-	// })
-
-	// prevAudioLine = s.currentAudioLine
-	// prevCaretLine = s.currentCaretLine
-	updateRegions()
-}
+// 	for (const region of regions.getRegions()) {
+// 		if (!usedRegionIds.has(region.id) && !region.id.startsWith("bpm-tick")) {
+// 			region.remove()
+// 			delete regionCache[region.id]
+// 		}
+// 	}
+// }
 
 // https://github.com/katspaugh/wavesurfer.js/issues/3837
 function ensureEvenWidth(container: HTMLElement) {
@@ -632,26 +630,28 @@ function handleScroll(e: WheelEvent) {
 		</div>
 		<div class="bpm-controls">
 			<label>
-				{#if !isBpmEnabled}
-					Enable Beat Ticks
-				{/if}
+				<!-- {#if !isBpmEnabled} -->
+				Enable Beat Ticks
+				<!-- {/if} -->
 				<input type="checkbox" bind:checked={isBpmEnabled} />
 			</label>
 			{#if isBpmEnabled}
-			<p>click bpm (below) to edit</p>
-				<!-- <button onclick={handleGuessButton}>{bpmLoading ? "Guessing..." : "Guess"}</button>
-				{#if s.audioBPM}
-					<button onclick={guessTempoHigher}>Higher</button>
-					<button onclick={guessTempoLower}>Lower</button>
-				{/if}
-				<label>
-					BPM:
-					<input type="number" bind:value={s.audioBPM} min="1" max="300" onblur={updateBpmMarkers} />
-				</label>
-				<label>
-					Offset:
-					<input type="number" bind:value={s.audioBPMOffsetMs} step="10" onblur={updateBpmMarkers} />
-				</label> -->
+				<!-- <p>click bpm (below) to edit</p> -->
+				<!--
+					<button onclick={handleGuessButton}>{bpmLoading ? "Guessing..." : "Guess"}</button>
+					{#if s.audioBPM}
+						<button onclick={guessTempoHigher}>Higher</button>
+						<button onclick={guessTempoLower}>Lower</button>
+					{/if}
+					<label>
+						BPM:
+						<input type="number" bind:value={s.audioBPM} min="1" max="300" onblur={updateBpmMarkers} />
+					</label>
+					<label>
+						Offset:
+						<input type="number" bind:value={s.audioBPMOffsetMs} step="10" onblur={updateBpmMarkers} />
+					</label>
+				-->
 			{/if}
 		</div>
 		<div class="nextlyric">

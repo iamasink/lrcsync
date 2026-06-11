@@ -13,7 +13,9 @@ let fastforwardbuttonvalue = $derived(1 * multiplier)
 
 function handleNextButtonClick() {
 	// try to move forward until a valid line is found
-	let i = s.currentAudioLine + 1
+	const lastLine = s.currentAudioLine
+	const currLine = s.currentAudioLine + 1
+	let i = currLine
 	while (i < s.lyrics.length && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
 		i++
 	}
@@ -22,14 +24,16 @@ function handleNextButtonClick() {
 		const time = s.lyrics[i].time
 		s.waveformRef?.seekToTime(time / 1000)
 		scrollLineIntoView(i)
-		s.waveformRef?.updateSelectedRegions()
+		s.waveformRef?.updateSelectedRegions([lastLine,currLine])
 		s.currentAudioLine = i
 	}
 }
 
 function handlePrevButtonClick() {
 	// try to move backward until a valid line is found
-	let i = s.currentAudioLine - 1
+	const lastLine = s.currentAudioLine
+	const currLine = s.currentAudioLine - 1
+	let i = currLine
 	while (i >= 0 && (s.lyrics[i].time == null || s.lyrics[i].time == -1)) {
 		i--
 	}
@@ -38,7 +42,7 @@ function handlePrevButtonClick() {
 		const time = s.lyrics[i].time + 0.01
 		s.waveformRef?.seekToTime(time / 1000)
 		scrollLineIntoView(i)
-		s.waveformRef?.updateSelectedRegions()
+		s.waveformRef?.updateSelectedRegions([lastLine,currLine])
 		s.currentAudioLine = i
 	}
 }
@@ -75,11 +79,12 @@ function adjustSelectedLine(offsetSec: number) {
 	}
 
 	const targetLine = s.lyrics[s.currentAudioLine]
+	const targetLineIndex = s.currentAudioLine
 
 	if (!targetLine || targetLine.time === -1) return
 
 	let prevTime = 0
-	for (let i = s.currentAudioLine - 1; i >= 0; i--) {
+	for (let i = targetLineIndex - 1; i >= 0; i--) {
 		if (s.lyrics[i].time !== -1) {
 			prevTime = s.lyrics[i].time
 			break
@@ -87,14 +92,20 @@ function adjustSelectedLine(offsetSec: number) {
 	}
 
 	let nextTime = Infinity
-	for (let i = s.currentAudioLine + 1; i < s.lyrics.length; i++) {
+	for (let i = targetLineIndex + 1; i < s.lyrics.length; i++) {
 		if (s.lyrics[i].time !== -1) {
 			nextTime = s.lyrics[i].time
 			break
 		}
 	}
 
-	const minLineTime = targetLine.text ? 100 : 10
+	// we might want a minimum time because otherwise the ui becomes fiddle and/or unusable
+	// but maybe thats limiting? particularly if we want the lyrics to start immediately
+	// for now idk
+	let minLineTime = targetLine.text ? 100 : 10
+	if (targetLineIndex <= 1) {
+		minLineTime = 10
+	}
 	// const newTime = Math.max(prevTime + minLineTime, Math.min(nextTime, targetLine.time + (offset * 1000)))
 	const newTime = clamp(
 		targetLine.time + (offsetSec * 1000),
@@ -105,9 +116,11 @@ function adjustSelectedLine(offsetSec: number) {
 	targetLine.time = newTime
 
 	if (s.waveformRef) {
-		s.waveformRef.updateRegions()
 		s.waveformRef.seekToTime(newTime / 1000)
-		s.waveformRef.play()
+		s.waveformRef.updateSelectedRegions([s.currentAudioLine])
+		// if (s.waveformRef.isPlaying()) {
+		// 	s.waveformRef.play()
+		// }
 	}
 }
 

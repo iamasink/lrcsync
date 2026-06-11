@@ -2,7 +2,7 @@
 import CollapsibleText from "$lib/components/CollapsibleText.svelte"
 import EditView from "$lib/components/TabEdit.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
-import { initDragDrop } from "$lib/dragDrop"
+import { type FileWithHandle, initDragDrop } from "$lib/dragDrop"
 import { loadAudio, loadLRC } from "$lib/loadFiles"
 import {
 	allHaveTimestamps,
@@ -33,10 +33,14 @@ import TopControls from "./_components/TopControls.svelte"
 import ButtonControls from "./_components/ButtonControls.svelte"
 import { getBeatAtTime } from "$lib/bpm"
 import Tooltip from "$lib/components/Tooltip.svelte"
-	import BPMMenu from "./_components/BPMMenu.svelte";
+import BPMMenu from "./_components/BPMMenu.svelte"
+import { findCompanionFile, getBaseName } from "$lib/fileSystem"
 
-let audioFile = $state<File | null>(null)
-let lrcFile = $state<File | null>(null)
+let updateRafId: number
+let fpsRafId: number
+
+let audioFile = $state<FileWithHandle | null>(null)
+let lrcFile = $state<FileWithHandle | null>(null)
 let audioSrc = $state("")
 
 let isDialogNewAudioOpen: boolean = $state(false)
@@ -48,6 +52,40 @@ let frameCount = 0
 let showFileoverlay = $state(false)
 let showTopControls = $state(true)
 let showBPMMenu = $state(false)
+
+const BAD_EXTENSIONS = new Set([
+	// images
+	".jpg",
+	".jpeg",
+	".png",
+	".gif",
+	".bmp",
+	".webp",
+	".svg",
+	".ico",
+	".tiff",
+	".psd",
+	".heic",
+	// info stuff
+	".cue",
+	".m3u",
+	".m3u8",
+	".nfo",
+	".sfv",
+	// archive
+	".zip",
+	".rar",
+	".7z",
+	".tar",
+	".gz",
+	// hidden
+	".DS_Store",
+	".thumbs.db",
+])
+
+const LYRIC_EXTENSIONS = new Set([".lrc", ".txt"])
+
+const AUDIO_EXTENSIONS = new Set([".mp3", ".flac", ".opus"])
 
 /**
  * Gets the current lyric line based on the time.
@@ -147,9 +185,9 @@ function handleKeyup(event: KeyboardEvent) {
 	}
 }
 
-function update(now?: number) {
+function update(now: number) {
 	updateCurrentLine()
-	requestAnimationFrame(update)
+	updateRafId = requestAnimationFrame(update)
 }
 function countfps(now: number) {
 	frameCount++
@@ -158,10 +196,56 @@ function countfps(now: number) {
 		frameCount = 0
 		lastFrameTime = now
 	}
-	requestAnimationFrame(countfps)
+	fpsRafId = requestAnimationFrame(countfps)
 }
 
 async function doLoad() {
+	// if (lrcFile) {
+	// 	s.filePaths.lyrics = lrcFile.name
+	// 	if (lrcFile.handle) {
+	// 		s.fileHandles.lyrics = lrcFile.handle
+	// 	} else {
+	// 		s.fileHandles.lyrics = undefined
+	// 	}
+	// }
+	// if (audioFile) {
+	// 	s.filePaths.audio = audioFile.name
+	// 	if (audioFile.handle) {
+	// 		s.fileHandles.audio = audioFile.handle
+	// 	} else {
+	// 		s.fileHandles.audio = undefined
+	// 	}
+	// }
+
+	// discover companion files before loading
+	if (audioFile?.handle && !lrcFile) {
+		const companion = await findCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
+		if (companion) {
+			const file: FileWithHandle = await companion.getFile()
+			file.handle = companion
+			lrcFile = file
+			alert(`found a companion lrc file (${lrcFile.name}), so that was also loaded!`)
+		}
+	} else if (lrcFile?.handle && !audioFile) {
+		const companion = await findCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
+		if (companion) {
+			const file: FileWithHandle = await companion.getFile()
+			file.handle = companion
+			audioFile = file
+			alert(`found a companion audio file (${audioFile.name}), so that was also loaded!`)
+		}
+	}
+
+	// update file metadata after companion discovery
+	s.filePaths.lyrics = lrcFile?.name
+	s.fileHandles.lyrics = lrcFile?.handle
+
+	s.filePaths.audio = audioFile?.name
+	s.fileHandles.audio = audioFile?.handle
+
+	const loadedLyrics = !!lrcFile
+	const loadedAudio = !!audioFile
+
 	if (lrcFile) {
 		console.log("loading lrc")
 		const { lyrics: l, meta } = await loadLRC(lrcFile)
@@ -189,11 +273,17 @@ async function doLoad() {
 		}
 	}
 
-	s.unsavedChanges = true
+	// if we just loaded a file, there shouldn't be any changes to worry about?
+	// s.unsavedChanges = true
+	s.unsavedChanges = false // set false because history set it to true already
 
 	showTopControls = false
 	lrcFile = null
 	audioFile = null
+
+	console.log("yay, loaded!")
+	console.log(`new lyric file: ${s.filePaths.lyrics} handle ${s.fileHandles.lyrics}`)
+	console.log(`new audio file: ${s.filePaths.audio} handle ${s.fileHandles.audio}`)
 }
 
 onMount(() => {
@@ -202,61 +292,41 @@ onMount(() => {
 
 	const cleanupfns: (() => void)[] = []
 
+	function onFiles(files: FileWithHandle[]) {
+		console.log(`processing all files:`, files)
+		Array.from(files).forEach((file) => {
+			console.log("processing file", file.name)
+			const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
+
+			if (BAD_EXTENSIONS.has(ext)) {
+				console.log(`ignoring file ext ${ext}`)
+				return
+			}
+
+			if (LYRIC_EXTENSIONS.has(ext)) {
+				lrcFile = file
+				// s.filePaths.lyrics = file.name
+				// if (file.handle) {
+				// 	s.fileHandles.lyrics = file.handle
+				// } else {
+				// 	s.fileHandles.lyrics = undefined
+				// }
+			} else {
+				audioFile = file
+				// s.filePaths.audio = file.name
+				// if (file.handle) {
+				// 	s.fileHandles.audio = file.handle
+				// } else {
+				// 	s.fileHandles.audio = undefined
+				// }
+			}
+		})
+	}
+
 	console.log("hi world")
 	const dragDropCleanup = initDragDrop(
 		// files
-		(files) => {
-			const badExtensions = new Set([
-				// images
-				".jpg",
-				".jpeg",
-				".png",
-				".gif",
-				".bmp",
-				".webp",
-				".svg",
-				".ico",
-				".tiff",
-				".psd",
-				".heic",
-				// info stuff
-				".cue",
-				".m3u",
-				".m3u8",
-				".nfo",
-				".sfv",
-				// archive
-				".zip",
-				".rar",
-				".7z",
-				".tar",
-				".gz",
-				// hidden
-				".DS_Store",
-				".thumbs.db",
-			])
-
-			const lyricExtensions = new Set([".lrc", ".txt"])
-
-			console.log(`processing all files:`, files)
-			Array.from(files).forEach((file) => {
-				console.log("processing file", file.name)
-				const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
-
-				if (badExtensions.has(ext)) {
-					console.log(`ignoring file ext ${ext}`)
-					return
-				}
-
-				if (lyricExtensions.has(ext)) {
-					lrcFile = file
-					s.filePaths.lyrics = file.name
-				} else {
-					audioFile = file
-					s.filePaths.audio = file.name
-				}
-			})
-		},
+		onFiles,
 		// show
 		(show) => (showFileoverlay = show),
 		// onAfterDrop
@@ -285,10 +355,12 @@ onMount(() => {
 		cleanupfns.push(() => window.removeEventListener(event, handler as EventListener))
 	})
 
-	requestAnimationFrame(update)
-	requestAnimationFrame(countfps)
+	updateRafId = requestAnimationFrame(update)
+	fpsRafId = requestAnimationFrame(countfps)
 
 	return () => {
+		cancelAnimationFrame(updateRafId)
+		cancelAnimationFrame(fpsRafId)
 		dragDropCleanup()
 		cleanupfns.forEach(fn => fn())
 	}
@@ -306,11 +378,18 @@ $effect(() => {
 
 	// Stop old waveform
 	s.waveformRef?.pause()
+
+	return () => {
+		if (audioSrc) {
+			URL.revokeObjectURL(audioSrc)
+			audioSrc = ""
+		}
+	}
 })
 </script>
 
 <svelte:head>
-	<title>{s.filePaths.audio ? `${s.filePaths.audio} | LRCSync` : "LRCSync"}</title>
+	<title>{(s.unsavedChanges ? "*" : "") + getBaseName(s.filePaths.audio || s.filePaths.lyrics || "") + " | LRCSync" || "LRCSync"}</title>
 </svelte:head>
 
 <noscript>
@@ -324,7 +403,7 @@ $effect(() => {
 </noscript>
 <!-- <ScreensizeWarning /> -->
 <DialogNewAudio bind:open={isDialogNewAudioOpen} />
-<BPMMenu bind:open={showBPMMenu}/>
+<BPMMenu bind:open={showBPMMenu} />
 
 <div class="app">
 	<div class="container">
@@ -356,7 +435,7 @@ $effect(() => {
 				<p>audio line: {s.currentAudioLine}</p>
 			</Tooltip>
 			<Tooltip message="position of the caret in the lyrics">
-				<p>caret line: {s.currentAudioLine}</p>
+				<p>caret line: {s.currentCaretLine}</p>
 			</Tooltip>
 			<Tooltip message="time in seconds">
 				<p>{(s.audioTimeMs / 1000).toFixed(2)}s</p>
@@ -371,19 +450,19 @@ $effect(() => {
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<Tooltip message="beats per minute">
 				<!-- <Button type="button" onclick={() => (showBPMMenu = true)}>{s.audioBPM} BPM</Button> -->
-				 <!-- TODO: FIX this p, make button and remove svelte-ignores -->
+				<!-- TODO: FIX this p, make button and remove svelte-ignores -->
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<p style="background-color: var(--bg-light);" onclick={() => (showBPMMenu = true)}>BPM: {s.useBPM?s.audioBPM:"off"}</p>
+				<p style="background-color: var(--bg-light)" onclick={() => (showBPMMenu = true)}>BPM: {s.useBPM ? s.audioBPM : "off"}</p>
 			</Tooltip>
 			{#if s.useBPM}
-			<Tooltip message="current beat">
-				<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
-			</Tooltip>
-			<div class="metronome">
-				{#each Array(4) as _, i}
-					<div class="beat" class:active={Math.floor(getBeatAtTime(s.audioTimeMs)) % 4 === i}></div>
-				{/each}
-			</div>
+				<Tooltip message="current beat">
+					<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
+				</Tooltip>
+				<div class="metronome">
+					{#each Array(4) as _, i}
+						<div class="beat" class:active={Math.floor(getBeatAtTime(s.audioTimeMs)) % 4 === i}></div>
+					{/each}
+				</div>
 			{/if}
 		</div>
 
