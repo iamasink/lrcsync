@@ -235,10 +235,10 @@ function onWaveformsReady() {
 }
 
 function destroyWavesurfer() {
-	if (autoScrollTimeout) {
-		clearTimeout(autoScrollTimeout)
-		autoScrollTimeout = 0
-	}
+	// if (autoScrollTimeout) {
+	// 	clearTimeout(autoScrollTimeout)
+	// 	autoScrollTimeout = 0
+	// }
 	if (wavesurfer) {
 		wavesurfer.stop()
 		wavesurfer.destroy()
