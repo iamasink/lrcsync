@@ -31,7 +31,7 @@ import CurrentLyrics from "./_components/CurrentLyrics.svelte"
 import DragOverlay from "./_components/DragOverlay.svelte"
 import TopControls from "./_components/TopControls.svelte"
 import ButtonControls from "./_components/ButtonControls.svelte"
-import { getBeatAtTime } from "$lib/bpm"
+import { getBeatFromCurrentTime } from "$lib/bpm"
 import Tooltip from "$lib/components/Tooltip.svelte"
 import BPMMenu from "./_components/BPMMenu.svelte"
 import { findCompanionFile, getBaseName } from "$lib/fileSystem"
@@ -456,11 +456,11 @@ $effect(() => {
 			</Tooltip>
 			{#if s.useBPM}
 				<Tooltip message="current beat">
-					<p>{getBeatAtTime(s.audioTimeMs).toFixed(2)}</p>
+					<p>{getBeatFromCurrentTime().toFixed(2)}</p>
 				</Tooltip>
 				<div class="metronome">
 					{#each Array(4) as _, i}
-						<div class="beat" class:active={Math.floor(getBeatAtTime(s.audioTimeMs)) % 4 === i}></div>
+						<div class="beat" class:active={Math.floor(getBeatFromCurrentTime()) % 4 === i}></div>
 					{/each}
 				</div>
 			{/if}
