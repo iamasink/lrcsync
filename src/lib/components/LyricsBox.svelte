@@ -102,6 +102,11 @@ $effect(() => {
 		s.currentCaretLine = lineIndex;
 
 		if ( s.waveformRef) {
+			if (lineIndex === 0) {
+				s.waveformRef.seekToTime(0);
+				return
+			}
+
 			const time = s.lyrics[lineIndex].time
 			if (time === null || time === -1) return
 			const timeInSeconds = time/ 1000;
