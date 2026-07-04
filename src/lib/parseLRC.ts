@@ -329,8 +329,8 @@ export function allHaveTimestamps(lines: LyricLine[]) {
 	)
 }
 
-export function roundTimestamp(num: number): number {
-	return Math.round((num + Number.EPSILON) * 100) / 100
+export function roundTimestamp(time: number): number {
+	return Math.round((time + Number.EPSILON) * 100) / 100
 }
 
 /** Returns the offset to next non-empty lyric. */
