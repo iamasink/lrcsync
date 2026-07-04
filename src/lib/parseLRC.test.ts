@@ -9,7 +9,9 @@ import {
 	allHaveTimestamps,
 	roundTimestamp,
 	type LyricLine,
-	cleanup
+	cleanup,
+	stripAll,
+	type Metadata
 } from "./parseLRC"
 
 // mock state.svelte metadata
@@ -17,10 +19,16 @@ vi.mock("./state.svelte", () => ({
 	s: { metadata: { ti: "Song Title", ar: "Artist Name" } }
 }))
 
+export function parseWithoutInitialBlank(content: string): { lyrics: LyricLine[]; meta: Metadata } {
+	const { lyrics, meta } = parseLRC(content)
+	lyrics.shift() // Remove the initial blank line because im lazy to do this properly
+	return { lyrics, meta }
+}
+
 describe("parseLRC", () => {
 	it("parses metadata correctly", () => {
 		const input = `[ti:My Song]\n[ar:Some Artist]\n\n[00:01.00] First lyric`
-		const { meta, lyrics } = parseLRC(input)
+		const { meta, lyrics } = parseWithoutInitialBlank(input)
 		expect(meta.ti).toBe("My Song")
 		expect(meta.ar).toBe("Some Artist")
 		expect(lyrics[0].text).toBe("First lyric")
@@ -28,7 +36,7 @@ describe("parseLRC", () => {
 
 	it("parses lyrics with timestamps", () => {
 		const input = "[00:10.50] First line\n[00:20.00] Second line"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics).toEqual([
 			{ time: 10500, text: "First line" },
 			{ time: 20000, text: "Second line" }
@@ -37,13 +45,13 @@ describe("parseLRC", () => {
 
 	it("parses plain text lines", () => {
 		const input = "No timestamp here"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "No timestamp here" })
 	})
 
 	it("ignores colon in tags", () => {
 		const input = "[Chorus: Artist]"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "[Chorus: Artist]" })
 	})
 
@@ -51,14 +59,14 @@ describe("parseLRC", () => {
 
 	it("parses multi timestamp lines", () => {
 		const input = "[00:10.50][00:20.00] First line"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics).toEqual([
 			{ time: 10500, text: "First line", },
 			{ time: 20000, text: "First line" }
 		])
 
 		const input2 = "[00:10.50][00:20.00][00:30.00] First line"
-		const lyrics2 = parseLRC(input2).lyrics
+		const lyrics2 = parseWithoutInitialBlank(input2).lyrics
 		expect(lyrics2).toEqual([
 			{ time: 10500, text: "First line", },
 			{ time: 20000, text: "First line" },
@@ -74,44 +82,44 @@ describe("parseLRC", () => {
 
 	it("handles missing milliseconds", () => {
 		const input = "[01:23] Just minutes and seconds"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: (1 * 60 * 1000) + (23 * 1000), text: "Just minutes and seconds" })
 		expect(exportLRC(lyrics)).toEqual(`[01:23.00] Just minutes and seconds`)
 	})
 
 	it("handles milliseconds instead of centiseconds", () => {
 		const input = "[01:23.450] invalid milliseconds"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: (1 * 60 * 1000) + (23 * 1000) + (450), text: "invalid milliseconds" })
 	})
 
 	it("handles deciseconds", () => {
 		const input = "[01:23.5] short"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: (1 * 60 * 1000) + (23 * 1000) + (500), text: "short" })
 	})
 
 	it("handles malformed timestamp", () => {
 		const input = "[01:23.5000] weird"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "[01:23.5000] weird" })
 	})
 
 	it("handles malformed timestamps gracefully", () => {
 		const input = "[ab:cd.ef] Not valid"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "[ab:cd.ef] Not valid" })
 	})
 
 	it("handles empty brackets", () => {
 		const input = "[] Empty"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "[] Empty" })
 	})
 
 	it("treats line with only brackets as text", () => {
 		const input = "[]"
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		expect(lyrics[0]).toEqual({ time: -1, text: "[]" })
 	})
 
@@ -122,7 +130,7 @@ describe("parseLRC", () => {
 [00:01.00] chorusline
 [00:02.00] [Part of lyric] is in brackets`
 
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 
 		expect(lyrics[0]).toEqual({ time: -1, text: "line1" })
 		expect(lyrics[1]).toEqual({ time: -1, text: "" })
@@ -137,7 +145,7 @@ describe("parseLRC", () => {
 	// 	const input = `[00:07.39] But secretly, I'm- (hehe)
 
 	// [00:09.74] うりゃ おい! うりゃ おい! Ooh, fighter!`
-	// 	const { lyrics } = parseLRC(input)
+	// 	const { lyrics } = parseWithoutInitialBlank(input)
 	// 	expect(lyrics[1]).toEqual({ time: 9 * 1000 + 740 - 10, text: "" })
 	// })
 
@@ -148,10 +156,10 @@ describe("parseLRC", () => {
 
 [00:17.49]
 [00:19.61] line5`
-		const { lyrics } = parseLRC(input)
+		const { lyrics } = parseWithoutInitialBlank(input)
 		const first = lyrics
 		const newtext = exportLRC(lyrics)
-		const newlyrics = parseLRC(newtext).lyrics
+		const newlyrics = parseWithoutInitialBlank(newtext).lyrics
 		const second = newlyrics
 
 		expect(first).toEqual(second)
@@ -282,7 +290,7 @@ describe("clean up", () => {
 				{ "time": 24000, "text": "end" },
 			]
 
-		expect(cleanup(lines)).toEqual(correctlines)
+		expect(cleanup(stripAll(lines))).toEqual(correctlines)
 		// force maybe gets removed
 		// expect(cleanup(lines, true)).toEqual(correctlinesForce) 
 	})

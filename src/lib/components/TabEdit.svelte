@@ -12,7 +12,7 @@ import {
 	parseLRC,
 	roundTimestamp,
 	sortLines,
-	stripBadStuff,
+	stripBadCharacters,
 	toCentiseconds,
 } from "$lib/parseLRC"
 import type { LyricLine } from "$lib/parseLRC"
@@ -241,7 +241,7 @@ async function handlePasteClean() {
 	}
 
 	const parsed = parseLRC(text)
-	const cleanLines = stripBadStuff(parsed.lyrics)
+	const cleanLines = stripBadCharacters(parsed.lyrics)
 	s.lyrics = cleanLines
 	s.metadata = parsed.meta
 	setLyrics()

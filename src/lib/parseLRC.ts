@@ -290,14 +290,24 @@ export function cleanup(lines: LyricLine[], force = false): LyricLine[] {
 	return cleaned
 }
 
-export function stripBadStuff(lines: LyricLine[]) {
+export function stripTags(lines: LyricLine[]) {
 	let regex: RegExp
 
 	regex = /\[ ?(Pre-|Post-)?(Chorus|Choruses|Cho|Bridge|Bridges|Br\.?|Verse|Verses|V\.?|Intro|Int\.?|Outro|Out\.?|Break|Instrumental|Instr\.?|Refrain|Interlude|Interl\.?|Drop|Hook|Build|Solo|Theme|Part|Section|Sec\.?)\.?( \.?\d*)? ?(:.*|\(.*\))?\]$/i
 
 	return lines.map(line => {
 		if (regex.test(line.text)) return { time: -1, text: "" }
+		return {
+			...line,
+			text: line.text.replace(regex, "").trim()
+		}
+	})
 
+
+}
+
+export function stripBadCharacters(lines: LyricLine[]) {
+	return lines.map(line => {
 		return {
 			...line,
 			text: line.text
@@ -313,6 +323,10 @@ export function stripBadStuff(lines: LyricLine[]) {
 				.replaceAll("′", "'")
 		}
 	})
+}
+
+export function stripAll(lines: LyricLine[]) {
+	return stripBadCharacters(stripTags(lines))
 }
 
 export function cleanAndSort() {

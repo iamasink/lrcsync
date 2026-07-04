@@ -3,7 +3,7 @@ import { getBeatFromCurrentTime, getBeatFromTime, getTimeAtBeat } from "$lib/bpm
 import Button from "$lib/components/Button.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import { historyManager } from "$lib/history.svelte"
-import { cleanup, roundTimestamp, sortLines, stripBadStuff } from "$lib/parseLRC"
+import { cleanup, roundTimestamp, sortLines, stripAll, stripBadCharacters, stripTags } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 import { clamp } from "$lib/utils"
@@ -325,8 +325,8 @@ function togglePlayPause() {
 		</Button>
 		<Button
 			onclick={() => {
-				s.lyrics = stripBadStuff(s.lyrics)
-				historyManager.push("strip tags")
+				s.lyrics = stripAll(s.lyrics)
+				historyManager.push("strip tags & bad chars")
 			}}
 			title="strip bad stuff from imports (eg: [chorus] tags, weird unicode, etc.)"
 		>
