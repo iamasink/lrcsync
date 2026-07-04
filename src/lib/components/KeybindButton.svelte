@@ -38,13 +38,33 @@ const keyAliases: Record<string, string> = {
 
 	space: " ",
 }
+const keyToCode: Record<string, string> = {
+	// digits
+	"0": "Digit0", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4",
+	"5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9",
+	// letters
+	...Object.fromEntries(
+		"abcdefghijklmnopqrstuvwxyz".split("").map(c => [c, `Key${c.toUpperCase()}`])
+	),
+	// common named keys
+	"up": "ArrowUp", "down": "ArrowDown", "left": "ArrowLeft", "right": "ArrowRight",
+	",": "Comma",
+	".": "Period",
+	"Space": "Space",
+	"Enter": "Enter",
+}
+const shortcutKeycode = keyToCode[shortcut.key]
+if (!shortcutKeycode) {
+	console.warn(`Unknown shortcut key: ${shortcut.key}`)
+}
+
 function matchesShortcut(e: KeyboardEvent) {
-	const key = shortcut.key.toLowerCase()
-	const nkey = keyAliases[key] ?? key
+	console.log(e.code)
+	const keyMatches = e.code === shortcutKeycode
 
-	if (ignoremods) return (e.key.toLowerCase() === nkey.toLowerCase())
+	if (ignoremods) return (keyMatches)
 
-	return (e.key.toLowerCase() === nkey.toLowerCase()
+	return (keyMatches
 		&& (!!shortcut.ctrl === e.ctrlKey)
 		&& (!!shortcut.meta === e.metaKey)
 		&& (!!shortcut.shift === e.shiftKey)
