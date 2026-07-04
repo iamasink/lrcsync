@@ -52,7 +52,12 @@ function handleBlur() {
 
 function handleInput() {
 	console.log("input")
-		s.currentCaretLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+	let currentLine = textAreaElement.value.substring(0, textAreaElement.selectionStart).split("\n").length - 1
+	if (currentLine < 0) currentLine = 0
+	// if we're selecting the LAST line, we ignore it intentionally becauseee
+	// the user is maybe pasting so putting it at the end is annoying
+	if (currentLine >= s.lyrics.length-1) currentLine = 1
+	s.currentCaretLine = currentLine
 
 	if (textUpdateTimeout) {
 		window.clearTimeout(textUpdateTimeout)
@@ -71,14 +76,27 @@ function handleInput() {
 			// clear the timeout after it fires
 			textUpdateTimeout = null
 		}
-	}, 500)
+	}, 2000)
 }
 function setLyrics() {
 	const currentScrollTop = textAreaElement.scrollTop
-	const updatedLyrics = parseLRC(lyricsText).lyrics
 
-	if (JSON.stringify(s.lyrics) != JSON.stringify(updatedLyrics)) {
-		s.lyrics = updatedLyrics
+	const { meta, lyrics } = parseLRC(lyricsText)
+
+	let metaChanged = false
+
+
+	// if meta has info
+	if (Object.keys(meta).length > 0) {
+		console.log("setting meta! meta: ", meta)
+		s.metadata = meta
+		metaChanged = true
+	} else {
+		console.log("no meta :)")
+	}
+
+	if (metaChanged || JSON.stringify(s.lyrics) != JSON.stringify(lyrics)) {
+		s.lyrics = lyrics
 	} else {
 		console.log("no change")
 	}
@@ -152,12 +170,14 @@ function handleSyncButtonClick() {
 	const time = s.waveformRef.getCurrentTime() * 1000
 	const newtime = toCentiseconds(time - getSyncDelay())
 
-	setLineTime(newtime, s.currentCaretLine)
 	const oldline = s.currentCaretLine
-
 	gotoNextLine()
 
-	scrollLineIntoView(s.currentCaretLine)
+
+	setLineTime(newtime, oldline)
+
+
+	scrollLineIntoView(oldline)
 	s.waveformRef.updateRegions()
 
 	// if (syncTimeout) clearTimeout(syncTimeout)
@@ -224,6 +244,8 @@ async function handlePasteClean() {
 	const cleanLines = stripBadStuff(parsed.lyrics)
 	s.lyrics = cleanLines
 	s.metadata = parsed.meta
+	setLyrics()
+
 
 	historyManager.push(`pasted new lyrics from clipboard ${text.split("\n").length} lines`)
 }
