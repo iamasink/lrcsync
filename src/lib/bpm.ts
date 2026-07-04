@@ -13,6 +13,13 @@ export function getBeatAtTime(valueMs: number) {
 	// Math.floor(((timeSec - (s.audioBPMOffsetMs ?? 0)) * ((s.audioBPM ?? 60) / 60)))
 }
 
+export function getTimeAtBeat(beat: number) {
+	const offsetMs = s.audioBPMOffsetMs ?? 0
+	const bpm = s.audioBPM ?? 60
+	const beatpersecond = bpm / 60
+
+	return (beat * 1000) / beatpersecond + offsetMs
+}
 
 export function getBPS() {
 	const bpm = s.audioBPM ?? 60

@@ -59,7 +59,7 @@ async function handleSaveAndClearButton() {
 	<div>
 		<!-- TODO: FIX THIS -->
 		{#if s.isTauri}
-			<p>straight up tauri'ng it</p>
+			<p>tauri</p>
 			<label>base path <input type="text" bind:value={parentDir} /></label><br />
 			<label>audio name: <input type="text" bind:value={audioName} /></label><br />
 			<label>lrc name: <input type="text" bind:value={lrcName} placeholder={getLrcName()} /></label>
@@ -93,10 +93,9 @@ async function handleSaveAndClearButton() {
 	>
 		cleanup
 	</button>
-	<!-- <summary>edit metadata</summary> -->
-	<!-- <div class="content"> -->
-	<!-- <label><button bind:value={s.metadata.}></button></label> -->
-	<!--
+	<details>
+	<summary>metadata</summary>
+	<div>
 		<label>Title (ti)<input bind:value={s.metadata.ti}></label><br />
 		<label>Artist (ar)<input bind:value={s.metadata.ar}></label><br />
 		<label>Album (al)<input bind:value={s.metadata.al}></label><br />
@@ -107,9 +106,8 @@ async function handleSaveAndClearButton() {
 		<label>Timing offset (offset)<input bind:value={s.metadata.offset}></label><br />
 		<label>Program/tool (re)<input bind:value={s.metadata.re}></label><br />
 		<label>Program version (ve)<input bind:value={s.metadata.ve}></label><br />
-	-->
-	<!-- </div> -->
-	<!-- </details> -->
+	</div>
+	</details>
 	<br />
 	<button onclick={handleSaveButton}>save</button>
 	<button onclick={handleSaveAndClearButton}>save and clear</button>

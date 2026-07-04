@@ -43,13 +43,22 @@ export interface Metadata {
 
 
 export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata } {
+	if (content.trim() === "") {
+		return { lyrics: [], meta: {} }
+	}
+
 	const meta: Metadata = {}
 	const lyrics: LyricLine[] = []
 	const lines = content.split("\n")
 	const metaRegex = /^\[(ti|ar|al|au|by|re|ve|offset|length|lr):(.*)\]$/i
 	let lastWasMeta = false
 
-	for (const line of lines) {
+	for (const [index, line] of lines.entries()) {
+		if (index === 0 && (line.trim() === "" || line.trim() === "[00:00.00]")) {
+			console.log("ignoring empty line")
+			continue
+		}
+
 		const metaMatch = line.match(metaRegex)
 		if (metaMatch) {
 			const [, key, value] = metaMatch
@@ -126,6 +135,8 @@ export function parseLRC(content: string): { lyrics: LyricLine[]; meta: Metadata
 	if (lyrics[0].text != "" || lyrics[0].time != 0) {
 		lyrics.unshift({ text: "", time: 0 })
 	}
+
+	console.log("meta: ", meta)
 
 	return { lyrics, meta }
 }

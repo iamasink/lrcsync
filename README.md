@@ -11,7 +11,7 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 - [ ] undo should change selected lines etc (does but inconsistent )
 - [ ] fix scrolling when syncing
-- [ ] annoying paste bug
+- [x] annoying paste bug
 - [ ] fix/improve the new audio message
   - [ ] make it so the new audio/lyrics are not immediately set as the main ones??
   - [ ] or maybe just the lyrics so they can be saved but then idk?? this is complicated, is it even worth it???
@@ -39,9 +39,7 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 
 - [ ] toggle autocentre button 
 
-- [x] support multiple timestamps?  ( eg "[00:01.10][00:10.00] lyric")
 - [ ] support karaoke?  ( eg "[00:01.10] <00:01.15> lyric <00:01.95> lyric2")
-- [x] support comments?
 
 - [ ] save cookies for 
   - [x] settings, 

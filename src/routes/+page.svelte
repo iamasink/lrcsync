@@ -438,7 +438,7 @@ $effect(() => {
 				<p>caret line: {s.currentCaretLine}</p>
 			</Tooltip>
 			<Tooltip message="time in seconds">
-				<p>{(s.audioTimeMs / 1000).toFixed(2)}s</p>
+				<p>{(s.audioTimeMs / 1000).toFixed(3)}s</p>
 			</Tooltip>
 			<Tooltip message="time">
 				<p>{formatTime(s.audioTimeMs)}</p>
