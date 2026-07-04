@@ -191,6 +191,14 @@ $effect(() => {
 		}
 	})
 
+	regions.on("region-update", (r) => {
+		if (!r.id.startsWith("bpm-tick")) {
+			// updateregion(r)
+			console.log("update", r)
+			wavesurfer?.pause()
+		}
+	})
+
 	if (lastObjectUrl) {
 		URL.revokeObjectURL(lastObjectUrl)
 		lastObjectUrl = null
@@ -695,6 +703,7 @@ function handleScroll(e: WheelEvent) {
     /* border-right: 2px solid rgb(94, 94, 94); */
 
     border-right: 0px;
+	width: 0px;
   }
 
   #waveform ::part(handle-right-nextblank) {
@@ -702,6 +711,10 @@ function handleScroll(e: WheelEvent) {
   }
   #waveform ::part(region-handle-left) {
     border-left: 2px solid rgb(94, 94, 94);
+  }
+
+  #waveform ::part(region) {
+	transition: background-color 0s !important;
   }
 }
 
