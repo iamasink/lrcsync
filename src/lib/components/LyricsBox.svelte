@@ -175,6 +175,7 @@ function getLine(lineIndex: number) {
 	let text = s.convertedLyrics[lineIndex]
 	let line = s.lyrics[lineIndex]
 	let isInfo = false
+	let isTimed = false
 
 	if (lineIndex  === 0 && text === "") {
 		text = "(beginning)"
@@ -187,7 +188,7 @@ function getLine(lineIndex: number) {
 		isInfo = true
 	}
 
-	return { text, isInfo }
+	return { text, isInfo, isTimed }
 }
 
 function handleRemovetime(i:number) {
@@ -233,7 +234,7 @@ function handleDelete(i:number) {
 			<div class="text" class:info={lineinfo.isInfo} >
 				{lineinfo.text}
 			</div>
-			{#if !lineinfo.isInfo}
+			{#if !lineinfo.isTimed}
 			<div class="buttons">
 				<Tooltip message="Remove Time"><button onclick={() => handleRemovetime(i)}>✖️</button></Tooltip>
 				<Tooltip message="Delete"><button onclick={() => handleDelete(i)}>🗑️</button></Tooltip>
