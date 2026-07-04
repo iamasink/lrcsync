@@ -1,16 +1,17 @@
 import { guess } from "web-audio-beat-detector"
 import { s } from "./state.svelte"
 
-export function getBeatAtTime(valueMs: number) {
+export function getBeatFromCurrentTime() {
 	const timeMs = s.audioTimeMs
+	return getBeatFromTime(timeMs)
+}
+
+export function getBeatFromTime(timeMs: number) {
 	const offsetMs = s.audioBPMOffsetMs ?? 0
 	const bpm = s.audioBPM ?? 60
 	const beatpersecond = bpm / 60
 
 	return ((timeMs - offsetMs) / 1000) * beatpersecond
-
-
-	// Math.floor(((timeSec - (s.audioBPMOffsetMs ?? 0)) * ((s.audioBPM ?? 60) / 60)))
 }
 
 export function getTimeAtBeat(beat: number) {
