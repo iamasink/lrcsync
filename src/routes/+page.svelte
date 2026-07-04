@@ -131,19 +131,20 @@ function updateCurrentLine() {
 		if (s.lyrics[newIndex]?.time == -1) return
 
 		if (
-			(s.currentCaretLine === s.currentAudioLine)
+(			(s.currentCaretLine === s.currentAudioLine)
 			// only if increasing because of reasons to do with history and syncing and its a mess
 			// im sorry <3
-			&& (newIndex >= s.currentCaretLine)
+			&& (newIndex >= s.currentCaretLine)) ||
+			s.syncCaretWithAudio
 		) {
-			s.currentCaretLine = newIndex
 			scrollLineIntoView(newIndex)
+			s.currentCaretLine = newIndex
 		}
 
-		if (s.syncCaretWithAudio) {
-			s.currentCaretLine = newIndex
-			scrollLineIntoView(newIndex)
-		}
+		// if (s.syncCaretWithAudio) {
+		// 	s.currentCaretLine = newIndex
+		// 	scrollLineIntoView(newIndex)
+		// }
 
 		s.currentAudioLine = newIndex
 	}
@@ -402,7 +403,7 @@ $effect(() => {
 	</div>
 </noscript>
 <!-- <ScreensizeWarning /> -->
-<DialogNewAudio bind:open={isDialogNewAudioOpen} />
+<!-- <DialogNewAudio bind:open={isDialogNewAudioOpen} /> -->
 <BPMMenu bind:open={showBPMMenu} />
 
 <div class="app">
