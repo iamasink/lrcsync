@@ -32,10 +32,6 @@ advanced lrc editor with waveform timeline (using [wavesurfer](https://wavesurfe
 - [ ] better readme :)
 
 - [ ] more warnings/fixes
-  - [ ] line should not end with punctuation (,.) warning?
-
-- [x] on drag audio in, and there is already lyrics, prompt to clear current lyrics and metadata
-  - [ ] improve this
 
 - [ ] toggle autocentre button 
 
