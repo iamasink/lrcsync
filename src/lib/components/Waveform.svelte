@@ -75,7 +75,7 @@ $effect(() => {
 // })
 
 $effect(() => {
-	if (!isReady || !wavesurfer) return
+	if (!isReady) return
 	isBpmEnabled
 	updateBpmMarkers()
 })
@@ -537,14 +537,8 @@ function updateVolume() {
 function updateregion(r: Region, side: "start" | "end" | undefined = undefined) {
 	// console.log("region updated", r.id)
 	const idx = parseInt(r.id.substring(6))
-	console.log(idx)
-
-	// update start,
 	const start = toCentiseconds(r.start * 1000)
 	if (start != s.lyrics[idx].time) {
-		console.log("sjkfhdkjsdf")
-		console.log("start", start)
-		console.log(toCentiseconds(s.lyrics[idx - 1].time ?? 0) + 10)
 
 		s.lyrics[idx].time = Math.max(start, toCentiseconds(s.lyrics[idx - 1].time ?? 0) + 100)
 		historyManager.pushDebounced(`updated line ${idx} via region`)
@@ -680,6 +674,7 @@ function handleScroll(e: WheelEvent) {
 :global {
   #waveform {
     flex: 0 0 140px;
+	contain: layout;
     /* background-color: #000000; */
   }
 
