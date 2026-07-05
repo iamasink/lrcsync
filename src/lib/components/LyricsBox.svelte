@@ -3,7 +3,7 @@
 <script lang="ts">
 import Waveform from "$lib/components/Waveform.svelte";
 import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
-import { convertAllWithKuroshiro, initKuroshiro } from "$lib/kuroshiro";
+import { convertAllWithKuroshiro, initKuroshiro } from "$lib/transliteration/kuroshiro";
 import { s } from "$lib/state.svelte"
 import { onMount } from "svelte";
 import type { UIEventHandler } from "svelte/elements";

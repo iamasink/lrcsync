@@ -21,7 +21,7 @@ let btn: HTMLButtonElement
 </script>
 
 <Tooltip message={title} position={tooltipPosition} allownewline>
-	<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
+	<button bind:this={btn} {disabled} {onclick} {...rest} class="button">
 		<span class="label">{@render children?.()}</span>
 	</button>
 </Tooltip>

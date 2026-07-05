@@ -13,17 +13,17 @@ const barWidth = $derived((percentage / 100) * 90 + 10)
 </div>
 <style>
 .progress {
-  background: var(--text);
-  border-radius: 0.5rem;
-  border: var(--text) 1px solid;
-  overflow: clip;
-  width: 100%;
+	background: var(--text);
+	border-radius: 0.5rem;
+	border: var(--text) 1px solid;
+	overflow: clip;
+	width: 100%;
 }
 .bar {
-  height: 100%;
-  display: flex;
-  transition: width 50ms ease;
-  background: #444;
-  border-radius: 0.5rem;
+	height: 100%;
+	display: flex;
+	transition: width 50ms ease;
+	background: #444;
+	border-radius: 0.5rem;
 }
 </style>

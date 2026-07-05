@@ -1,5 +1,5 @@
 import { guess } from "web-audio-beat-detector"
-import { s } from "./state.svelte"
+import { s } from "$lib/state.svelte"
 
 export function getBeatFromCurrentTime() {
 	const timeMs = s.audioTimeMs

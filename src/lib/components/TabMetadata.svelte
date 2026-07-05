@@ -1,10 +1,20 @@
 <script lang="ts">
-import { forgetMusicDir, getBaseName, getDescendantPath, getLrcDescendantPath, getLrcName, getMusicDir, getParentDir, saveFile, setMusicDir } from "$lib/fileSystem"
+import {
+	forgetMusicDir,
+	getBaseName,
+	getDescendantPath,
+	getLrcDescendantPath,
+	getLrcName,
+	getMusicDir,
+	getParentDir,
+	saveFile,
+	setMusicDir,
+} from "$lib/files/fileSystem"
 import { historyManager } from "$lib/history.svelte"
 import { cleanAndSort, exportWithMetadata } from "$lib/parseLRC"
 import { preferences, s } from "$lib/state.svelte"
 import { onMount } from "svelte"
-	import Button from "./Button.svelte";
+import Button from "./Button.svelte"
 
 let parentDir: string = $derived(getParentDir(s.filePaths.lyrics || s.filePaths.audio || ""))
 let audioName: string = $derived(getBaseName(s.filePaths.audio ?? ""))
@@ -52,7 +62,6 @@ async function handleSaveAndClearButton() {
 		s.filePaths.audio = undefined
 	}
 }
-
 </script>
 
 <div class="metadata-view">
@@ -94,19 +103,19 @@ async function handleSaveAndClearButton() {
 		cleanup
 	</button>
 	<details>
-	<summary>metadata</summary>
-	<div>
-		<label>Title (ti)<input bind:value={s.metadata.ti}></label><br />
-		<label>Artist (ar)<input bind:value={s.metadata.ar}></label><br />
-		<label>Album (al)<input bind:value={s.metadata.al}></label><br />
-		<label>Author (au)<input bind:value={s.metadata.au}></label><br />
-		<label>Lyricist (lr)<input bind:value={s.metadata.lr}></label><br />
-		<label>Length of the song (length)<input bind:value={s.metadata.length}></label><br />
-		<label>LRC file author (by)<input bind:value={s.metadata.by}></label><br />
-		<label>Timing offset (offset)<input bind:value={s.metadata.offset}></label><br />
-		<label>Program/tool (re)<input bind:value={s.metadata.re}></label><br />
-		<label>Program version (ve)<input bind:value={s.metadata.ve}></label><br />
-	</div>
+		<summary>metadata</summary>
+		<div>
+			<label>Title (ti)<input bind:value={s.metadata.ti}></label><br />
+			<label>Artist (ar)<input bind:value={s.metadata.ar}></label><br />
+			<label>Album (al)<input bind:value={s.metadata.al}></label><br />
+			<label>Author (au)<input bind:value={s.metadata.au}></label><br />
+			<label>Lyricist (lr)<input bind:value={s.metadata.lr}></label><br />
+			<label>Length of the song (length)<input bind:value={s.metadata.length}></label><br />
+			<label>LRC file author (by)<input bind:value={s.metadata.by}></label><br />
+			<label>Timing offset (offset)<input bind:value={s.metadata.offset}></label><br />
+			<label>Program/tool (re)<input bind:value={s.metadata.re}></label><br />
+			<label>Program version (ve)<input bind:value={s.metadata.ve}></label><br />
+		</div>
 	</details>
 	<br />
 	<button onclick={handleSaveButton}>save</button>

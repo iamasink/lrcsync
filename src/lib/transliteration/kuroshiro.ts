@@ -1,5 +1,5 @@
 import { Kuroshiro } from "kuroshiro-browser"
-import { s } from "./state.svelte"
+import { s } from "$lib/state.svelte"
 import { replaceReading } from "./furigana"
 
 

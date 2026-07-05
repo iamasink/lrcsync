@@ -28,3 +28,5 @@ vite.config.ts.timestamp-*
 defaultaudio.flac
 
 *-old
+
+packages/wavesurfer.js

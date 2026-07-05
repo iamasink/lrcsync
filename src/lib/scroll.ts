@@ -1,4 +1,4 @@
-import { s } from "./state.svelte"
+import { s } from "$lib/state.svelte"
 
 const scrollAnimations = new Map<HTMLElement, number>()
 

@@ -104,7 +104,7 @@ function getShortcutText(shortcut: shortcut) {
 </script>
 
 <Tooltip message={title} position={tooltipPosition}>
-	<button bind:this={btn} disabled={disabled} {onclick} {...rest} class="button">
+	<button bind:this={btn} {disabled} {onclick} {...rest} class="button">
 		<span class="label">{@render children?.()}</span>
 		<span class="shortcut">{getShortcutText(shortcut)}</span>
 	</button>

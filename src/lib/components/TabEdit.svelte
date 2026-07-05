@@ -20,7 +20,7 @@ import { scrollLineIntoView } from "$lib/scroll"
 import { preferences, s } from "$lib/state.svelte"
 import { onMount } from "svelte"
 import KeybindButton from "./KeybindButton.svelte"
-import Button from "./Button.svelte";
+import Button from "./Button.svelte"
 
 let textAreaElement: HTMLTextAreaElement
 let textUpdateTimeout: number | null = null
@@ -56,7 +56,7 @@ function handleInput() {
 	if (currentLine < 0) currentLine = 0
 	// if we're selecting the LAST line, we ignore it intentionally becauseee
 	// the user is maybe pasting so putting it at the end is annoying
-	if (currentLine >= s.lyrics.length-1) currentLine = 1
+	if (currentLine >= s.lyrics.length - 1) currentLine = 1
 	s.currentCaretLine = currentLine
 
 	if (textUpdateTimeout) {
@@ -84,7 +84,6 @@ function setLyrics() {
 	const { meta, lyrics } = parseLRC(lyricsText)
 
 	let metaChanged = false
-
 
 	// if meta has info
 	if (Object.keys(meta).length > 0) {
@@ -173,9 +172,7 @@ function handleSyncButtonClick() {
 	const oldline = s.currentCaretLine
 	gotoNextLine()
 
-
 	setLineTime(newtime, oldline)
-
 
 	scrollLineIntoView(oldline)
 	s.waveformRef.updateRegions()
@@ -201,7 +198,7 @@ function handleBackButtonClick() {
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
 
-	s.waveformRef.updateSelectedRegions([oldLine,newline])
+	s.waveformRef.updateSelectedRegions([oldLine, newline])
 }
 
 function handleSkipButtonClick() {
@@ -216,7 +213,7 @@ function handleSkipButtonClick() {
 	if (newline >= s.lyrics.length) newline = s.lyrics.length - 1
 	s.currentCaretLine = newline
 	scrollLineIntoView(s.currentCaretLine)
-	s.waveformRef.updateSelectedRegions([oldLine,newline])
+	s.waveformRef.updateSelectedRegions([oldLine, newline])
 }
 
 function handleBlankButtonClick() {
@@ -245,7 +242,6 @@ async function handlePasteClean() {
 	s.lyrics = cleanLines
 	s.metadata = parsed.meta
 	setLyrics()
-
 
 	historyManager.push(`pasted new lyrics from clipboard ${text.split("\n").length} lines`)
 }
@@ -342,8 +338,7 @@ function getSyncDelay() {
     overflow-y: hidden;
     flex: 1;
 
-	overscroll-behavior: contain;
-
+    overscroll-behavior: contain;
 
     textarea {
       flex: 1;

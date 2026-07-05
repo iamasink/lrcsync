@@ -1,4 +1,4 @@
-import { s } from "./state.svelte"
+import { s } from "$lib/state.svelte"
 
 /**
  * Represents a single line of lyrics.

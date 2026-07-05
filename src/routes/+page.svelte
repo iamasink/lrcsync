@@ -2,29 +2,14 @@
 import CollapsibleText from "$lib/components/CollapsibleText.svelte"
 import EditView from "$lib/components/TabEdit.svelte"
 import Waveform from "$lib/components/Waveform.svelte"
-import { type FileWithHandle, initDragDrop } from "$lib/dragDrop"
-import { loadAudio, loadLRC } from "$lib/loadFiles"
-import {
-	allHaveTimestamps,
-	cleanup,
-	exportLRC,
-	formatLine,
-	formatTime,
-	getOffsetToNext,
-	getOffsetToNextLyric,
-	getOffsetToNextTimed,
-	parseLRC,
-	sortLines,
-} from "$lib/parseLRC"
+import { type FileWithHandle, initDragDrop } from "$lib/files/dragDrop"
+
 import { onMount, setContext } from "svelte"
 
 import Button from "$lib/components/Button.svelte"
-import DialogNewAudio from "$lib/components/DialogNewAudio.svelte"
 import Footer from "$lib/components/Footer.svelte"
 import History from "$lib/components/History.svelte"
 import TabMetadata from "$lib/components/TabMetadata.svelte"
-import { addRuby } from "$lib/furigana"
-import { historyManager } from "$lib/history.svelte"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
 import CurrentLyrics from "./_components/CurrentLyrics.svelte"
@@ -34,7 +19,10 @@ import ButtonControls from "./_components/ButtonControls.svelte"
 import { getBeatFromCurrentTime } from "$lib/bpm"
 import Tooltip from "$lib/components/Tooltip.svelte"
 import BPMMenu from "./_components/BPMMenu.svelte"
-import { findCompanionFile, getBaseName } from "$lib/fileSystem"
+import { BAD_EXTENSIONS, LYRIC_EXTENSIONS } from "$lib/files/extensions";
+import { getBaseName } from "$lib/files/fileSystem";
+import { loadFiles } from "$lib/files/loadFiles";
+import { formatTime } from "$lib/parseLRC";
 
 let updateRafId: number
 let fpsRafId: number
@@ -53,39 +41,7 @@ let showFileoverlay = $state(false)
 let showTopControls = $state(true)
 let showBPMMenu = $state(false)
 
-const BAD_EXTENSIONS = new Set([
-	// images
-	".jpg",
-	".jpeg",
-	".png",
-	".gif",
-	".bmp",
-	".webp",
-	".svg",
-	".ico",
-	".tiff",
-	".psd",
-	".heic",
-	// info stuff
-	".cue",
-	".m3u",
-	".m3u8",
-	".nfo",
-	".sfv",
-	// archive
-	".zip",
-	".rar",
-	".7z",
-	".tar",
-	".gz",
-	// hidden
-	".DS_Store",
-	".thumbs.db",
-])
 
-const LYRIC_EXTENSIONS = new Set([".lrc", ".txt"])
-
-const AUDIO_EXTENSIONS = new Set([".mp3", ".flac", ".opus"])
 
 /**
  * Gets the current lyric line based on the time.
@@ -201,83 +157,18 @@ function countfps(now: number) {
 }
 
 async function doLoad() {
-	// if (lrcFile) {
-	// 	s.filePaths.lyrics = lrcFile.name
-	// 	if (lrcFile.handle) {
-	// 		s.fileHandles.lyrics = lrcFile.handle
-	// 	} else {
-	// 		s.fileHandles.lyrics = undefined
-	// 	}
-	// }
-	// if (audioFile) {
-	// 	s.filePaths.audio = audioFile.name
-	// 	if (audioFile.handle) {
-	// 		s.fileHandles.audio = audioFile.handle
-	// 	} else {
-	// 		s.fileHandles.audio = undefined
-	// 	}
+	const result = await loadFiles(lrcFile, audioFile)
+
+	if (result.audioSrc) {
+		audioSrc = result.audioSrc
+		s.waveformRef?.loadFile(audioFile!)
+	}
+
+	// if (result.loadedAudio && !result.loadedLyrics && s.lyrics.length > 1) {
+	// 	isDialogNewAudioOpen = true
 	// }
 
-	// discover companion files before loading
-	if (audioFile?.handle && !lrcFile) {
-		const companion = await findCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
-		if (companion) {
-			const file: FileWithHandle = await companion.getFile()
-			file.handle = companion
-			lrcFile = file
-			alert(`found a companion lrc file (${lrcFile.name}), so that was also loaded!`)
-		}
-	} else if (lrcFile?.handle && !audioFile) {
-		const companion = await findCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
-		if (companion) {
-			const file: FileWithHandle = await companion.getFile()
-			file.handle = companion
-			audioFile = file
-			alert(`found a companion audio file (${audioFile.name}), so that was also loaded!`)
-		}
-	}
-
-	// update file metadata after companion discovery
-	s.filePaths.lyrics = lrcFile?.name
-	s.fileHandles.lyrics = lrcFile?.handle
-
-	s.filePaths.audio = audioFile?.name
-	s.fileHandles.audio = audioFile?.handle
-
-	const loadedLyrics = !!lrcFile
-	const loadedAudio = !!audioFile
-
-	if (lrcFile) {
-		console.log("loading lrc")
-		const { lyrics: l, meta } = await loadLRC(lrcFile)
-		s.lyrics = l
-		s.metadata = meta
-
-		// reset history
-		historyManager.clear()
-		historyManager.push(`Loaded LRC file: ${$state.snapshot(s.filePaths.audio)}`)
-	}
-	if (audioFile) {
-		console.log("loading audio")
-		const { audioSrc: src } = await loadAudio(audioFile)
-		audioSrc = src
-		if (!s.waveformRef) return
-		s.waveformRef.loadFile(audioFile)
-
-		console.log("loaded audio")
-		historyManager.push(`Loaded audio track`)
-	}
-	// if only a new audio is loaded, give the warning
-	if (audioFile && !lrcFile) {
-		if (s.lyrics.length > 1) {
-			isDialogNewAudioOpen = true
-		}
-	}
-
-	// if we just loaded a file, there shouldn't be any changes to worry about?
-	// s.unsavedChanges = true
-	s.unsavedChanges = false // set false because history set it to true already
-
+	s.unsavedChanges = false
 	showTopControls = false
 	lrcFile = null
 	audioFile = null
@@ -306,20 +197,8 @@ onMount(() => {
 
 			if (LYRIC_EXTENSIONS.has(ext)) {
 				lrcFile = file
-				// s.filePaths.lyrics = file.name
-				// if (file.handle) {
-				// 	s.fileHandles.lyrics = file.handle
-				// } else {
-				// 	s.fileHandles.lyrics = undefined
-				// }
 			} else {
 				audioFile = file
-				// s.filePaths.audio = file.name
-				// if (file.handle) {
-				// 	s.fileHandles.audio = file.handle
-				// } else {
-				// 	s.fileHandles.audio = undefined
-				// }
 			}
 		})
 	}

@@ -1,7 +1,7 @@
 import type { LyricLine, Metadata } from "$lib/parseLRC"
 import { type Persisted, persisted } from "svelte-persisted-store"
 import type Waveform from "./components/Waveform.svelte"
-import type { HistoryState } from "./history.svelte"
+import type { HistoryState } from "$lib/history.svelte"
 
 interface State {
 	lyrics: LyricLine[]

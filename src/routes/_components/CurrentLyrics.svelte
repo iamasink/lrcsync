@@ -1,6 +1,6 @@
 <script lang="ts">
 import ProgressBar from "$lib/components/ProgressBar.svelte"
-import { addRuby } from "$lib/furigana"
+import { addRuby } from "$lib/transliteration/furigana"
 import { getOffsetToNext, getOffsetToNextTimed } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
 

@@ -34,7 +34,7 @@
 		"@tauri-apps/api": "^2.8.0",
 		"@tauri-apps/plugin-dialog": "^2.4.0",
 		"@tauri-apps/plugin-fs": "^2.4.2",
-		"dprint": "^0.50.2",
+		"dprint": "^0.55.1",
 		"floating-ui": "^5.2.8",
 		"kuroshiro-browser": "file:./packages/kuroshiro-browser",
 		"svelte-persisted-store": "^0.12.0",

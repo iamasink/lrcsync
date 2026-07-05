@@ -1,8 +1,8 @@
 import { save } from "@tauri-apps/plugin-dialog"
 import { writeTextFile } from "@tauri-apps/plugin-fs"
-import { deleteHandle, getHandle, putHandle } from "./indexeddb"
-import { s } from "./state.svelte"
-import { exportWithMetadata } from "./parseLRC"
+import { deleteHandle, getHandle, putHandle } from "$lib/indexeddb"
+import { s } from "$lib/state.svelte"
+import { exportWithMetadata } from "$lib/parseLRC"
 
 export async function setMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 	if (s.isTauri) {

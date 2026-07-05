@@ -87,22 +87,22 @@ function timeToString(time: number) {
       display: flex;
       column-gap: 0.5rem;
       min-height: 22.4px; /* 14px * 1.6 line-height = 22.4px */
-	  overflow-wrap: anywhere;
-	  line-height: 15px;
-	  overflow-x: scroll;
+      overflow-wrap: anywhere;
+      line-height: 15px;
+      overflow-x: scroll;
       /* padding: 0 4px; */
       align-items: center;
       user-select: none;
-	  border-bottom: 1px solid var(--border-muted-muted);
-	  overflow-y: hidden;
+      border-bottom: 1px solid var(--border-muted-muted);
+      overflow-y: hidden;
 
       &:hover {
         background-color: rgba(255, 255, 255, 0.1);
       }
 
-	  &.pending {
-		opacity: 80%;
-	  }
+      &.pending {
+        opacity: 80%;
+      }
     }
   }
 

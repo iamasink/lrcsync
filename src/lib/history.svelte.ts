@@ -1,6 +1,6 @@
 import { persisted } from "svelte-persisted-store"
 import type { LyricLine, Metadata } from "$lib/parseLRC"
-import { s } from "./state.svelte"
+import { s } from "$lib/state.svelte"
 
 export const persistedLyrics = persisted<LyricLine[]>("lyrics", [])
 
