@@ -282,7 +282,7 @@ function togglePlayPause() {
 			shortcut={{ key: "1" }}
 			ignoremods={true}
 		>
-			-{beatstepbuttonvalue}
+			-{beatstepbuttonvalue == 1 ? "1" : `1/${beatstepbuttonvalue}`} beat
 		</KeybindButton>
 
 		<KeybindButton
@@ -292,7 +292,7 @@ function togglePlayPause() {
 			shortcut={{ key: "2" }}
 			ignoremods={true}
 		>
-			+{beatstepbuttonvalue}
+			+{beatstepbuttonvalue == 1 ? "1" : `1/${beatstepbuttonvalue}`} beat
 		</KeybindButton>
 
 		<!--  -->
