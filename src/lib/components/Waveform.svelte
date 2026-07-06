@@ -474,13 +474,22 @@ export function pause() {
 /** Jump to a specific time in the audio
  * @param time in seconds
  */
-export function seekToTime(time: number) {
+export function seekToTime(time: number, autoScroll = true) {
 	if (!wavesurfer) return
 
 	time = Math.max(0, time)
 	time = Math.min(wavesurfer?.getDuration(), time)
 
+	let prevScrollOption = wavesurfer.options.autoScroll
+	let prevCenterOption = wavesurfer.options.autoCenter
+	if (autoScroll) {
+		wavesurfer.options.autoScroll = true
+		wavesurfer.options.autoCenter = true
+	}
+
 	wavesurfer.setTime(time)
+	wavesurfer.options.autoScroll = prevScrollOption
+	wavesurfer.options.autoCenter = prevCenterOption
 }
 
 /** reset wavesurfer to 0 */
