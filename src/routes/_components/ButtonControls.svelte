@@ -135,6 +135,7 @@ function adjustLineSpecific(lineIndex: number, timeMs: number) {
 		console.warn("invalid line index")
 		return
 	}
+	if (timeMs <= 10) timeMs = 10
 
 	s.lyrics[lineIndex].time = timeMs
 	if (s.waveformRef) {
@@ -155,7 +156,7 @@ function adjustSelectedLine(offsetSec: number) {
 
 	if (!targetLine || targetLine.time === -1) return
 
-	let prevTime = 0
+	let prevTime = 10 // start buffer
 	for (let i = targetLineIndex - 1; i >= 0; i--) {
 		if (s.lyrics[i].time !== -1) {
 			prevTime = s.lyrics[i].time
