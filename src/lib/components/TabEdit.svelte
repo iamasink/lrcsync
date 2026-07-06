@@ -4,14 +4,10 @@ import { historyManager } from "$lib/history.svelte"
 import {
 	cleanAndSort,
 	exportLRC,
-	formatLine,
-	formatTime,
 	formatTimestamp,
 	getOffsetToLastLyric,
 	getOffsetToNextLyric,
 	parseLRC,
-	roundTimestamp,
-	sortLines,
 	stripBadCharacters,
 	toCentiseconds,
 } from "$lib/parseLRC"
@@ -21,6 +17,7 @@ import { preferences, s } from "$lib/state.svelte"
 import { onMount } from "svelte"
 import KeybindButton from "./KeybindButton.svelte"
 import Button from "./Button.svelte"
+import { detectAndUpdateLanguage, translitLangs } from "$lib/transliteration/transliteration";
 
 let textAreaElement: HTMLTextAreaElement
 let textUpdateTimeout: number | null = null
@@ -33,6 +30,9 @@ let scrollSource: "textarea" | "lyrics" | null = null
 
 let lineElements = $state(new Array())
 
+let justPasted = false
+
+
 // let preferences.syncDelayMs = $state(0)
 
 function handleBlur() {
@@ -40,7 +40,16 @@ function handleBlur() {
 	if (!textAreaElement) return
 	if (textUpdateTimeout) window.clearTimeout(textUpdateTimeout)
 
+
+
 	setLyrics()
+
+	
+	if (justPasted) {
+		console.log("blur pasted")
+		justPasted = false
+		detectAndUpdateLanguage()
+	}
 
 	// because we update the actual lyrics without pushing to history, its possible
 	// that this change is considered part of another..
@@ -56,8 +65,10 @@ function handleInput() {
 	if (currentLine < 0) currentLine = 0
 	// if we're selecting the LAST line, we ignore it intentionally becauseee
 	// the user is maybe pasting so putting it at the end is annoying
-	if (currentLine >= s.lyrics.length - 1) currentLine = 1
-	s.currentCaretLine = currentLine
+	// if (currentLine >= s.lyrics.length - 1) currentLine = 1
+	if (!justPasted) {
+		s.currentCaretLine = currentLine
+	}
 
 	if (textUpdateTimeout) {
 		window.clearTimeout(textUpdateTimeout)
@@ -141,6 +152,14 @@ function handleLyricsBoxScroll(e: Event) {
 
 function handleWheel(e: WheelEvent) {
 	e.stopPropagation()
+}
+
+function handlePaste(e: any) {
+	console.log("paste!")
+	if (s.lyrics.length < 1) {
+		justPasted = true
+		console.log("pasted new lyrics :D")
+	}
 }
 
 // sync
@@ -270,11 +289,12 @@ function getSyncDelay() {
 		<div class="controls">
 			<label>convert from:
 				<select bind:value={s.convertedLyricsLang}>
-					{#each ["ja", "none"] as lang}
+					{#each [...translitLangs] as lang}
 						<option value={lang}>{lang.toUpperCase()}</option>
 					{/each}
 				</select>
 			</label>
+			<Button onclick={()=>{detectAndUpdateLanguage()}}>detect</Button>
 			<label>sync offset:
 				<input type="number" bind:value={$preferences.syncDelayMs} min="-500" max="500">
 			</label>
@@ -291,6 +311,7 @@ function getSyncDelay() {
 			oninput={handleInput}
 			onscroll={handleTextAreaScroll}
 			onwheelcapture={handleWheel}
+			onpaste={handlePaste}
 		></textarea>
 		<!--
 			<div class="lyricsbox" bind:this={lyricsBoxElement} onscroll={handleLyricsBoxScroll}>

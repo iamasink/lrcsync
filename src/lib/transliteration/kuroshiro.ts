@@ -27,7 +27,7 @@ export function initKuroshiro(): Promise<void> {
 
 export async function getKuroshiro() {
 	if (!KUROSHIRO_ENABLED) return null
-	initKuroshiro()
+	await initKuroshiro()
 	return kuroshiro
 }
 
@@ -103,9 +103,8 @@ function stripIgnorable(input: string): string {
 
 export async function convertAllWithKuroshiro(lines: string[]): Promise<string[]> {
 	if (!KUROSHIRO_ENABLED) return lines
-	if (s.convertedLyricsLang != "ja") return lines
 	if (!lines) return lines
 	// console.log("converting..")
 	await initKuroshiro()
-	return Promise.all(lines.map(line => convertWithKuroshiro(line)))
+	return Promise.all(lines.map(async line => convertWithKuroshiro(line)))
 }

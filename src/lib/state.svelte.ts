@@ -2,11 +2,12 @@ import type { LyricLine, Metadata } from "$lib/parseLRC"
 import { type Persisted, persisted } from "svelte-persisted-store"
 import type Waveform from "./components/Waveform.svelte"
 import type { HistoryState } from "$lib/history.svelte"
+import type { TranslitLang } from "./transliteration/transliteration"
 
 interface State {
 	lyrics: LyricLine[]
 	convertedLyrics: string[]
-	convertedLyricsLang: "ja" | "en" | "none" | null
+	convertedLyricsLang: TranslitLang
 	currentAudioLine: number
 	currentCaretLine: number
 	audioTimeMs: number

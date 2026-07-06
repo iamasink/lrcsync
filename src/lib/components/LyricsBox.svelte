@@ -9,6 +9,7 @@ import { onMount } from "svelte";
 import type { UIEventHandler } from "svelte/elements";
 import Tooltip from "./Tooltip.svelte";
 import { historyManager } from "$lib/history.svelte";
+import { convertAllWithSelected } from "$lib/transliteration/transliteration";
 
 let selectedLines = $state<Record<number, boolean>>({})
 let lastSelected: number | null = $state(null)
@@ -33,15 +34,15 @@ $effect(() => {
 	initKuroshiro()
 })
 
-  $effect(() => {
-    if (!s.lyrics.length) return;
+$effect(() => {
+	if (!s.lyrics.length) return;
 
-    for (const line of s.lyrics) line.text;
+	for (const line of s.lyrics) line.text;
 
-    (async () => {
-      s.convertedLyrics = await convertAllWithKuroshiro(s.lyrics.map(l => l.text));
-    })();
-  });
+	(async () => {
+		s.convertedLyrics = await convertAllWithSelected(s.lyrics.map(l => l.text));
+	})();
+});
 
 
 

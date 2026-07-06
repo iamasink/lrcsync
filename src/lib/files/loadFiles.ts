@@ -4,6 +4,7 @@ import { findCompanionFile } from "$lib/files/fileSystem"
 import { historyManager } from "$lib/history.svelte"
 import { s } from "$lib/state.svelte"
 import { AUDIO_EXTENSIONS, LYRIC_EXTENSIONS } from "./extensions"
+import { detectAndUpdateLanguage } from "$lib/transliteration/transliteration"
 
 
 export async function loadAudio(
@@ -76,6 +77,7 @@ export async function loadFiles(lrcFile: FileWithHandle | null, audioFile: FileW
 
 		// reset history
 		historyManager.clear()
+		detectAndUpdateLanguage()
 		// tostring to avoid state?
 		historyManager.push(`Loaded LRC file: ${s.filePaths.lyrics || s.filePaths.audio || "unknown"}`)
 	}
