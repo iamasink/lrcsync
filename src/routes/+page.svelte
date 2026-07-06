@@ -269,7 +269,8 @@ $effect(() => {
 </script>
 
 <svelte:head>
-	<title>{(s.unsavedChanges ? "*" : "") + getBaseName(s.filePaths.audio || s.filePaths.lyrics || "") + " | LRCSync" || "LRCSync"}</title>
+	<!-- <title>{(s.unsavedChanges ? "*" : "") + getBaseName(s.filePaths.audio || s.filePaths.lyrics || "") + " | LRCSync" || "LRCSync"}</title> -->
+	 <title>{(s.unsavedChanges ? "*" : "") + getBaseName(s.filePaths.audio || s.filePaths.lyrics || "") ? `${getBaseName(s.filePaths.audio || s.filePaths.lyrics || "")} | LRCSync` : "LRCSync" }</title>
 </svelte:head>
 
 <noscript>
