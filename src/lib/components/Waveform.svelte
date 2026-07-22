@@ -693,6 +693,7 @@ function handleScroll(e: WheelEvent) {
   #waveform ::part(region-content) {
     text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.836);
     overflow-wrap: anywhere;
+	white-space-collapse: preserve;
   }
   #waveform ::part(region) {
     transform: translateZ(0);

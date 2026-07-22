@@ -152,6 +152,7 @@ function getLyricPercentageRemaining() {
 	  overflow: clip;
       text-overflow: ellipsis;
       max-width: 100%;
+	  white-space-collapse: preserve;
     }
   }
 }

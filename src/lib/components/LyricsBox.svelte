@@ -290,7 +290,7 @@ function handleDelete(i:number) {
 			height: 22.4px; /* 14px * 1.6 line-height = 22.4px */
 			padding: 0 4px;
 			align-items: center;
-				user-select: none;
+			user-select: none;
 
 
 			&:hover {
@@ -318,6 +318,7 @@ function handleDelete(i:number) {
 				line-height: 1;
 				text-overflow: ellipsis;
 				white-space: nowrap;
+				white-space-collapse: preserve;
 				min-width: 0;
 
 				&.info {
