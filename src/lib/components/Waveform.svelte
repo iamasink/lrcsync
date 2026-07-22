@@ -5,12 +5,12 @@ import { cleanAndSort, type LyricLine, roundTimestamp, sortLines, toCentiseconds
 import { ampToDB, perceptualToAmplitude } from "$lib/perceptual"
 import { preferences, s } from "$lib/state.svelte"
 import WaveSurfer from "wavesurfer.js"
-import Minimap from "wavesurfer.js/dist/plugins/minimap.esm.js"
-import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js"
-import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions.esm.js"
-import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/plugins/spectrogram.esm.js"
-import Timeline from "wavesurfer.js/dist/plugins/timeline.esm.js"
-import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline.esm.js"
+import Minimap from "wavesurfer.js/dist/plugins/minimap"
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions"
+import Regions, { type Region } from "wavesurfer.js/dist/plugins/regions"
+import Spectrogram, { type SpectrogramPluginOptions } from "wavesurfer.js/dist/plugins/spectrogram"
+import Timeline from "wavesurfer.js/dist/plugins/timeline"
+import type TimelinePlugin from "wavesurfer.js/dist/plugins/timeline"
 
 let abortController: AbortController | null = null
 
