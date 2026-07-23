@@ -233,7 +233,8 @@ function handleDelete(i:number) {
 				{formatTimestamp(line.time)}
 			</div>
 			<div class="text" class:info={lineinfo.isInfo} >
-				{lineinfo.text}
+				<!-- {lineinfo.text} -->
+				 {@html lineinfo.text}
 			</div>
 			{#if !lineinfo.isTimed}
 			<div class="buttons">

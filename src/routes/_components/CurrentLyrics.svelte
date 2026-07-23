@@ -88,6 +88,15 @@ function getLyricPercentageRemaining() {
 
 	return value
 }
+
+function showConvertedText() {
+	if (s.convertedLyricsLang === "ja-furigana") return false
+	return currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()
+}
+function getMainText() {
+	if (s.convertedLyricsLang === "ja-furigana") return currentTextConverted
+	return addRuby(currentText)
+}
 </script>
 
 <div class="currentlyric">
@@ -99,9 +108,8 @@ function getLyricPercentageRemaining() {
 	</div>
 	<div class="lyrictext">
 		{#if !breaktime}
-			{@const hasConvertedText = currentText.trim().toLowerCase() != currentTextConverted.trim().toLowerCase()}
-			<span class:flash class:nonconverted={hasConvertedText}>{@html addRuby(currentText)}</span>
-			{#if hasConvertedText}
+			<span class:flash class:nonconverted={showConvertedText()}>{@html getMainText()}</span>
+			{#if showConvertedText()}
 				<span class="converted" class:flash>{currentTextConverted}</span>
 			{/if}
 		{:else}

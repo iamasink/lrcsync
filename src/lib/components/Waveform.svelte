@@ -380,11 +380,15 @@ export function updateRegions() {
 			color = regionColours.default
 		}
 
+		const contentsElement = document.createElement("div")
+		contentsElement.innerHTML = convertedLyrics[i]
+
 		const options = {
 			id: regionId,
 			start: regionStart,
 			end: regionEnd,
-			content: convertedLyrics[i],
+			// content: convertedLyrics[i],
+			content: contentsElement,
 			color,
 			drag: false,
 			resize: true,
@@ -694,6 +698,7 @@ function handleScroll(e: WheelEvent) {
     text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.836);
     overflow-wrap: anywhere;
 	white-space-collapse: preserve;
+	padding: 0.2em 0.4em; display: inline-block;
   }
   #waveform ::part(region) {
     transform: translateZ(0);

@@ -52,6 +52,12 @@ export async function convertWithKuroshiro(text: string): Promise<string> {
 	return final
 }
 
+export async function kuroshiroConvert(text: string, options: any) {
+	if (!KUROSHIRO_ENABLED) return text
+	await initKuroshiro()
+	return await kuroshiro.convert(text, options)
+}
+
 
 function doprereplacements(input: string): string {
 	let output = input

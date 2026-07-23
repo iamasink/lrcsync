@@ -1,7 +1,7 @@
 import type { LyricLine } from "$lib/parseLRC"
 import { s } from "$lib/state.svelte"
 import { convertAllWithAromanize } from "./aromanize"
-import { convertAllWithKuroshiro } from "./kuroshiro"
+import { convertAllWithKuroshiro, kuroshiroConvert } from "./kuroshiro"
 import { convertAllWithPinyinPro } from "./pinyin"
 
 export const translitLangs = ["ja", "zh", "ko", "none"] as const
@@ -13,6 +13,11 @@ export async function convertWithLang(lang: TranslitLang, lyrics: string[]): Pro
 		case "ja": {
 			console.log("converting all with convertAllWithKuroshiro")
 			return await convertAllWithKuroshiro(lyrics)
+		}
+		case "ja-furigana": {
+			console.log("converting all with convertAllWithKuroshiro + replaceReading")
+			return Promise.all(lyrics.map(async line => kuroshiroConvert(line, { mode: "furigana", to: "hiragana", convertPunctuation: false })))
+
 		}
 		case "zh": {
 			console.log("converting all with convertAllWithPinyinPro")
