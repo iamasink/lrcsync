@@ -3,9 +3,7 @@
 <script lang="ts">
 import Waveform from "$lib/components/Waveform.svelte";
 import { formatLine, formatTime, formatTimestamp, type LyricLine } from "$lib/parseLRC";
-import { convertAllWithKuroshiro, initKuroshiro } from "$lib/transliteration/kuroshiro";
 import { s } from "$lib/state.svelte"
-import { onMount } from "svelte";
 import type { UIEventHandler } from "svelte/elements";
 import Tooltip from "./Tooltip.svelte";
 import { historyManager } from "$lib/history.svelte";
@@ -15,24 +13,6 @@ let selectedLines = $state<Record<number, boolean>>({})
 let lastSelected: number | null = $state(null)
 
 
-
-// onMount(async () => {
-// 	// @ts-ignore
-// 	kuroshiro = new Kuroshiro.default();
-// 	console.log(kuroshiro)
-	
-// 	// @ts-ignore
-// 	console.log("new!", await new KuromojiAnalyzer())
-// 	// @ts-ignore
-// 	analyser = await kuroshiro.init(new KuromojiAnalyzer({ dictPath }))
-
-// 	console.log(await convert("私の名前は何ですか？"))
-// })
-
-$effect(() => {
-	// init on load
-	initKuroshiro()
-})
 
 $effect(() => {
 	if (!s.lyrics.length) return;

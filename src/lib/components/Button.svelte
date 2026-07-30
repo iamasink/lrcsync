@@ -7,6 +7,7 @@ type shortcut = { key: string; ctrl?: boolean; meta?: boolean; shift?: boolean; 
 
 interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	disabled?: boolean
+	/** tooltip message*/
 	title?: string
 	allownewline?: boolean
 	onclick: MouseEventHandler<HTMLButtonElement>

@@ -381,7 +381,7 @@ export function updateRegions() {
 		}
 
 		const contentsElement = document.createElement("div")
-		contentsElement.innerHTML = convertedLyrics[i]
+		contentsElement.innerHTML = convertedLyrics[i] ?? ""
 
 		const options = {
 			id: regionId,

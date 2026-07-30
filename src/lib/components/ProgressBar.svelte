@@ -22,7 +22,6 @@ const barWidth = $derived((percentage / 100) * 90 + 10)
 .bar {
 	height: 100%;
 	display: flex;
-	transition: width 50ms ease;
 	background: #444;
 	border-radius: 0.5rem;
 }
