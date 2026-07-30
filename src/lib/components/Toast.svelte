@@ -4,11 +4,6 @@ import { fly } from "svelte/transition"
 import { flip } from "svelte/animate"
 import { bounceIn, bounceInOut, bounceOut } from "svelte/easing"
 import { s } from "$lib/state.svelte"
-
-$effect(() => {
-	$inspect(s.filePaths)
-	$inspect(s.fileHandles)
-})
 </script>
 
 <div class="toast-container">
@@ -21,12 +16,7 @@ $effect(() => {
 			onclick={() => dismissToast(toast.id)}
 			class="toast-message"
 		>
-			<!-- {toast.message} -->
-			{#if typeof toast.message === "string"}
-				{toast.message}
-			{:else}
-				{@render toast.message()}
-			{/if}
+			{toast.message}
 		</button>
 	{/each}
 </div>
@@ -49,7 +39,6 @@ $effect(() => {
   max-width: 300px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border, #444);
-  /* dont expand to fill container */
   align-self: flex-end;
 }
 </style>
