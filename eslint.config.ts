@@ -20,6 +20,7 @@ export default defineConfig([
 			parserOptions: {
 				projectService: true,
 			},
+		},
 
 		rules: {
 			"no-var": "error",
@@ -40,8 +41,7 @@ export default defineConfig([
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 
 			"@typescript-eslint/no-non-null-assertion": "warn",
-			"@typescript-eslint/restrict-template-expressions": ["warn", { allowNumber: true }],
-			"@typescript-eslint/consistent-type-exports": "warn",
+			"@typescript-eslint/restrict-template-expressions": ["warn", { allowNumber: true }]
 		},
 	},
 ]);
