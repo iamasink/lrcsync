@@ -237,7 +237,9 @@ function handleSkipButtonClick() {
 
 function handleBlankButtonClick() {
 	const line = s.currentCaretLine
-	const time = s.audioTimeMs - getSyncDelay()
+	// const time = s.audioTimeMs - getSyncDelay()
+	// dont offset by sync,, i'd rather it be late than early
+	const time = s.audioTimeMs
 
 	s.lyrics.splice(line, 0, { text: "", time })
 	gotoNextLine()
