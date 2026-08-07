@@ -165,6 +165,43 @@ export async function saveFile(): Promise<string | void> {
 	s.unsavedChanges = false
 }
 
+export async function downloadFile() {
+	// simple just download
+	const text = exportWithMetadata(s.lyrics)
+	const blob = new Blob([text], { type: "text/plain" })
+	const url = URL.createObjectURL(blob)
+	try {
+		const a = document.createElement("a")
+		a.href = url
+		a.download = getLrcName() || "unknown.lrc"
+		a.click()
+	} finally {
+		URL.revokeObjectURL(url)
+	}
+	s.unsavedChanges = false
+}
+
+export async function getSaveLocation() {
+	if (s.fileHandles.lyrics) {
+		const musicDir = await getMusicDir()
+		if (!musicDir) {
+			console.warn("No music directory handle")
+			return s.fileHandles.lyrics.name
+		}
+		const fullPath = await getDescendantPath(musicDir, s.fileHandles.lyrics)
+
+		return fullPath ? fullPath.join("/") : s.fileHandles.lyrics.name
+	} else if (s.fileHandles.audio) {
+		const lrcName = getLrcName()
+		if (!lrcName) return null
+		const parentDir = await getParentFolderForFileUsingMusicDirectory(s.fileHandles.audio)
+		if (!parentDir) return null
+		return parentDir.name + "/" + lrcName
+	} else {
+		return "idk"
+	}
+}
+
 export async function getParentFolderForFileUsingMusicDirectory(fileHandle: FileSystemFileHandle): Promise<FileSystemDirectoryHandle | undefined> {
 	const musicDirHandle = await getMusicDir()
 	if (!musicDirHandle) {
@@ -177,7 +214,9 @@ export async function getParentFolderForFileUsingMusicDirectory(fileHandle: File
 	console.log("possibleDescendant", descendantPath)
 
 	if (!descendantPath) {
-		throw new Error("file handle is not a descendant of the music directory handle")
+		// throw new Error("file handle is not a descendant of the music directory handle")
+		console.warn("file handle is not a descendant of the music directory handle")
+		return
 	}
 
 	const dirPath = descendantPath.slice(0, -1)

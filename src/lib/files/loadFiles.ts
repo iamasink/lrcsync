@@ -5,6 +5,7 @@ import { historyManager } from "$lib/history.svelte"
 import { s } from "$lib/state.svelte"
 import { AUDIO_EXTENSIONS, LYRIC_EXTENSIONS } from "./extensions"
 import { detectAndUpdateLanguage } from "$lib/transliteration/transliteration"
+import { showToast } from "$lib/toast.svelte"
 
 
 export async function loadAudio(
@@ -37,32 +38,45 @@ export async function loadLRC(
 }
 
 
+async function loadCompanionFile(handle: FileSystemFileHandle, extensions: Set<string>): Promise<FileWithHandle | null> {
+	const companionHandle = await findCompanionFile(handle, extensions)
+	if (!companionHandle) return null
+	const file: FileWithHandle = await companionHandle.getFile()
+	file.handle = companionHandle
+	return file
+}
+
 export async function loadFiles(lrcFile: FileWithHandle | null, audioFile: FileWithHandle | null) {
-	// discover companion files before loading
+	// TODO: a proper dialog to choose whether to load it
 	if (audioFile?.handle && !lrcFile) {
-		const companion = await findCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
-		if (companion) {
-			const file: FileWithHandle = await companion.getFile()
-			file.handle = companion
-			lrcFile = file
-			alert(`found a companion lrc file (${lrcFile.name}), so that was also loaded!`)
+		const companion = await loadCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
+		const isEmpty = s.lyrics.length <= 1
+		if (companion && (isEmpty || confirm(`found a companion lrc file (${companion.name}), load it?`))) {
+			lrcFile = companion
+			showToast(`found a companion lrc file (${companion.name}), so that was also loaded!`)
 		}
 	} else if (lrcFile?.handle && !audioFile) {
-		const companion = await findCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
-		if (companion) {
-			const file: FileWithHandle = await companion.getFile()
-			file.handle = companion
-			audioFile = file
-			alert(`found a companion audio file (${audioFile.name}), so that was also loaded!`)
+		const companion = await loadCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
+		const noAudio = !s.filePaths.audio
+		if (companion && (noAudio || confirm(`found a companion audio file (${companion.name}), load it?`))) {
+			audioFile = companion
+			showToast(`found a companion audio file (${companion.name}), so that was also loaded!`)
 		}
 	}
 
 	// update file metadata after companion discovery
-	s.filePaths.lyrics = lrcFile?.name
-	s.fileHandles.lyrics = lrcFile?.handle
-
-	s.filePaths.audio = audioFile?.name
-	s.fileHandles.audio = audioFile?.handle
+	if (lrcFile) {
+		s.filePaths.lyrics = lrcFile?.name
+		s.fileHandles.lyrics = lrcFile?.handle
+	}
+	if (audioFile) {
+		s.filePaths.audio = audioFile?.name
+		s.fileHandles.audio = audioFile?.handle
+		// if we loaded audio (and not lrc) reset the lyrics,
+		// if we have lrc then itll stay the same
+		s.filePaths.lyrics = lrcFile?.name
+		s.fileHandles.lyrics = lrcFile?.handle
+	}
 
 	const loadedLyrics = !!lrcFile
 	const loadedAudio = !!audioFile

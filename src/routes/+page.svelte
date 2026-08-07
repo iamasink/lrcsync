@@ -285,6 +285,7 @@ $effect(() => {
 <!-- <ScreensizeWarning /> -->
 <!-- <DialogNewAudio bind:open={isDialogNewAudioOpen} /> -->
 <BPMMenu bind:open={showBPMMenu} />
+<Toast/>
 
 <div class="app">
 	<div class="container">

@@ -1,5 +1,6 @@
 <script lang="ts">
 import {
+	downloadFile,
 	forgetMusicDir,
 	getBaseName,
 	getDescendantPath,
@@ -7,6 +8,7 @@ import {
 	getLrcName,
 	getMusicDir,
 	getParentDir,
+	getSaveLocation,
 	saveFile,
 	setMusicDir,
 } from "$lib/files/fileSystem"
@@ -15,6 +17,7 @@ import { cleanAndSort, exportWithMetadata } from "$lib/parseLRC"
 import { preferences, s } from "$lib/state.svelte"
 import { onMount } from "svelte"
 import Button from "./Button.svelte"
+import { showToast } from "$lib/toast.svelte";
 
 let parentDir: string = $derived(getParentDir(s.filePaths.lyrics || s.filePaths.audio || ""))
 let audioName: string = $derived(getBaseName(s.filePaths.audio ?? ""))
@@ -48,13 +51,17 @@ async function copyRomanized() {
 async function handleSaveButton() {
 	const result = await saveFile()
 	if (result) {
-		alert("saved as " + result)
+		showToast("saved as " + result)
 	}
+}
+async function handleDownloadButton() {
+	await downloadFile()
+	showToast("downloaded as " + (getLrcName() || "unknown.lrc"))
 }
 async function handleSaveAndClearButton() {
 	const result = await saveFile()
 	if (result) {
-		alert("saved as " + result)
+		showToast("saved as " + result)
 		s.lyrics = []
 		s.filePaths.lyrics = undefined
 		s.fileHandles.lyrics = undefined
@@ -62,9 +69,47 @@ async function handleSaveAndClearButton() {
 		s.filePaths.audio = undefined
 	}
 }
+function stripExtension(path: string): string {
+	const lastDotIndex = path.lastIndexOf(".")
+	return lastDotIndex > path.lastIndexOf("/") ? path.slice(0, lastDotIndex) : path
+}
+function checkPaths() {
+	if (s.filePaths.audio && s.filePaths.lyrics && stripExtension(s.filePaths.audio) !== stripExtension(s.filePaths.lyrics)) {
+		return true
+	} 
+	return false
+}
+
+$effect(() => {
+	s.fileHandles.lyrics 
+	s.fileHandles.audio 
+	getLrcName()
+	setInfo()
+})
+
+
+let info = $state("")
+async function setInfo() {
+	// console.log("awa")
+	// info = ""
+	// if (s.fileHandles.lyrics) {
+	// 	// check if overwriting
+	// 	const file = await s.fileHandles.lyrics.getFile()
+	// 	if (file.name === getLrcName()) {
+	// 		info = "overwriting " + getLrcName()
+	// 	}
+	// } else {
+	// 	if (s.fileHandles.audio) {
+	// 		info = "writing to new file " + getLrcName()
+	// 	}
+	// 	info = "writing to new file " + getLrcName()
+	// }
+	info = "save location: " +  (await getSaveLocation() ?? "idk")
+}
 </script>
 
 <div class="metadata-view">
+<div>
 	<div>
 		<!-- TODO: FIX THIS -->
 		{#if s.isTauri}
@@ -74,7 +119,7 @@ async function handleSaveAndClearButton() {
 			<label>lrc name: <input type="text" bind:value={lrcName} placeholder={getLrcName()} /></label>
 		{:else}
 			<p>im browser</p>
-			<label>audio name: <input type="text" bind:value={s.filePaths.audio} /></label><br />
+			<label>audio name: <input disabled type="text" bind:value={s.filePaths.audio} /></label><br />
 			<label>lrc name: <input type="text" bind:value={s.filePaths.lyrics} placeholder={getLrcName()} /></label>
 		{/if}
 	</div>
@@ -118,7 +163,15 @@ async function handleSaveAndClearButton() {
 		</div>
 	</details>
 	<br />
+	<!-- check if audio, lrc filenames differ and warn -->
+	{#if checkPaths()}
+		<p style="color: red">Warning: audio and lrc filenames differ</p>
+	{/if}
+	<!-- TODO: IMPROVE INFO AND STUFF?? -->
+	<p>{info}</p>
+	<div></div>
 	<button onclick={handleSaveButton}>save</button>
+	<button onclick={handleDownloadButton}>download</button>
 	<button onclick={handleSaveAndClearButton}>save and clear</button>
 	<button onclick={copy}>copy</button>
 	<button onclick={copyRomanized}>copy romanized</button>
@@ -153,9 +206,16 @@ async function handleSaveAndClearButton() {
 		<p>current lrc handle: {s.fileHandles.lyrics ? s.fileHandles.lyrics.name : "not set"}</p>
 	</div>
 </div>
+</div>
 
 <style>
 .metadata-view {
+	height: 100%;
+	overflow-y:auto;
+	/* >div{
+		overflow-y: scroll;
+	} */
+
   pre {
     height: 10vh;
     overflow-y: scroll;
