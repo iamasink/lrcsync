@@ -1,11 +1,13 @@
 <script lang="ts">
 import { getBeatFromCurrentTime, getBeatFromTime, getTimeAtBeat } from "$lib/bpm"
 import Button from "$lib/components/Button.svelte"
+import ConfirmButton from "$lib/components/ConfirmButton.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import { historyManager } from "$lib/history.svelte"
 import { cleanup, roundTimestamp, sortLines, stripAll, stripBadCharacters, stripTags } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
+import { showToast } from "$lib/toast.svelte";
 import { clamp } from "$lib/utils"
 
 const shiftMulti = 1 / 10
@@ -53,8 +55,8 @@ function handlePrevButtonClick() {
 }
 
 function handleClearButtonClick() {
-		s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
-		historyManager.push("cleared all timestamps")
+	s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
+	historyManager.push("cleared all timestamps")
 	showToast("cleared all timestamps")
 }
 function handleClearLyricsButtonClick() {
@@ -334,12 +336,12 @@ function togglePlayPause() {
 			Strip
 		</Button>
 		<!--
-		<Button
-			onclick={() => {
-				handleClearButtonClick()
-			}}
-			title="Clear all existing timestamps"
-		>
+			<Button
+				onclick={() => {
+					handleClearButtonClick()
+				}}
+				title="Clear all existing timestamps"
+			>
 				{clearButtonConfirm ? "Really clear timestamps?" : "Clear"}
 			</Button>
 		-->
@@ -359,7 +361,7 @@ function togglePlayPause() {
 				title="Clear all lyrics"
 			>
 				{clearLyricsButtonConfirm ? "Really clear lyrics?" : "Clear Lyrics"}
-		</Button>
+			</Button>
 		-->
 		<ConfirmButton
 			onconfirm={() => {

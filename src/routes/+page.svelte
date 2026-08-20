@@ -23,6 +23,7 @@ import { BAD_EXTENSIONS, LYRIC_EXTENSIONS } from "$lib/files/extensions";
 import { getBaseName } from "$lib/files/fileSystem";
 import { loadFiles } from "$lib/files/loadFiles";
 import { formatTime } from "$lib/parseLRC";
+import Toast from "$lib/components/Toast.svelte";
 
 let updateRafId: number
 let fpsRafId: number
@@ -335,6 +336,12 @@ $effect(() => {
 				<!-- TODO: FIX this p, make button and remove svelte-ignores -->
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<p style="background-color: var(--bg-light)" onclick={() => (showBPMMenu = true)}>BPM: {s.useBPM ? s.audioBPM : "off"}</p>
+			</Tooltip>
+			<Tooltip message="lindera dictionary for Japanese romanization">
+				<!-- svelte-ignore a11y_click_events_have_key_events -->
+				<p style="background-color: var(--bg-light); width: 10rem;" onclick={() => (showDictStuff = true)}>
+					Dict: {$preferences.linderaDictionary}
+				</p>
 			</Tooltip>
 			{#if s.useBPM}
 				<Tooltip message="current beat">
