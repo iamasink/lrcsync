@@ -337,12 +337,6 @@ $effect(() => {
 				<!-- svelte-ignore a11y_click_events_have_key_events -->
 				<p style="background-color: var(--bg-light)" onclick={() => (showBPMMenu = true)}>BPM: {s.useBPM ? s.audioBPM : "off"}</p>
 			</Tooltip>
-			<Tooltip message="lindera dictionary for Japanese romanization">
-				<!-- svelte-ignore a11y_click_events_have_key_events -->
-				<p style="background-color: var(--bg-light); width: 10rem;" onclick={() => (showDictStuff = true)}>
-					Dict: {$preferences.linderaDictionary}
-				</p>
-			</Tooltip>
 			{#if s.useBPM}
 				<Tooltip message="current beat">
 					<p>{getBeatFromCurrentTime().toFixed(2)}</p>
