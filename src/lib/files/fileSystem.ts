@@ -166,7 +166,6 @@ export async function saveFile(): Promise<string | void> {
 }
 
 export async function downloadFile() {
-	// simple just download
 	const text = exportWithMetadata(s.lyrics)
 	const blob = new Blob([text], { type: "text/plain" })
 	const url = URL.createObjectURL(blob)
@@ -191,11 +190,14 @@ export async function getSaveLocation() {
 		const fullPath = await getDescendantPath(musicDir, s.fileHandles.lyrics)
 
 		return fullPath ? fullPath.join("/") : s.fileHandles.lyrics.name
+
 	} else if (s.fileHandles.audio) {
 		const lrcName = getLrcName()
 		if (!lrcName) return null
+
 		const parentDir = await getParentFolderForFileUsingMusicDirectory(s.fileHandles.audio)
 		if (!parentDir) return null
+
 		return parentDir.name + "/" + lrcName
 	} else {
 		return "idk"
