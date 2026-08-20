@@ -40,8 +40,8 @@ export default defineConfig([
 			"no-irregular-whitespace": ["warn", { "skipComments": true, "skipRegExps": true, }],
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 
-			"@typescript-eslint/no-non-null-assertion": "warn",
-			"@typescript-eslint/restrict-template-expressions": ["warn", { allowNumber: true }]
+			// "@typescript-eslint/no-non-null-assertion": "warn",
+			"@typescript-eslint/restrict-template-expressions": ["warn", { allowNumber: true }],
 		},
 	},
 ]);
