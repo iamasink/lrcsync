@@ -1,11 +1,13 @@
 <script lang="ts">
 import { getBeatFromCurrentTime, getBeatFromTime, getTimeAtBeat } from "$lib/bpm"
 import Button from "$lib/components/Button.svelte"
+import ConfirmButton from "$lib/components/ConfirmButton.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
 import { historyManager } from "$lib/history.svelte"
 import { cleanup, roundTimestamp, sortLines, stripAll, stripBadCharacters, stripTags } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
 import { s } from "$lib/state.svelte"
+import { showToast } from "$lib/toast.svelte";
 import { clamp } from "$lib/utils"
 
 const shiftMulti = 1 / 10
@@ -52,20 +54,17 @@ function handlePrevButtonClick() {
 	}
 }
 
-let clearButtonConfirm = $state(false)
-let clearButtonTimeout: number | undefined
 function handleClearButtonClick() {
-	if (!clearButtonConfirm) {
-		clearButtonConfirm = true
-		clearButtonTimeout = window.setTimeout(() => {
-			clearButtonConfirm = false
-		}, 5000)
-	} else {
-		if (clearButtonTimeout) clearTimeout(clearButtonTimeout)
-		s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
-		historyManager.push("cleared all timestamps")
-		clearButtonConfirm = false
-	}
+	s.lyrics = s.lyrics.map(line => ({ ...line, time: -1 }))
+	historyManager.push("cleared all timestamps")
+	showToast("cleared all timestamps")
+}
+function handleClearLyricsButtonClick() {
+	s.lyrics = []
+	s.filePaths.lyrics = undefined
+	s.fileHandles.lyrics = undefined
+	historyManager.push("cleared all lyrics")
+	showToast("cleared all lyrics")
 }
 
 function handleAdjustClick(offsetSec: number, event: MouseEvent) {
@@ -309,6 +308,7 @@ function togglePlayPause() {
 		<Button
 			onclick={() => {
 				s.lyrics = sortLines(s.lyrics)
+				showToast("sorted lines")
 				historyManager.push("sorted lines")
 			}}
 			title="sort lines by timestamp"
@@ -318,6 +318,7 @@ function togglePlayPause() {
 		<Button
 			onclick={() => {
 				s.lyrics = cleanup(s.lyrics)
+				showToast("cleaned up lines")
 				historyManager.push("cleanup")
 			}}
 			title="cleanup"
@@ -327,20 +328,49 @@ function togglePlayPause() {
 		<Button
 			onclick={() => {
 				s.lyrics = stripAll(s.lyrics)
+				showToast("stripped tags and bad characters")
 				historyManager.push("strip tags & bad chars")
 			}}
 			title="strip bad stuff from imports (eg: [chorus] tags, weird unicode, etc.)"
 		>
 			Strip
 		</Button>
-		<Button
-			onclick={() => {
+		<!--
+			<Button
+				onclick={() => {
+					handleClearButtonClick()
+				}}
+				title="Clear all existing timestamps"
+			>
+				{clearButtonConfirm ? "Really clear timestamps?" : "Clear"}
+			</Button>
+		-->
+		<ConfirmButton
+			onconfirm={() => {
 				handleClearButtonClick()
 			}}
 			title="Clear all existing timestamps"
+			confirmMessage="Really clear timestamps?"
 		>
-			{clearButtonConfirm ? "Really?" : "Clear"}
-		</Button>
+		</ConfirmButton>
+		<!--
+			<Button 
+				onclick={() => {
+					handleClearLyricsButtonClick()
+				}}
+				title="Clear all lyrics"
+			>
+				{clearLyricsButtonConfirm ? "Really clear lyrics?" : "Clear Lyrics"}
+			</Button>
+		-->
+		<ConfirmButton
+			onconfirm={() => {
+				handleClearLyricsButtonClick()
+			}}
+			title="Clear all lyrics"
+			confirmMessage="Really clear lyrics?"
+		>
+		</ConfirmButton>
 		<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} disabled />lock caret</label>
 	</div>
 </div>
