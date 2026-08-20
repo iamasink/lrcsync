@@ -4,7 +4,7 @@ import { convertAllWithAromanize } from "./aromanize"
 import { convertAllWithKuroshiro, kuroshiroConvert } from "./kuroshiro"
 import { convertAllWithPinyinPro } from "./pinyin"
 
-export const translitLangs = ["ja", "zh", "ko", "none"] as const
+export const translitLangs = ["ja", "ja-furigana", "zh", "ko", "none"] as const
 export type TranslitLang = typeof translitLangs[number] | null
 
 
@@ -17,7 +17,6 @@ export async function convertWithLang(lang: TranslitLang, lyrics: string[]): Pro
 		case "ja-furigana": {
 			console.log("converting all with convertAllWithKuroshiro + replaceReading")
 			return Promise.all(lyrics.map(async line => kuroshiroConvert(line, { mode: "furigana", to: "hiragana", convertPunctuation: false })))
-
 		}
 		case "zh": {
 			console.log("converting all with convertAllWithPinyinPro")
