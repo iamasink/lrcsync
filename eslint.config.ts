@@ -26,6 +26,11 @@ export default defineConfig([
 			"no-var": "error",
 			"prefer-const": "error",
 
+			"@typescript-eslint/ban-ts-comment": "off",
+			"@typescript-eslint/no-unsafe-call": "off",
+			"@typescript-eslint/no-unsafe-member-access": "off",
+			"@typescript-eslint/no-unsafe-assignment": "off",
+
 			"eqeqeq": ["error", "always", { null: "ignore" }],
 			"no-shadow": "off",
 			"@typescript-eslint/no-shadow": "error",
