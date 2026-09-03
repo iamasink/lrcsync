@@ -40,14 +40,25 @@ const keyAliases: Record<string, string> = {
 }
 const keyToCode: Record<string, string> = {
 	// digits
-	"0": "Digit0", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4",
-	"5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9",
+	"0": "Digit0",
+	"1": "Digit1",
+	"2": "Digit2",
+	"3": "Digit3",
+	"4": "Digit4",
+	"5": "Digit5",
+	"6": "Digit6",
+	"7": "Digit7",
+	"8": "Digit8",
+	"9": "Digit9",
 	// letters
 	...Object.fromEntries(
-		"abcdefghijklmnopqrstuvwxyz".split("").map(c => [c, `Key${c.toUpperCase()}`])
+		"abcdefghijklmnopqrstuvwxyz".split("").map(c => [c, `Key${c.toUpperCase()}`]),
 	),
 	// common named keys
-	"up": "ArrowUp", "down": "ArrowDown", "left": "ArrowLeft", "right": "ArrowRight",
+	"up": "ArrowUp",
+	"down": "ArrowDown",
+	"left": "ArrowLeft",
+	"right": "ArrowRight",
 	",": "Comma",
 	".": "Period",
 	"Space": "Space",
@@ -80,6 +91,10 @@ function handleKey(e: KeyboardEvent) {
 	}
 	if (matchesShortcut(e)) {
 		e.preventDefault()
+		// anim for keybind
+		btn.classList.add("active")
+		setTimeout(() => btn.classList.remove("active"), 100)
+
 		btn.click()
 	}
 }
@@ -114,6 +129,12 @@ function getShortcutText(shortcut: shortcut) {
 .button {
   display: block;
   padding: revert;
+  &:active, &.active {
+    transform: scale(0.98);
+    background-color: var(--primary);
+    transition: background-color 0s, transform 0s;
+  }
+  transition: background-color 0.1s ease-in-out, transform 0.1s ease-in-out;
 
   .label {
     font-weight: bold;

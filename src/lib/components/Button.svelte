@@ -10,7 +10,7 @@ interface Props extends svelteHTML.HTMLAttributes<HTMLButtonElement> {
 	/** tooltip message*/
 	title?: string
 	allownewline?: boolean
-	onclick: MouseEventHandler<HTMLButtonElement>
+	onclick?: MouseEventHandler<HTMLButtonElement>
 	tooltipPosition?: position
 	children: any
 	[key: string]: any
@@ -35,5 +35,17 @@ let btn: HTMLButtonElement
   .label {
     font-weight: bold;
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active, &.active {
+    transform: scale(0.98);
+    background-color: var(--primary);
+    transition: background-color 0s, transform 0s;
+  }
+  transition: background-color 0.1s ease-in-out, transform 0.1s ease-in-out;
 }
 </style>
