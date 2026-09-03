@@ -5,9 +5,12 @@ export type Toast = {
 
 export const toasts = $state<Toast[]>([])
 
-export function showToast(message: string, durationMs = 5000) {
-	const id = Date.now()
+let nextId = 0
 
+export function showToast(message: string, durationMs = 5000) {
+	const id = nextId++
+
+	console.log(`[toast ${id}]: "${message}"`)
 	toasts.push({ id, message: message })
 
 	if (durationMs > 0) {
