@@ -19,11 +19,12 @@ import ButtonControls from "./_components/ButtonControls.svelte"
 import { getBeatFromCurrentTime } from "$lib/bpm"
 import Tooltip from "$lib/components/Tooltip.svelte"
 import BPMMenu from "./_components/BPMMenu.svelte"
-import { BAD_EXTENSIONS, LYRIC_EXTENSIONS } from "$lib/files/extensions";
+import { AUDIO_EXTENSIONS, BAD_EXTENSIONS, LYRIC_EXTENSIONS } from "$lib/files/extensions";
 import { getBaseName } from "$lib/files/fileSystem";
 import { loadFiles } from "$lib/files/loadFiles";
 import { formatTime } from "$lib/parseLRC";
 import Toast from "$lib/components/Toast.svelte";
+import { showToast } from "$lib/toast.svelte";
 
 let updateRafId: number
 let fpsRafId: number
@@ -158,6 +159,7 @@ function countfps(now: number) {
 }
 
 async function doLoad() {
+	console.log("doload: lrcFile", lrcFile, "audioFile", audioFile)
 	const result = await loadFiles(lrcFile, audioFile)
 
 	if (result.audioSrc) {
@@ -187,21 +189,45 @@ onMount(() => {
 
 	function onFiles(files: FileWithHandle[]) {
 		console.log(`processing all files:`, files)
+		const seenFiles = []
+		let newAudioFile: FileWithHandle | null = null
+		let newLrcFile: FileWithHandle | null = null
 		Array.from(files).forEach((file) => {
 			console.log("processing file", file.name)
 			const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
+			seenFiles.push(file.name)
 
 			if (BAD_EXTENSIONS.has(ext)) {
 				console.log(`ignoring file ext ${ext}`)
+				showToast(`ignoring file ${file.name}`)
 				return
 			}
 
 			if (LYRIC_EXTENSIONS.has(ext)) {
-				lrcFile = file
+				if (!newLrcFile) {
+					newLrcFile = file
+				} else {
+					showToast("multiple lyric files dropped. aborting!")
+					console.error("multiple lyric files dropped. aborting!")
+					newLrcFile = null
+					return
+				}
 			} else {
-				audioFile = file
+				if (!newAudioFile) {
+					if (!AUDIO_EXTENSIONS.has(ext)) {
+						showToast(`assuming file ${file.name} is audio (ext ${ext})`)
+					}
+					newAudioFile = file
+				} else {
+					showToast("multiple audio files dropped. aborting!")
+					console.error("multiple audio files dropped. aborting!")
+					newAudioFile = null
+					return
+				}
 			}
 		})
+		lrcFile = newLrcFile
+		audioFile = newAudioFile
 	}
 
 	console.log("hi world")

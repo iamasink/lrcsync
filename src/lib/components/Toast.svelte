@@ -32,13 +32,10 @@ import { s } from "$lib/state.svelte"
   gap: 0.5rem;
 }
 .toast-message {
-  background: var(--bg-light, #222);
-  color: var(--text, #fff);
-  padding: 14px;
-  border-radius: 8px;
+  background: var(--bg-light);
+  color: var(--text);
+  padding: 10px;
   max-width: 300px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border, #444);
   align-self: flex-end;
 }
 </style>

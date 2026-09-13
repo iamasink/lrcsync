@@ -3,6 +3,7 @@ import { getBeatFromCurrentTime, getBeatFromTime, getTimeAtBeat } from "$lib/bpm
 import Button from "$lib/components/Button.svelte"
 import ConfirmButton from "$lib/components/ConfirmButton.svelte"
 import KeybindButton from "$lib/components/KeybindButton.svelte"
+import { getLrcName, getPrettyLrcName } from "$lib/files/fileSystem";
 import { historyManager } from "$lib/history.svelte"
 import { cleanup, roundTimestamp, sortLines, stripAll, stripBadCharacters, stripTags } from "$lib/parseLRC"
 import { scrollLineIntoView } from "$lib/scroll"
@@ -373,4 +374,14 @@ function togglePlayPause() {
 		</ConfirmButton>
 		<label><input type="checkbox" bind:checked={s.syncCaretWithAudio} disabled />lock caret</label>
 	</div>
+	<!-- <div>
+		<Button onclick={() => {
+			const query = encodeURIComponent(getPrettyLrcName());
+			window.open(`https://www.google.com/search?q=${query}+lyrics`, "_blank");
+		}} title="Open Google search for this song ({getPrettyLrcName()})"
+			disabled={!getLrcName()}
+		>
+			Search
+		</Button>
+	</div> -->
 </div>

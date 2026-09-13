@@ -1,8 +1,8 @@
 import { save } from "@tauri-apps/plugin-dialog"
 import { writeTextFile } from "@tauri-apps/plugin-fs"
-import { deleteHandle, getHandle, putHandle } from "$lib/indexeddb"
 import { s } from "$lib/state.svelte"
 import { exportWithMetadata } from "$lib/parseLRC"
+import { deleteHandle, getHandle, setHandle } from "$lib/indexeddb"
 
 export async function setMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 	if (s.isTauri) {
@@ -17,13 +17,18 @@ export async function setMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 
 	try {
 		// @ts-ignore
-		const handle = await window.showDirectoryPicker()
+		const handle = await window.showDirectoryPicker({ id: "music-dir", mode: "readwrite", startIn: "music" }) as FileSystemHandle
 		console.log("Selected music directory:", handle)
-		verifyPermission(handle, true)
+		if (handle.kind === "file") {
+			alert("Expected a directory handle, but got a file handle")
+			throw new Error("Expected a directory handle, but got a file handle")
+		}
+		const dirHandle = handle as FileSystemDirectoryHandle
+		await verifyPermission(handle, true)
 		// s.musicDirHandle = handle
-		await putHandle("musicDir", handle)
+		await setHandle(dirHandle)
 		console.log("Music directory handle saved to IndexedDB")
-		return handle
+		return dirHandle
 	} catch (err) {
 		console.error("Error selecting music directory", err)
 		return null
@@ -32,7 +37,7 @@ export async function setMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 
 export async function getMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 	console.log("Getting music directory handle from IndexedDB")
-	const handle = await getHandle("musicDir") as FileSystemDirectoryHandle | null
+	const handle = await getHandle()
 	if (!handle) return null
 	const isPermissionGranted = await verifyPermission(handle, true)
 	if (!isPermissionGranted) {
@@ -45,7 +50,7 @@ export async function getMusicDir(): Promise<FileSystemDirectoryHandle | null> {
 
 export async function forgetMusicDir() {
 	console.log("forgetting music dir handle from indexeddb")
-	deleteHandle("musicDir")
+	await deleteHandle()
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/queryPermission
@@ -139,7 +144,7 @@ export async function saveFile(): Promise<string | void> {
 			const handle = await window.showSaveFilePicker({
 				suggestedName: getLrcName(),
 				types: [{ description: "LRC Files", accept: { "text/plain": [".lrc", ".txt"] } }],
-			})
+			}) as FileSystemFileHandle
 			const writable = await handle.createWritable()
 			await writable.write(text)
 			await writable.close()
@@ -323,6 +328,17 @@ export function getLrcName() {
 	}
 
 	return filename ?? ""
+}
+
+export function getPrettyLrcName() {
+	const lrcfilename = getLrcName()
+	// replace initial numbers (eg 001, 01, 1, 1-1)
+	return lrcfilename.replace(/^\d+(-\d+)?_?/, "")
+		// replace underscores with spaces
+		.replace(/_/g, " ")
+		// remove file extension
+		.replace(/\.[^/.]+$/, "")
+
 }
 
 export function getParentDir(filePath: string): string {

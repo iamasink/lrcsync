@@ -129,6 +129,7 @@ function getShortcutText(shortcut: shortcut) {
 .button {
   display: block;
   padding: revert;
+  background-color: var(--button-bg);
   &:active, &.active {
     transform: scale(0.98);
     background-color: var(--primary);

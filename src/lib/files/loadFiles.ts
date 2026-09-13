@@ -1,6 +1,6 @@
 import { parseLRC, type Metadata } from "$lib/parseLRC"
 import type { FileWithHandle } from "$lib/files/dragDrop"
-import { findCompanionFile } from "$lib/files/fileSystem"
+import { findCompanionFile, getMusicDir } from "$lib/files/fileSystem"
 import { historyManager } from "$lib/history.svelte"
 import { s } from "$lib/state.svelte"
 import { AUDIO_EXTENSIONS, LYRIC_EXTENSIONS } from "./extensions"
@@ -47,29 +47,39 @@ async function loadCompanionFile(handle: FileSystemFileHandle, extensions: Set<s
 }
 
 export async function loadFiles(lrcFile: FileWithHandle | null, audioFile: FileWithHandle | null) {
-	// TODO: a proper dialog to choose whether to load it
-	if (audioFile?.handle && !lrcFile) {
-		const companion = await loadCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
-		const isEmpty = s.lyrics.length <= 1
-		if (companion && (isEmpty || confirm(`found a companion lrc file (${companion.name}), load it?`))) {
-			lrcFile = companion
-			showToast(`found a companion lrc file (${companion.name}), so that was also loaded!`)
-		}
-	} else if (lrcFile?.handle && !audioFile) {
-		const companion = await loadCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
-		const noAudio = !s.filePaths.audio
-		if (companion && (noAudio || confirm(`found a companion audio file (${companion.name}), load it?`))) {
-			audioFile = companion
-			showToast(`found a companion audio file (${companion.name}), so that was also loaded!`)
-		}
-	}
+	console.log("hi")
 
-	// update file metadata after companion discovery
+	// TODO: a proper dialog to choose whether to load it
+	if (await getMusicDir()) {
+		console.log("music dir handle exists, checking for companion files")
+		if (audioFile?.handle && !lrcFile) {
+			const companion = await loadCompanionFile(audioFile.handle, LYRIC_EXTENSIONS)
+			const isEmpty = s.lyrics.length <= 1
+			if (companion && (isEmpty || confirm(`found a companion lrc file (${companion.name}), load it?`))) {
+				lrcFile = companion
+				showToast(`found a companion lrc file (${companion.name}), so that was also loaded!`)
+			}
+		} else if (lrcFile?.handle && !audioFile) {
+			const companion = await loadCompanionFile(lrcFile.handle, AUDIO_EXTENSIONS)
+			const noAudio = !s.filePaths.audio
+			if (companion && (noAudio || confirm(`found a companion audio file (${companion.name}), load it?`))) {
+				audioFile = companion
+				showToast(`found a companion audio file (${companion.name}), so that was also loaded!`)
+			}
+		}
+
+
+	} else {
+		console.log("no music dir set")
+	}
+	// update file metadata
 	if (lrcFile) {
+		console.log("x lrcFile: ", lrcFile.name)
 		s.filePaths.lyrics = lrcFile?.name
 		s.fileHandles.lyrics = lrcFile?.handle
 	}
 	if (audioFile) {
+		console.log("x audioFile: ", audioFile.name)
 		s.filePaths.audio = audioFile?.name
 		s.fileHandles.audio = audioFile?.handle
 		// if we loaded audio (and not lrc) reset the lyrics,
@@ -92,8 +102,7 @@ export async function loadFiles(lrcFile: FileWithHandle | null, audioFile: FileW
 		// reset history
 		historyManager.clear()
 		detectAndUpdateLanguage()
-		// tostring to avoid state?
-		historyManager.push(`Loaded LRC file: ${s.filePaths.lyrics || s.filePaths.audio || "unknown"}`)
+		historyManager.push(`Loaded LRC file: ${s.filePaths.lyrics?.toString() || s.filePaths.audio?.toString() || "unknown"}`)
 	}
 	if (audioFile) {
 		console.log("loading audio")
@@ -104,7 +113,7 @@ export async function loadFiles(lrcFile: FileWithHandle | null, audioFile: FileW
 		}
 
 		console.log("loaded audio")
-		historyManager.push(`Loaded audio track ${s.filePaths.audio || s.filePaths.lyrics || "unknown"}`)
+		historyManager.push(`Loaded audio track ${s.filePaths.audio?.toString() || s.filePaths.lyrics?.toString() || "unknown"}`)
 	}
 
 	return { loadedLyrics, audioSrc, loadedAudio }

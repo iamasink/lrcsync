@@ -108,7 +108,7 @@ async function updatePosition() {
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.1s ease;
   /* margin-top: 4px; */
   z-index: 10;
 }

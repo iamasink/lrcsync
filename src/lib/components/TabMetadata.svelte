@@ -170,11 +170,11 @@ async function setInfo() {
 	<!-- TODO: IMPROVE INFO AND STUFF?? -->
 	<p>{info}</p>
 	<div></div>
-	<button onclick={handleSaveButton}>save</button>
-	<button onclick={handleDownloadButton}>download</button>
-	<button onclick={handleSaveAndClearButton}>save and clear</button>
-	<button onclick={copy}>copy</button>
-	<button onclick={copyRomanized}>copy romanized</button>
+	<Button onclick={handleSaveButton}>save</Button>
+	<Button onclick={handleDownloadButton}>download</Button>
+	<Button onclick={handleSaveAndClearButton}>save and clear</Button>
+	<Button onclick={copy}>copy</Button>
+	<Button onclick={copyRomanized}>copy romanized</Button>
 	<br />
 	<Button title="you can give permission for your whole music directory to make editing files easier
 	this will allow automatically saving sidecar .lrc files next to dragged in music"
