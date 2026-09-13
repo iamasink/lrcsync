@@ -182,7 +182,7 @@ function handleSyncButtonClick() {
 	if (!s.waveformRef) {
 		return console.log("nuh uh")
 	}
-	if (s.currentCaretLine == -1) s.currentAudioLine = 0
+	if (s.currentCaretLine <= -1) s.currentAudioLine = 0
 
 	// const time = roundTimestamp(s.waveformRef.getCurrentTime() * 1000)
 	const time = s.waveformRef.getCurrentTime() * 1000
