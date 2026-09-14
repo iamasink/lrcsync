@@ -16,9 +16,7 @@ export function initKuroshiro(): Promise<void> {
 
 	console.log("readying kuroshiro")
 	ready = (async () => {
-		const IS_PROD = (import.meta.env.MODE == 'production')
-		console.log("is prod?", IS_PROD)
-		kuroshiro = await Kuroshiro.buildAndInitWithKuromoji(true)
+		kuroshiro = await Kuroshiro.buildAndInitWithKuromoji()
 
 	})()
 
