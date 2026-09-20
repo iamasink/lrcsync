@@ -144,7 +144,7 @@ export async function saveFile(): Promise<string | void> {
 			const handle = await window.showSaveFilePicker({
 				suggestedName: getLrcName(),
 				types: [{ description: "LRC Files", accept: { "text/plain": [".lrc", ".txt"] } }],
-				id: "savefile"
+				id: "save-lrc"
 			}) as FileSystemFileHandle
 			const writable = await handle.createWritable()
 			await writable.write(text)
