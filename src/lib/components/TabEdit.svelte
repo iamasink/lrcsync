@@ -248,7 +248,7 @@ function handleBlankButtonClick() {
 
 	s.waveformRef?.updateRegions()
 
-	historyManager.push(`added blank line line ${line} (${formatTimestamp(time)})`)
+	historyManager.push(`added blank line line ${line} (${formatTimestamp(time)})`, {saveCaret:true})
 }
 
 async function handlePasteClean() {
