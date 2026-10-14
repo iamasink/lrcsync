@@ -20,11 +20,14 @@ import { getBeatFromCurrentTime } from "$lib/bpm"
 import Tooltip from "$lib/components/Tooltip.svelte"
 import BPMMenu from "./_components/BPMMenu.svelte"
 import { AUDIO_EXTENSIONS, BAD_EXTENSIONS, LYRIC_EXTENSIONS } from "$lib/files/extensions";
-import { getBaseName } from "$lib/files/fileSystem";
+import { getBaseName, findCompanionFilePath } from "$lib/files/fileSystem";
 import { loadFiles } from "$lib/files/loadFiles";
 import { formatTime } from "$lib/parseLRC";
 import Toast from "$lib/components/Toast.svelte";
 import { showToast } from "$lib/toast.svelte";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
+import { readFile } from "@tauri-apps/plugin-fs";
 
 let updateRafId: number
 let fpsRafId: number
@@ -181,54 +184,78 @@ async function doLoad() {
 	console.log(`new audio file: ${s.filePaths.audio} handle ${s.fileHandles.audio}`)
 }
 
+function onFiles(files: FileWithHandle[]) {
+	console.log(`processing all files:`, files)
+	const seenFiles = []
+	let newAudioFile: FileWithHandle | null = null
+	let newLrcFile: FileWithHandle | null = null
+	Array.from(files).forEach((file) => {
+		console.log("processing file", file.name)
+		const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
+		seenFiles.push(file.name)
+
+		if (BAD_EXTENSIONS.has(ext)) {
+			console.log(`ignoring file ext ${ext}`)
+			showToast(`ignoring file ${file.name}`)
+			return
+		}
+
+		if (LYRIC_EXTENSIONS.has(ext)) {
+			if (!newLrcFile) {
+				newLrcFile = file
+			} else {
+				showToast("multiple lyric files dropped. aborting!")
+				console.error("multiple lyric files dropped. aborting!")
+				newLrcFile = null
+				return
+			}
+		} else {
+			if (!newAudioFile) {
+				if (!AUDIO_EXTENSIONS.has(ext)) {
+					showToast(`assuming file ${file.name} is audio (ext ${ext})`)
+				}
+				newAudioFile = file
+			} else {
+				showToast("multiple audio files dropped. aborting!")
+				console.error("multiple audio files dropped. aborting!")
+				newAudioFile = null
+				return
+			}
+		}
+	})
+	lrcFile = newLrcFile
+	audioFile = newAudioFile
+}
+
+async function openPaths() {
+	const paths = await invoke<string[]>("take_open_files")
+	if (!paths.length) return
+
+	// sidecar
+	const all = [...paths]
+	for (const path of paths) {
+		const ext = path.slice(path.lastIndexOf(".")).toLowerCase()
+		if (LYRIC_EXTENSIONS.has(ext)) {
+			const companion = await findCompanionFilePath(path, AUDIO_EXTENSIONS)
+			if (companion && !all.includes(companion)) all.push(companion)
+		}
+	}
+
+	const files: FileWithHandle[] = []
+	for (const path of all) {
+		const contents = await readFile(path)
+		const name = path.split(/[\\/]/).pop() || "file"
+		files.push(new File([contents], name))
+	}
+	onFiles(files)
+	await doLoad()
+}
+
 onMount(() => {
 	// @ts-ignore
 	s.isTauri = !!(window.__TAURI_INTERNALS__)
 
 	const cleanupfns: (() => void)[] = []
-
-	function onFiles(files: FileWithHandle[]) {
-		console.log(`processing all files:`, files)
-		const seenFiles = []
-		let newAudioFile: FileWithHandle | null = null
-		let newLrcFile: FileWithHandle | null = null
-		Array.from(files).forEach((file) => {
-			console.log("processing file", file.name)
-			const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase()
-			seenFiles.push(file.name)
-
-			if (BAD_EXTENSIONS.has(ext)) {
-				console.log(`ignoring file ext ${ext}`)
-				showToast(`ignoring file ${file.name}`)
-				return
-			}
-
-			if (LYRIC_EXTENSIONS.has(ext)) {
-				if (!newLrcFile) {
-					newLrcFile = file
-				} else {
-					showToast("multiple lyric files dropped. aborting!")
-					console.error("multiple lyric files dropped. aborting!")
-					newLrcFile = null
-					return
-				}
-			} else {
-				if (!newAudioFile) {
-					if (!AUDIO_EXTENSIONS.has(ext)) {
-						showToast(`assuming file ${file.name} is audio (ext ${ext})`)
-					}
-					newAudioFile = file
-				} else {
-					showToast("multiple audio files dropped. aborting!")
-					console.error("multiple audio files dropped. aborting!")
-					newAudioFile = null
-					return
-				}
-			}
-		})
-		lrcFile = newLrcFile
-		audioFile = newAudioFile
-	}
 
 	console.log("hi world")
 	const dragDropCleanup = initDragDrop(
@@ -239,6 +266,14 @@ onMount(() => {
 		// onAfterDrop
 		doLoad,
 	)
+
+	if (s.isTauri) {
+		(async () => {
+			const unlistenOpen = await listen("open-files", () => openPaths())
+			cleanupfns.push(unlistenOpen)
+			await openPaths()
+		})()
+	}
 
 	const listeners = [
 		["keydown", handleKeydown],

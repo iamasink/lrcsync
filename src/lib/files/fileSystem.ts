@@ -1,5 +1,5 @@
 import { save } from "@tauri-apps/plugin-dialog"
-import { writeTextFile } from "@tauri-apps/plugin-fs"
+import { readDir, writeTextFile } from "@tauri-apps/plugin-fs"
 import { s } from "$lib/state.svelte"
 import { exportWithMetadata } from "$lib/parseLRC"
 import { deleteHandle, getHandle, setHandle } from "$lib/indexeddb"
@@ -237,6 +237,12 @@ export async function getParentFolderForFileUsingMusicDirectory(fileHandle: File
 	return currentDirHandle
 }
 
+function isCompanionMatch(name: string, stem: string, targetExtensions: Set<string>): boolean {
+	const entryExt = name.slice(name.lastIndexOf(".")).toLowerCase()
+	const entryStem = name.replace(/\.[^.]+$/, "")
+	return entryStem === stem && targetExtensions.has(entryExt)
+}
+
 export async function findCompanionFile(handle: FileSystemFileHandle, targetExtensions: Set<string>): Promise<FileSystemFileHandle | undefined> {
 	const parentHandle = await getParentFolderForFileUsingMusicDirectory(handle)
 	if (!parentHandle) return
@@ -245,13 +251,24 @@ export async function findCompanionFile(handle: FileSystemFileHandle, targetExte
 
 	for await (const [name, entry] of parentHandle.entries()) {
 		if (entry.kind !== "file") continue
-		const entryExt = name.slice(name.lastIndexOf(".")).toLowerCase()
-		const entryStem = name.replace(/\.[^.]+$/, "")
-		if (entryStem === stem && targetExtensions.has(entryExt)) {
-			return entry
-		}
+		if (isCompanionMatch(name, stem, targetExtensions)) return entry
 	}
 	return
+}
+
+export async function findCompanionFilePath(path: string, targetExtensions: Set<string>): Promise<string | null> {
+	const sepIndex = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"))
+	if (sepIndex < 0) return null
+	const dir = path.slice(0, sepIndex)
+	const separator = path[sepIndex]
+	const stem = path.slice(sepIndex + 1).replace(/\.[^.]+$/, "")
+
+	const entries = await readDir(dir)
+	for (const entry of entries) {
+		if (!entry.isFile) continue
+		if (isCompanionMatch(entry.name, stem, targetExtensions)) return `${dir}${separator}${entry.name}`
+	}
+	return null
 }
 
 async function saveUsingMusicDirectory(audioHandle: FileSystemHandle, lrcText: string): Promise<string | undefined> {
