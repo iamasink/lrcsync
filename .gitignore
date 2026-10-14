@@ -32,3 +32,4 @@ defaultaudio.flac
 packages/wavesurfer.js
 problematic.txt
 packages
+*.ps1

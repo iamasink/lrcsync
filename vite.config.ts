@@ -27,19 +27,13 @@ function getGitInfo() {
 		console.warn('Failed to get Git branch:', err)
 	}
 
-	if (!branch && process.env.CF_PAGES_BRANCH) {
-		branch = process.env.CF_PAGES_BRANCH
+	if (!branch && process.env["CF_PAGES_BRANCH"]) {
+		branch = process.env["CF_PAGES_BRANCH"]
 		console.log('Branch from CF_PAGES_BRANCH env:', branch)
 	}
 
 	if (!buildDate) {
 		console.warn("no builddate")
-		// try {
-		// 	buildDate = execSync('git log -1 --format=%cI').toString().trim()
-		// 	console.log('using git commit date:', buildDate)
-		// } catch (err) {
-		// 	console.warn('Failed to get Git commit date, using:', buildDate)
-		// }
 	}
 
 	return { hash, branch, buildDate }
@@ -51,8 +45,8 @@ export default defineConfig({
 	plugins: [sveltekit(), devtoolsJson()],
 	build: { minify: false },
 	define: {
-		__GIT_HASH__: JSON.stringify(hash),
-		__GIT_BRANCH__: JSON.stringify(branch),
+		__GIT_HASH__: JSON.stringify(hash ?? null),
+		__GIT_BRANCH__: JSON.stringify(branch ?? null),
 		__BUILD_DATE__: JSON.stringify(buildDate)
 	},
 	server: {

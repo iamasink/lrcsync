@@ -23,7 +23,7 @@ const config = {
 			base: process.env.VITE_BASE_PATH || ''
 		},
 		serviceWorker: {
-			register: true
+			register: false
 		}
 	}
 };
